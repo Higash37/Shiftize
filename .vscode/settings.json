@@ -1,3 +1,38 @@
 {
-  "cSpell.words": ["myapp"]
+  "cSpell.words": [
+    "adminsdk",
+    "ampm",
+    "armeabi",
+    "arrowleft",
+    "datetimepicker",
+    "Dntg",
+    "fbsvc",
+    "firebaseapp",
+    "firebasestorage",
+    "Firestore",
+    "Gantt",
+    "gradlew",
+    "hprof",
+    "jvmargs",
+    "Metaspace",
+    "mobileprovision",
+    "myapp",
+    "Preact",
+    "Pressable",
+    "shiftscheduler",
+    "shiftschedulerapp",
+    "webp",
+    "xlarge",
+    "xxlarge",
+    "yourcompany"
+  ],
+  "java.configuration.updateBuildConfiguration": "disabled",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "android/": true,
+    "ios/": true
+  },
+  "problems.decorations.enabled": false
 }

@@ -1,58 +1,59 @@
-import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Button } from "react-native";
-import { useRouter } from "expo-router";
-import { useAuth } from "../../src/providers/AuthProvider";
+import React, { useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { router } from "expo-router";
+import { useAuth } from "../providers/AuthContext";
+import { Header } from "../components/Layout/Header";
+import { User } from "@/types/user";
 
-export default function MainHome() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
+export default function HomePage() {
+  const { user } = useAuth() as { user: User | null };
+  const today = new Date().toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
 
   useEffect(() => {
-    setIsReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (isReady && !user) {
-      router.replace("/login");
+    if (user?.role === "master") {
+      router.replace("/(main)/master/home");
+    } else {
+      router.replace("/(main)/teacher/home");
     }
-  }, [isReady, user]);
+  }, [user]);
 
-  const handleLogout = () => {
-    logout();
-    router.replace("/login");
-  };
-
-  if (!user) return null;
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>ようこそ！ホーム画面</Text>
-      <Text style={styles.info}>ログイン中：{user.nickname}</Text>
-      <Text style={styles.info}>役割：{user.role}</Text>
-
-      <View style={{ marginTop: 24 }}>
-        <Button title="ログアウト" onPress={handleLogout} />
-      </View>
-    </View>
-  );
+  return null;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#f5f5f5",
   },
-  title: {
+  content: {
+    flex: 1,
+  },
+  header: {
+    padding: 20,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  greeting: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  info: {
+  date: {
     fontSize: 16,
-    marginTop: 8,
+    color: "#666",
+  },
+  section: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
   },
 });
