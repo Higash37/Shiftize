@@ -11,6 +11,11 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import {
+  query,
+  where,
+  getDocs,
+  setDoc,
+  getFirestore,
   addDoc,
   collection,
   doc,
@@ -63,6 +68,7 @@ export default function ShiftCreateScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const fadeAnim = new Animated.Value(0);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [selectedDate, setSelectedDate] = useState(date || "");
   const [selectedStartTime, setSelectedStartTime] = useState(startTime || "");
@@ -200,28 +206,112 @@ export default function ShiftCreateScreen() {
     });
   };
 
+  // 同じ userId + date のシフトがすでにあるかどうか確認する関数
+  const isDuplicateShift = async (userId: string, date: string) => {
+    const q = query(
+      collection(db, "shifts"),
+      where("userId", "==", userId),
+      where("date", "==", date)
+      // Firestore によってはここに status 条件が入れられないので注意
+    );
+    const snapshot = await getDocs(q);
+
+    // 「deleted」以外のステータスが既にある場合は重複とみなす
+    return snapshot.docs.some((doc) => doc.data().status !== "deleted");
+  };
+
+  const calculateDuration = (start: string, end: string): number => {
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    return eh * 60 + em - (sh * 60 + sm);
+  };
+
   const handleSubmit = async () => {
+    if (isLoading) return; // 2重送信防止
+
     try {
       setIsLoading(true);
-      const shiftData = {
-        userId: user?.uid || "", // ユーザーIDを追加
-        nickname: userData?.nickname || "", // ユーザーデータからニックネームを取得
-        date: Array.isArray(selectedDate) ? selectedDate[0] : selectedDate, // 日付をstring型に変換
-        startTime: Array.isArray(selectedStartTime)
-          ? selectedStartTime[0]
-          : selectedStartTime, // string型に変換
-        endTime: Array.isArray(selectedEndTime)
-          ? selectedEndTime[0]
-          : selectedEndTime, // string型に変換
-        status: "draft" as ShiftStatus, // 型を明示的にキャスト
-        type: "staff", // デフォルト値を設定
-        isCompleted: false, // デフォルト値を設定
-        duration: 0, // デフォルト値を数値型に修正
-        classes: selectedClasses,
-        hasClass: selectedClasses.length > 0, // hasClassを計算
-      };
-      await createShift(shiftData);
-      router.replace("/(main)/teacher/shifts"); // 確認画面に戻る
+
+      // バリデーション
+      if (!user?.uid) {
+        Alert.alert("エラー", "ログイン情報が取得できませんでした。");
+        return;
+      }
+
+      if (
+        !shiftData.startTime ||
+        !shiftData.endTime ||
+        shiftData.dates.length === 0
+      ) {
+        Alert.alert(
+          "エラー",
+          "開始時間・終了時間・日付をすべて入力してください。"
+        );
+        return;
+      }
+
+      const cleanedClasses = shiftData.classes.filter(
+        (c) => c.startTime && c.endTime
+      );
+
+      // 編集モード時（1件のみ更新）
+      if (isEditMode && shiftId) {
+        const shiftToUpdate = {
+          startTime: shiftData.startTime,
+          endTime: shiftData.endTime,
+          date: shiftData.dates[0],
+          classes: cleanedClasses,
+          duration: calculateDuration(shiftData.startTime, shiftData.endTime),
+          updatedAt: serverTimestamp(),
+        };
+
+        if (userData?.role === "master") {
+          // マスター → 即反映
+          await updateDoc(doc(db, "shifts", shiftId as string), {
+            ...shiftToUpdate,
+            status: "approved",
+          });
+        } else {
+          // 講師 → 編集申請
+          await updateDoc(doc(db, "shifts", shiftId as string), {
+            status: "pending",
+            requestedChanges: {
+              ...shiftToUpdate,
+              requestedAt: serverTimestamp(),
+            },
+            updatedAt: serverTimestamp(),
+          });
+        }
+
+        router.replace("/(main)/teacher/shifts");
+        return;
+      }
+
+      for (const date of shiftData.dates) {
+        const isDuplicate = await isDuplicateShift(user.uid, date);
+        if (isDuplicate) {
+          Alert.alert("重複エラー", `${date} は既にシフトが登録されています。`);
+          continue; // この日はスキップ
+        }
+
+        const shiftToSend = {
+          userId: user.uid,
+          nickname: userData?.nickname || "",
+          date,
+          startTime: shiftData.startTime,
+          endTime: shiftData.endTime,
+          status: "draft" as ShiftStatus,
+          type: "staff",
+          isCompleted: false,
+          duration: calculateDuration(shiftData.startTime, shiftData.endTime),
+          classes: cleanedClasses,
+          hasClass: cleanedClasses.length > 0,
+        };
+
+        await createShift(shiftToSend);
+      }
+
+      router.replace("/(main)/teacher/shifts");
     } catch (error) {
       console.error("シフトの保存に失敗しました:", error);
       Alert.alert("エラー", "シフトの保存に失敗しました。");
