@@ -8,12 +8,12 @@ module.exports = function (api) {
         {
           root: ["."],
           alias: {
-            "@": "./app",
-            "@components": "./app/components",
-            "@utils": "./app/utils",
-            "@types": "./app/types",
-            "@services": "./app/services",
-            "@providers": "./app/providers",
+            "@": "./src",
+            "@components": "./src/components",
+            "@utils": "./src/utils",
+            "@types": "./src/types",
+            "@services": "./src/services",
+            "@providers": "./src/providers",
             "react-native": "react-native-web",
           },
         },
