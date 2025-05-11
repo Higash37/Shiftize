@@ -14,10 +14,11 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@expo/vector-icons": "^14.1.0",
     "@mui/icons-material": "^5.15.10",
     "@mui/material": "^5.15.10",
     "@mui/x-date-pickers": "^6.19.4",
-    "@react-native-community/datetimepicker": "7.7.0",
+    "@react-native-community/datetimepicker": "^7.7.0",
     "@react-native-picker/picker": "2.6.1",
     "@react-navigation/bottom-tabs": "~6.5.7",
     "@react-navigation/native": "~6.1.6",
@@ -30,17 +31,18 @@
     "expo-linking": "~6.2.2",
     "expo-router": "~3.4.10",
     "expo-status-bar": "~1.11.1",
+    "expo-updates": "~0.24.9",
     "firebase": "^10.8.0",
     "firebase-admin": "^13.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.73.6",
     "react-native-calendars": "^1.1310.0",
+    "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-safe-area-context": "4.8.2",
     "react-native-screens": "~3.29.0",
     "react-native-toast-message": "^2.2.1",
-    "react-native-web": "~0.19.6",
-    "expo-updates": "~0.24.9"
+    "react-native-web": "~0.19.6"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

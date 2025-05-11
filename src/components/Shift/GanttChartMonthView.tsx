@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import {
   ShiftItem,
@@ -13,12 +14,43 @@ import {
 } from "@/types/shift";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/services/firebase";
+import { format, addMonths, subMonths } from "date-fns";
+import { ja } from "date-fns/locale";
+import { Ionicons } from "@expo/vector-icons";
+import CustomScrollView from "../CustomScrollView";
+import { DatePickerModal } from "@/components/calendar/DatePickerModal";
 
 interface GanttChartMonthViewProps {
   shifts: ShiftItem[];
   days: string[];
   users: string[];
   onShiftPress?: (shift: ShiftItem) => void;
+  classTimes?: { start: string; end: string }[]; // 授業時間帯
+}
+
+// シフトの重なりをグループ化
+function groupShiftsByOverlap(shifts: ShiftItem[]) {
+  if (shifts.length === 0) return [];
+
+  const groups: ShiftItem[][] = [];
+  shifts
+    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+    .forEach((shift) => {
+      let placed = false;
+      for (const group of groups) {
+        if (
+          !group.some(
+            (s) => s.startTime < shift.endTime && shift.startTime < s.endTime
+          )
+        ) {
+          group.push(shift);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) groups.push([shift]);
+    });
+  return groups;
 }
 
 export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
@@ -26,10 +58,18 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   days,
   users,
   onShiftPress,
+  classTimes = [],
 }) => {
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
     DEFAULT_SHIFT_STATUS_CONFIG
   );
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
+
+  const screenWidth = Dimensions.get("window").width;
+  const dateColumnWidth = 50;
+  const infoColumnWidth = Math.max(screenWidth * 0.18, 150);
+  const ganttColumnWidth = screenWidth - dateColumnWidth - infoColumnWidth;
 
   useEffect(() => {
     // Firestoreからステータス設定を取得
@@ -55,65 +95,356 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     );
   };
 
-  const renderShiftBar = (shift: ShiftItem) => {
-    const statusConfig = getStatusConfig(shift.status);
-    const startHour = parseInt(shift.startTime.split(":")[0]);
-    const startMinute = parseInt(shift.startTime.split(":")[1]);
-    const endHour = parseInt(shift.endTime.split(":")[0]);
-    const endMinute = parseInt(shift.endTime.split(":")[1]);
+  // 日付ごとにシフトをグループ化
+  const rows: [string, ShiftItem[]][] = days.flatMap((date) => {
+    const dayShifts = shifts.filter((s) => s.date === date);
+    if (dayShifts.length === 0) return [[date, []]];
+    const groups = groupShiftsByOverlap(dayShifts);
+    // 空のグループを除外
+    return groups
+      .filter((group) => group.length > 0)
+      .map((group) => [date, group] as [string, ShiftItem[]]);
+  });
 
-    const startPosition =
-      ((startHour - 9) * 60 + startMinute) * (100 / (13 * 60));
-    const width =
-      ((endHour - startHour) * 60 + (endMinute - startMinute)) *
-      (100 / (13 * 60));
+  // 授業時間帯のセル判定
+  function isClassTime(time: string) {
+    // クラスタイムの設定がある場合はそれを使用
+    if (classTimes.length > 0) {
+      return classTimes.some((ct) => ct.start <= time && time < ct.end);
+    }
+
+    // シフトに登録された授業時間をチェック
+    return shifts.some(
+      (shift) =>
+        shift.classes &&
+        shift.classes.some((cls) => cls.startTime <= time && time < cls.endTime)
+    );
+  }
+
+  // 1時間ごとのラベル
+  const hourLabels = Array.from({ length: 22 - 9 + 1 }, (_, i) => {
+    const hour = 9 + i;
+    return `${hour}:00`;
+  });
+
+  // 30分ごとの線
+  const halfHourLines = Array.from({ length: (22 - 9) * 2 + 1 }, (_, i) => {
+    const hour = 9 + Math.floor(i / 2);
+    const min = i % 2 === 0 ? "00" : "30";
+    return `${hour}:${min}`;
+  });
+
+  // 時間位置の計算ヘルパー関数
+  function timeToPosition(time: string): number {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours - 9 + minutes / 60;
+  }
+
+  // 時間セル計算
+  const cellWidth = ganttColumnWidth / (hourLabels.length - 1) / 2;
+
+  // 前月に移動する関数
+  const handlePrevMonth = () => {
+    setSelectedDate(subMonths(selectedDate, 1));
+  };
+
+  // 翌月に移動する関数
+  const handleNextMonth = () => {
+    setSelectedDate(addMonths(selectedDate, 1));
+  };
+
+  // DatePickerModalで日付が選択されたときの処理
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setShowYearMonthPicker(false);
+  };
+
+  // --- ガントチャート本体 ---
+  type GanttChartGridProps = {
+    shifts: ShiftItem[];
+    timeLabels: string[];
+    halfHourLines: string[];
+    isClassTime: (time: string) => boolean;
+    getStatusConfig: (status: string) => ShiftStatusConfig;
+    onShiftPress?: (shift: ShiftItem) => void;
+  };
+
+  const GanttChartGrid: React.FC<GanttChartGridProps> = ({
+    shifts,
+    timeLabels,
+    halfHourLines,
+    isClassTime,
+    getStatusConfig,
+    onShiftPress,
+  }) => (
+    <View style={[styles.ganttCell, { width: ganttColumnWidth }]}>
+      <View style={styles.ganttBgRow}>
+        {halfHourLines.map((t: string, i: number) => (
+          <View
+            key={t}
+            style={[
+              styles.ganttBgCell,
+              isClassTime(t) && styles.classTimeCell,
+              {
+                width: cellWidth,
+                borderRightWidth: i % 2 === 0 ? 0.5 : 1,
+              },
+            ]}
+          />
+        ))}
+      </View>
+      {shifts.map((shift: ShiftItem) => {
+        const statusConfig = getStatusConfig(shift.status);
+        const startPos = timeToPosition(shift.startTime);
+        const endPos = timeToPosition(shift.endTime);
+
+        // セルに合わせて開始と終了位置を調整（より厳密に）
+        const startCell = Math.floor(startPos * 2);
+        const endCell = Math.ceil(endPos * 2);
+        const cellSpan = endCell - startCell;
+
+        return (
+          <TouchableOpacity
+            key={shift.id}
+            style={[
+              styles.shiftBar,
+              {
+                left: startCell * cellWidth,
+                width: cellSpan * cellWidth,
+                backgroundColor: statusConfig.color,
+                opacity: shift.status === "deleted" ? 0.5 : 1,
+                borderColor: statusConfig.color,
+              },
+            ]}
+            onPress={() => onShiftPress?.(shift)}
+          >
+            <Text style={styles.shiftBarText} numberOfLines={1}>
+              {shift.nickname}
+            </Text>
+            <Text style={styles.shiftTimeText} numberOfLines={1}>
+              {shift.startTime}～{shift.endTime}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+
+  // --- 情報表示 ---
+  type GanttChartInfoProps = {
+    shifts: ShiftItem[];
+    getStatusConfig: (status: string) => ShiftStatusConfig;
+  };
+
+  const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
+    shifts,
+    getStatusConfig,
+  }) => (
+    <View
+      style={[
+        styles.infoCell,
+        {
+          width: infoColumnWidth,
+        },
+      ]}
+    >
+      <CustomScrollView
+        style={{ flex: 1, width: "100%" }}
+        contentContainerStyle={{ paddingVertical: 0 }}
+      >
+        {shifts.map((shift: ShiftItem) => {
+          const statusConfig = getStatusConfig(shift.status);
+          return (
+            <View
+              key={shift.id}
+              style={[
+                styles.infoContent,
+                {
+                  borderWidth: 0.5,
+                  borderColor: statusConfig.color,
+                  backgroundColor: "#f8fafd",
+                  width: infoColumnWidth - 4,
+                },
+              ]}
+            >
+              <Text
+                style={styles.infoText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {shift.nickname}
+              </Text>
+              <Text
+                style={styles.infoTimeText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {shift.startTime}～{shift.endTime}
+              </Text>
+              <Text
+                style={styles.statusText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {statusConfig.label}
+              </Text>
+            </View>
+          );
+        })}
+      </CustomScrollView>
+    </View>
+  );
+
+  // --- 日付表示 ---
+  type DateCellProps = {
+    date: string;
+  };
+
+  const DateCell: React.FC<DateCellProps> = ({ date }) => {
+    const formattedDate = new Date(date);
+    const dayOfWeek = format(formattedDate, "E", { locale: ja });
+    const dayOfMonth = format(formattedDate, "d");
+
+    const isWeekend = dayOfWeek === "土" || dayOfWeek === "日";
+    const textColor = isWeekend
+      ? dayOfWeek === "土"
+        ? "#0000FF"
+        : "#FF0000"
+      : "#000000";
 
     return (
-      <TouchableOpacity
-        key={shift.id}
-        style={[
-          styles.shiftBar,
-          {
-            left: `${startPosition}%`,
-            width: `${width}%`,
-            backgroundColor: statusConfig.color,
-            opacity: shift.status === "deleted" ? 0.5 : 1,
-          },
-        ]}
-        onPress={() => onShiftPress?.(shift)}
-        disabled={!statusConfig.canEdit}
-      >
-        <Text style={styles.shiftTime}>
-          {shift.startTime} - {shift.endTime}
+      <View style={[styles.dateCell, { width: dateColumnWidth }]}>
+        <Text style={[styles.dateDayText, { color: textColor }]}>
+          {dayOfMonth}
         </Text>
-      </TouchableOpacity>
+        <Text style={[styles.dateWeekText, { color: textColor }]}>
+          {dayOfWeek}
+        </Text>
+      </View>
     );
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.timeHeader}>
-          {Array.from({ length: 14 }, (_, i) => i + 9).map((hour) => (
-            <Text key={hour} style={styles.timeLabel}>
-              {hour}:00
+      {/* 月選択 */}
+      <View style={styles.monthSelector}>
+        <View style={styles.monthNavigator}>
+          <TouchableOpacity
+            style={styles.monthNavButton}
+            onPress={handlePrevMonth}
+          >
+            <Text style={styles.monthNavButtonText}>＜</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.monthButton}
+            onPress={() => {
+              setShowYearMonthPicker(true);
+            }}
+          >
+            <Text style={styles.monthText}>
+              {format(selectedDate, "yyyy年M月")}
             </Text>
-          ))}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.monthNavButton}
+            onPress={handleNextMonth}
+          >
+            <Text style={styles.monthNavButtonText}>＞</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* DatePickerModalを使用した年月選択 */}
+        <DatePickerModal
+          isVisible={showYearMonthPicker}
+          initialDate={selectedDate}
+          onClose={() => setShowYearMonthPicker(false)}
+          onSelect={handleDateSelect}
+        />
+      </View>
+
+      {/* ヘッダー */}
+      <View style={styles.headerRow}>
+        <View style={[styles.headerDateCell, { width: dateColumnWidth }]}>
+          {/* 「日付」ラベル削除 */}
+        </View>
+        <View style={[styles.headerGanttCell, { width: ganttColumnWidth }]}>
+          {hourLabels.map((t, i) => {
+            const isLast = i === hourLabels.length - 1;
+            return (
+              <View
+                key={t}
+                style={{
+                  position: "absolute",
+                  left: i * cellWidth * 2 - 44 - (isLast ? -1.7 : 0),
+                  width: cellWidth * 2,
+                }}
+              >
+                <Text style={styles.timeLabel}>{t}</Text>
+              </View>
+            );
+          })}
+        </View>
+        <View style={[styles.headerInfoCell, { width: infoColumnWidth }]}>
+          <Text style={styles.headerText}>情報</Text>
         </View>
       </View>
-      <ScrollView style={styles.content}>
-        {shifts.map((shift) => (
-          <View key={shift.id} style={styles.shiftRow}>
-            <View style={styles.shiftInfo}>
-              <Text style={styles.shiftName}>{shift.nickname}</Text>
-              <Text style={styles.shiftDate}>{shift.date}</Text>
-            </View>
-            <View style={styles.shiftBarContainer}>
-              {renderShiftBar(shift)}
-            </View>
-          </View>
-        ))}
-      </ScrollView>
+
+      {/* 本体 */}
+      <CustomScrollView style={styles.content}>
+        {days.map((date) => {
+          const matchingRows = rows.filter(([rowDate]) => rowDate === date);
+
+          if (matchingRows.length > 0) {
+            // シフトがある日
+            return matchingRows.map(([date, group], idx) => (
+              <View key={date + String(idx)} style={styles.shiftRow}>
+                <DateCell date={date} />
+                <GanttChartGrid
+                  shifts={group}
+                  timeLabels={hourLabels}
+                  halfHourLines={halfHourLines}
+                  isClassTime={isClassTime}
+                  getStatusConfig={getStatusConfig}
+                  onShiftPress={onShiftPress}
+                />
+                <GanttChartInfo
+                  shifts={group}
+                  getStatusConfig={getStatusConfig}
+                />
+              </View>
+            ));
+          } else {
+            // シフトがない日 - グリッド線を表示
+            return (
+              <View key={date} style={styles.shiftRow}>
+                <DateCell date={date} />
+                <View style={[styles.emptyCell, { width: ganttColumnWidth }]}>
+                  <View style={styles.ganttBgRow}>
+                    {halfHourLines.map((t, i) => (
+                      <View
+                        key={t}
+                        style={[
+                          styles.ganttBgCell,
+                          isClassTime(t) && styles.classTimeCell,
+                          {
+                            width: cellWidth,
+                            borderRightWidth: i % 2 === 0 ? 0.5 : 1,
+                          },
+                        ]}
+                      />
+                    ))}
+                  </View>
+                </View>
+                <View
+                  style={[styles.emptyInfoCell, { width: infoColumnWidth }]}
+                />
+              </View>
+            );
+          }
+        })}
+      </CustomScrollView>
     </View>
   );
 };
@@ -123,54 +454,183 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  header: {
+  headerRow: {
+    flexDirection: "row",
+    backgroundColor: "#f0f0f0",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    elevation: 2,
+    height: 40,
+  },
+  headerDateCell: {
+    padding: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRightWidth: 1,
+    borderRightColor: "#ddd",
+  },
+  headerGanttCell: {
+    flexDirection: "row",
+    position: "relative",
+    borderRightWidth: 1,
+    borderRightColor: "#ddd",
+    height: 40,
+  },
+  headerInfoCell: {
+    padding: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerText: {
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  timeLabel: {
+    fontSize: 13,
+    textAlign: "center",
+    fontWeight: "bold",
+    color: "#333",
+    paddingTop: 12,
+  },
+  monthSelector: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    backgroundColor: "#f9f9f9",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
-  timeHeader: {
+  monthNavigator: {
     flexDirection: "row",
-    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  timeLabel: {
-    width: 60,
-    textAlign: "center",
-    fontSize: 12,
-    color: "#666",
+  monthNavButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  monthNavButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#4A90E2",
+  },
+  monthButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  monthText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
   },
   content: {
     flex: 1,
   },
   shiftRow: {
     flexDirection: "row",
-    height: 40,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
+    minHeight: 60,
+    height: 60,
   },
-  shiftInfo: {
-    width: 120,
-    padding: 8,
+  dateCell: {
+    padding: 6,
     justifyContent: "center",
+    alignItems: "center",
+    borderRightWidth: 1,
+    borderRightColor: "#ddd",
+    backgroundColor: "#f9f9f9",
   },
-  shiftName: {
-    fontSize: 14,
+  dateDayText: {
+    fontSize: 18,
     fontWeight: "bold",
   },
-  shiftDate: {
+  dateWeekText: {
     fontSize: 12,
-    color: "#666",
   },
-  shiftBarContainer: {
-    flex: 1,
+  ganttCell: {
     position: "relative",
+    height: 60,
+    borderRightWidth: 1,
+    borderRightColor: "#ddd",
+    overflow: "hidden",
+  },
+  ganttBgRow: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+  },
+  ganttBgCell: {
+    height: "100%",
+    borderRightColor: "#e0e0e0",
+  },
+  classTimeCell: {
+    backgroundColor: "rgba(180, 180, 180, 0.3)",
   },
   shiftBar: {
     position: "absolute",
-    height: "100%",
+    height: 50,
+    top: 5,
+    borderRadius: 3,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 2,
+    elevation: 2,
     borderWidth: 1,
-    borderColor: "#eee",
   },
-  shiftTime: {
+  shiftBarText: {
+    color: "#000",
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  shiftTimeText: {
+    color: "#000",
     fontSize: 12,
+    textAlign: "center",
+  },
+  infoCell: {
+    padding: 0,
+    justifyContent: "flex-start",
+    height: 60,
+    overflow: "hidden",
+    backgroundColor: "#f9f9f9",
+  },
+  infoContent: {
+    marginBottom: 0,
+    padding: 3,
+    borderRadius: 3,
+    marginHorizontal: 0,
+    marginTop: 1,
+  },
+  infoText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginBottom: 1,
+  },
+  infoTimeText: {
+    fontSize: 11,
     color: "#333",
+    marginBottom: 0,
+  },
+  statusText: {
+    fontSize: 9,
+    fontWeight: "500",
+    color: "#555",
+  },
+  emptyCell: {
+    height: 60,
+    borderRightWidth: 1,
+    borderRightColor: "#ddd",
+    position: "relative", // グリッド線表示のため追加
+  },
+  emptyInfoCell: {
+    height: 60,
+    backgroundColor: "#f9f9f9",
   },
 });

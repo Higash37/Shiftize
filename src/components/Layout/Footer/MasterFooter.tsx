@@ -29,12 +29,25 @@ const MASTER_TABS: TabItem[] = [
     isUnderDevelopment: false,
   },
   {
-    name: "users",
-    label: "ユーザー管理",
-    path: "/master/users",
+    name: "info",
+    label: "インフォ",
+    path: "/master/info",
     icon: (active: boolean) => (
-      <MaterialIcons
-        name="people"
+      <Ionicons
+        name="information-circle"
+        size={24}
+        color={active ? colors.primary : colors.text.secondary}
+      />
+    ),
+    isUnderDevelopment: false,
+  },
+  {
+    name: "thisMonth",
+    label: "今月のシフト",
+    path: "/master/gantt-view",
+    icon: (active: boolean) => (
+      <FontAwesome5
+        name="calendar-alt"
         size={24}
         color={active ? colors.primary : colors.text.secondary}
       />
@@ -53,12 +66,25 @@ const MASTER_TABS: TabItem[] = [
     isUnderDevelopment: false,
   },
   {
-    name: "shifts",
-    label: "シフト",
-    path: "/master/shifts",
+    name: "nextMonth",
+    label: "来月シフト作成",
+    path: "/master/gantt-edit",
     icon: (active: boolean) => (
       <FontAwesome5
-        name="calendar-alt"
+        name="calendar"
+        size={24}
+        color={active ? colors.primary : colors.text.secondary}
+      />
+    ),
+    isUnderDevelopment: false,
+  },
+  {
+    name: "users",
+    label: "ユーザー管理",
+    path: "/master/users",
+    icon: (active: boolean) => (
+      <MaterialIcons
+        name="people"
         size={24}
         color={active ? colors.primary : colors.text.secondary}
       />

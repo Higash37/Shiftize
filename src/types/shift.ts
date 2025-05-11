@@ -111,3 +111,12 @@ export interface Shift {
     requestedAt: Date;
   }>;
 }
+
+export interface ShiftData {
+  id: string;
+  staffName: string;
+  startTime: string;
+  endTime: string;
+  color?: string;
+  status: "pending" | "approved" | "rejected";
+}
