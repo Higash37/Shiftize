@@ -3,7 +3,7 @@ name: Deploy to Firebase Hosting
 on:
   push:
     branches:
-      - main # ← デプロイしたいブランチ名（必要なら変更）
+      - backup-branch # ← デプロイしたいブランチ名（必要なら変更）
 
 jobs:
   deploy:
