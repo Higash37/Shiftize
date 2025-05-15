@@ -12,15 +12,36 @@ interface User {
 }
 
 export default function GanttViewScreen() {
-  const { shifts } = useShifts();
+  const { shifts, fetchShiftsByMonth } = useShifts();
   const { users } = useUsers();
 
-  // 今月の日付リストを生成
-  const today = new Date();
-  const days = Array.from({ length: 30 }, (_, i) => {
-    const date = new Date(today.getFullYear(), today.getMonth(), i + 1);
-    return date.toISOString().split("T")[0];
+  // 現在の年月を状態として保持
+  const [currentYearMonth, setCurrentYearMonth] = React.useState(() => {
+    const today = new Date();
+    return { year: today.getFullYear(), month: today.getMonth() };
   });
+
+  // 指定された年月の日付リストを生成する関数
+  const generateDaysForMonth = (year: number, month: number) => {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const date = new Date(year, month, i + 1);
+      return date.toISOString().split("T")[0];
+    });
+  };
+
+  // 現在の年月に基づいて日付リストを生成
+  const days = generateDaysForMonth(
+    currentYearMonth.year,
+    currentYearMonth.month
+  );
+
+  // 月が変わったときの処理
+  const handleMonthChange = async (year: number, month: number) => {
+    setCurrentYearMonth({ year, month });
+    // 新しい月のシフトデータを取得
+    await fetchShiftsByMonth(year, month);
+  };
 
   return (
     <View style={styles.container}>
@@ -29,11 +50,13 @@ export default function GanttViewScreen() {
           title: "シフト確認",
           headerShown: true,
         }}
-      />
+      />{" "}
       <GanttChartMonthView
         shifts={shifts}
         days={days}
         users={users.map((user: User) => user.nickname)}
+        onMonthChange={handleMonthChange}
+        classTimes={[]} /* 授業時間帯を空に設定して灰色の縦線を表示しない */
       />
     </View>
   );

@@ -25,6 +25,7 @@ interface GanttChartMonthViewProps {
   days: string[];
   users: string[];
   onShiftPress?: (shift: ShiftItem) => void;
+  onMonthChange?: (year: number, month: number) => void; // 月変更時のコールバック
   classTimes?: { start: string; end: string }[]; // 授業時間帯
 }
 
@@ -58,6 +59,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   days,
   users,
   onShiftPress,
+  onMonthChange,
   classTimes = [],
 }) => {
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
@@ -105,20 +107,10 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       .filter((group) => group.length > 0)
       .map((group) => [date, group] as [string, ShiftItem[]]);
   });
-
   // 授業時間帯のセル判定
   function isClassTime(time: string) {
-    // クラスタイムの設定がある場合はそれを使用
-    if (classTimes.length > 0) {
-      return classTimes.some((ct) => ct.start <= time && time < ct.end);
-    }
-
-    // シフトに登録された授業時間をチェック
-    return shifts.some(
-      (shift) =>
-        shift.classes &&
-        shift.classes.some((cls) => cls.startTime <= time && time < cls.endTime)
-    );
+    // 授業時間の表示を無効化（灰色の縦線を表示しない）
+    return false;
   }
 
   // 1時間ごとのラベル
@@ -142,21 +134,36 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
 
   // 時間セル計算
   const cellWidth = ganttColumnWidth / (hourLabels.length - 1) / 2;
-
   // 前月に移動する関数
   const handlePrevMonth = () => {
-    setSelectedDate(subMonths(selectedDate, 1));
+    const newDate = subMonths(selectedDate, 1);
+    setSelectedDate(newDate);
+
+    // 親コンポーネントに月の変更を通知
+    if (onMonthChange) {
+      onMonthChange(newDate.getFullYear(), newDate.getMonth());
+    }
   };
 
   // 翌月に移動する関数
   const handleNextMonth = () => {
-    setSelectedDate(addMonths(selectedDate, 1));
-  };
+    const newDate = addMonths(selectedDate, 1);
+    setSelectedDate(newDate);
 
+    // 親コンポーネントに月の変更を通知
+    if (onMonthChange) {
+      onMonthChange(newDate.getFullYear(), newDate.getMonth());
+    }
+  };
   // DatePickerModalで日付が選択されたときの処理
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     setShowYearMonthPicker(false);
+
+    // 親コンポーネントに月の変更を通知
+    if (onMonthChange) {
+      onMonthChange(date.getFullYear(), date.getMonth());
+    }
   };
 
   // --- ガントチャート本体 ---
@@ -198,11 +205,13 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         const startPos = timeToPosition(shift.startTime);
         const endPos = timeToPosition(shift.endTime);
 
-        // セルに合わせて開始と終了位置を調整（より厳密に）
+        // セルに合わせて開始と終了位置を調整
+        // 厳密に開始時間に合わせる
         const startCell = Math.floor(startPos * 2);
+        // 終了時間は必ず次のセルまでとする
         const endCell = Math.ceil(endPos * 2);
-        const cellSpan = endCell - startCell;
-
+        // 最低幅を確保（少なくとも2セル分）
+        const cellSpan = Math.max(endCell - startCell, 2);
         return (
           <TouchableOpacity
             key={shift.id}
@@ -213,17 +222,28 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
                 width: cellSpan * cellWidth,
                 backgroundColor: statusConfig.color,
                 opacity: shift.status === "deleted" ? 0.5 : 1,
-                borderColor: statusConfig.color,
               },
             ]}
             onPress={() => onShiftPress?.(shift)}
           >
-            <Text style={styles.shiftBarText} numberOfLines={1}>
-              {shift.nickname}
-            </Text>
-            <Text style={styles.shiftTimeText} numberOfLines={1}>
-              {shift.startTime}～{shift.endTime}
-            </Text>
+            {" "}
+            <View
+              style={{
+                width: "100%",
+                height: "100%",
+                justifyContent: "center",
+                alignItems: "center", // 中央揃え
+                paddingHorizontal: 8, // 水平パディングを増やす
+                flexDirection: "column", // 縦並びに変更
+              }}
+            >
+              <Text style={styles.shiftBarText} numberOfLines={1}>
+                {shift.nickname}
+              </Text>
+              <Text style={styles.shiftTimeText} numberOfLines={1}>
+                {shift.startTime}～{shift.endTime}
+              </Text>
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -532,8 +552,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-    minHeight: 60,
-    height: 60,
+    minHeight: 65, // 行の高さを少し増やす
+    height: 65,
   },
   dateCell: {
     padding: 6,
@@ -552,7 +572,7 @@ const styles = StyleSheet.create({
   },
   ganttCell: {
     position: "relative",
-    height: 60,
+    height: 65, // 高さを調整
     borderRightWidth: 1,
     borderRightColor: "#ddd",
     overflow: "hidden",
@@ -570,34 +590,37 @@ const styles = StyleSheet.create({
     borderRightColor: "#e0e0e0",
   },
   classTimeCell: {
-    backgroundColor: "rgba(180, 180, 180, 0.3)",
+    backgroundColor: "rgba(180, 180, 180, 0.15)", // 透明度を下げて目立たなくする
   },
   shiftBar: {
     position: "absolute",
-    height: 50,
-    top: 5,
-    borderRadius: 3,
+    height: 65, // セル全体の高さに合わせる
+    top: 0, // マージンなし
+    borderRadius: 0, // 角を丸めない
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 2,
-    elevation: 2,
-    borderWidth: 1,
+    paddingHorizontal: 0, // パディングをなくす
+    paddingVertical: 0, // パディングをなくす
+    elevation: 3,
+    borderWidth: 0, // 枠線を消す
   },
   shiftBarText: {
-    color: "#000",
-    fontSize: 14,
+    color: "#000", // 黒色テキストに変更
+    fontSize: 16, // フォントサイズを大きく
     fontWeight: "bold",
     textAlign: "center",
+    marginBottom: 2, // 下に少しマージンを追加
   },
   shiftTimeText: {
-    color: "#000",
-    fontSize: 12,
+    color: "#000", // 黒色テキストに変更
+    fontSize: 14, // 時間表示のフォントサイズを大きく
+    fontWeight: "500", // やや太く
     textAlign: "center",
   },
   infoCell: {
     padding: 0,
     justifyContent: "flex-start",
-    height: 60,
+    height: 65, // 高さを調整
     overflow: "hidden",
     backgroundColor: "#f9f9f9",
   },
@@ -624,13 +647,13 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   emptyCell: {
-    height: 60,
+    height: 65, // 空のセルの高さも調整
     borderRightWidth: 1,
     borderRightColor: "#ddd",
     position: "relative", // グリッド線表示のため追加
   },
   emptyInfoCell: {
-    height: 60,
+    height: 65, // 空のセルの高さも調整
     backgroundColor: "#f9f9f9",
   },
 });

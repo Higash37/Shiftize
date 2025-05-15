@@ -9,8 +9,26 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase";
 
 export default function GanttEditScreen() {
-  const { shifts, loading: shiftsLoading, error: shiftsError } = useShifts();
+  const {
+    shifts,
+    fetchShiftsByMonth,
+    loading: shiftsLoading,
+    error: shiftsError,
+  } = useShifts();
   const { users, loading: usersLoading, error: usersError } = useUsers();
+
+  // 現在の年月を状態として保持
+  const [currentYearMonth, setCurrentYearMonth] = React.useState(() => {
+    const today = new Date();
+    return { year: today.getFullYear(), month: today.getMonth() };
+  });
+
+  // 月が変わったときの処理
+  const handleMonthChange = async (year: number, month: number) => {
+    setCurrentYearMonth({ year, month });
+    // 新しい月のシフトデータを取得
+    await fetchShiftsByMonth(year, month);
+  };
 
   const handleShiftUpdate = async (updatedShift: ShiftItem) => {
     try {
@@ -46,11 +64,13 @@ export default function GanttEditScreen() {
           title: "シフト編集",
           headerShown: true,
         }}
-      />
+      />{" "}
       <GanttChartMonthEdit
         shifts={shifts}
         onShiftPress={handleShiftPress}
         onShiftUpdate={handleShiftUpdate}
+        onMonthChange={handleMonthChange}
+        classTimes={[]} /* 授業時間帯を空に設定して灰色の縦線を表示しない */
       />
     </View>
   );

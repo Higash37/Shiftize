@@ -1,6 +1,6 @@
 # shift-scheduler-app
 
-# firebase の rules
+## firebase の rules
 
 rules_version = '2';
 service cloud.firestore {
@@ -27,3 +27,11 @@ get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "ma
 
 }
 }
+
+## 今後の追加要件
+
+今後の機能追加予定(mvp 版)
+・シフト PDF 出力機能
+・申請機能及びガントチャート上での変更の firebase との即同期（最重要）／通知機能
+・アクセスログ／変更履歴の記録と管理（最後かな）
+・管理画面でのスタッフ追加・削除（2 番目に重要）

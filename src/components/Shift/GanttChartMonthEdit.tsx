@@ -37,11 +37,13 @@ import { Ionicons } from "@expo/vector-icons";
 import CustomScrollView from "../CustomScrollView";
 import { DatePickerModal } from "@/components/calendar/DatePickerModal";
 import { Picker } from "@react-native-picker/picker";
+import { useAuth } from "@/hooks/useAuth";
 
 interface GanttChartMonthEditProps {
   shifts: ShiftItem[];
   onShiftPress?: (shift: ShiftItem) => void;
   onShiftUpdate?: (shift: ShiftItem) => void;
+  onMonthChange?: (year: number, month: number) => void; // 月変更時のコールバック
   classTimes?: { start: string; end: string }[];
 }
 
@@ -62,6 +64,7 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
   shifts,
   onShiftPress,
   onShiftUpdate,
+  onMonthChange,
   classTimes = [],
 }) => {
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
@@ -89,6 +92,9 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     []
   );
   const [loading, setLoading] = useState(false);
+  const { role } = useAuth(); // ユーザーロールを取得
+  const isMaster = role === "master"; // マスター権限かどうかを判定
+  const [refreshKey, setRefreshKey] = useState(0); // 再描画用のキー
 
   const screenWidth = Dimensions.get("window").width;
   const dateColumnWidth = 50;
@@ -157,7 +163,6 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
       .toString()
       .padStart(2, "0")}`;
   }
-
   const handleTimeUpdate = async () => {
     if (!editingShift) return;
 
@@ -181,19 +186,41 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
 
     try {
       const shiftRef = doc(db, "shifts", editingShift.id);
-      await updateDoc(shiftRef, {
-        startTime: timeInput.start,
-        endTime: timeInput.end,
-      });
+
+      if (isMaster) {
+        // マスター権限の場合はすぐに反映
+        await updateDoc(shiftRef, {
+          startTime: timeInput.start,
+          endTime: timeInput.end,
+          status: "approved", // 承認済みに変更
+          updatedAt: serverTimestamp(),
+        });
+
+        Alert.alert("成功", "シフト時間を更新しました");
+      } else {
+        // マスター以外は申請として保存
+        await updateDoc(shiftRef, {
+          status: "pending", // 申請中に変更
+          requestedChanges: {
+            startTime: timeInput.start,
+            endTime: timeInput.end,
+            requestedAt: serverTimestamp(),
+          },
+          updatedAt: serverTimestamp(),
+        });
+
+        Alert.alert("申請完了", "シフト時間変更の申請を送信しました");
+      }
       onShiftUpdate?.(updatedShift);
+      refreshScreen(); // 画面をリフレッシュ
     } catch (error) {
       console.error("Error updating shift time:", error);
+      Alert.alert("エラー", "シフト時間の更新に失敗しました");
     }
 
     setModalVisible(false);
     setEditingShift(null);
   };
-
   const handleDeleteShift = async (shift: ShiftItem) => {
     Alert.alert("シフト削除", "このシフトを削除してもよろしいですか？", [
       {
@@ -206,15 +233,31 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
         onPress: async () => {
           try {
             const shiftRef = doc(db, "shifts", shift.id);
-            await updateDoc(shiftRef, {
-              status: "deletion_requested",
-            });
-            // もし完全に削除する場合はこちら
-            // await deleteDoc(shiftRef);
-            onShiftUpdate?.({
-              ...shift,
-              status: "deletion_requested",
-            });
+            if (isMaster) {
+              // マスター権限の場合は物理的に削除
+              await deleteDoc(shiftRef);
+
+              Alert.alert("成功", "シフトを完全に削除しました");
+              onShiftUpdate?.({
+                ...shift,
+                status: "deleted",
+              });
+              refreshScreen(); // 画面をリフレッシュ
+            } else {
+              // マスター以外は削除申請
+              await updateDoc(shiftRef, {
+                status: "deletion_requested", // 削除申請中に変更
+                updatedAt: serverTimestamp(),
+              });
+
+              Alert.alert("申請完了", "シフト削除の申請を送信しました");
+
+              onShiftUpdate?.({
+                ...shift,
+                status: "deletion_requested",
+              });
+              refreshScreen(); // 画面をリフレッシュ
+            }
           } catch (error) {
             console.error("Error deleting shift:", error);
             Alert.alert("エラー", "シフトの削除に失敗しました");
@@ -223,10 +266,13 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
       },
     ]);
   };
-
   const handleShiftPress = (shift: ShiftItem) => {
     const statusConfig = getStatusConfig(shift.status);
-    if (!statusConfig.canEdit) {
+    // マスター権限を持つ場合は承認済みでも編集可能
+    // 講師ユーザーも承認済みシフトを編集申請できるように
+    const canEdit = statusConfig.canEdit || shift.status === "approved";
+
+    if (!canEdit) {
       Alert.alert(
         "編集できません",
         `${statusConfig.label}状態のシフトは編集できません`,
@@ -268,30 +314,45 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     setActionModalVisible(false);
     setShowClassTimeModal(true);
   };
-
   const handleClassTimeUpdate = async () => {
     if (!editingShift) return;
 
     try {
       const shiftRef = doc(db, "shifts", editingShift.id);
-      await updateDoc(shiftRef, {
-        classes: [
-          {
-            startTime: classTimeInput.start,
-            endTime: classTimeInput.end,
-          },
-        ],
-      });
+      const newClasses = [
+        {
+          startTime: classTimeInput.start,
+          endTime: classTimeInput.end,
+        },
+      ];
 
+      if (isMaster) {
+        // マスター権限の場合はすぐに反映
+        await updateDoc(shiftRef, {
+          classes: newClasses,
+          status: "approved", // 承認済みに変更
+          updatedAt: serverTimestamp(),
+        });
+
+        Alert.alert("成功", "授業時間を更新しました");
+      } else {
+        // マスター以外は申請として保存
+        await updateDoc(shiftRef, {
+          status: "pending", // 申請中に変更
+          requestedChanges: {
+            classes: newClasses,
+            requestedAt: serverTimestamp(),
+          },
+          updatedAt: serverTimestamp(),
+        });
+
+        Alert.alert("申請完了", "授業時間変更の申請を送信しました");
+      }
       onShiftUpdate?.({
         ...editingShift,
-        classes: [
-          {
-            startTime: classTimeInput.start,
-            endTime: classTimeInput.end,
-          },
-        ],
+        classes: newClasses,
       });
+      refreshScreen(); // 画面をリフレッシュ
     } catch (error) {
       console.error("Error updating class time:", error);
       Alert.alert("エラー", "授業時間の更新に失敗しました");
@@ -300,15 +361,26 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     setShowClassTimeModal(false);
     setEditingShift(null);
   };
-
   // 前月に移動する関数
   const handlePrevMonth = () => {
-    setSelectedDate(subMonths(selectedDate, 1));
+    const newDate = subMonths(selectedDate, 1);
+    setSelectedDate(newDate);
+
+    // 親コンポーネントに月の変更を通知
+    if (onMonthChange) {
+      onMonthChange(newDate.getFullYear(), newDate.getMonth());
+    }
   };
 
   // 翌月に移動する関数
   const handleNextMonth = () => {
-    setSelectedDate(addMonths(selectedDate, 1));
+    const newDate = addMonths(selectedDate, 1);
+    setSelectedDate(newDate);
+
+    // 親コンポーネントに月の変更を通知
+    if (onMonthChange) {
+      onMonthChange(newDate.getFullYear(), newDate.getMonth());
+    }
   };
 
   // 月初～月末までの日付リストを生成
@@ -328,45 +400,17 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     // 空のグループを除外
     return { date, groups: groups.filter((group) => group.length > 0) };
   });
-
   // シフトの重なりをグループ化
   function groupShiftsByOverlap(shifts: ShiftItem[]) {
     if (shifts.length === 0) return [];
 
-    const groups: ShiftItem[][] = [];
-    shifts
-      .sort((a, b) => a.startTime.localeCompare(b.startTime))
-      .forEach((shift) => {
-        let placed = false;
-        for (const group of groups) {
-          if (
-            !group.some(
-              (s) => s.startTime < shift.endTime && shift.startTime < s.endTime
-            )
-          ) {
-            group.push(shift);
-            placed = true;
-            break;
-          }
-        }
-        if (!placed) groups.push([shift]);
-      });
-    return groups;
+    // 1人1行表示のために、すべてのシフトを1つのグループにまとめる
+    return [shifts.sort((a, b) => a.startTime.localeCompare(b.startTime))];
   }
-
   // 授業時間帯のセル判定
   function isClassTime(time: string) {
-    // クラスタイムの設定がある場合はそれを使用
-    if (classTimes.length > 0) {
-      return classTimes.some((ct) => ct.start <= time && time < ct.end);
-    }
-
-    // シフトに登録された授業時間をチェック
-    return shifts.some(
-      (shift) =>
-        shift.classes &&
-        shift.classes.some((cls) => cls.startTime <= time && time < cls.endTime)
-    );
+    // 授業時間の表示を無効化（灰色の縦線を表示しない）
+    return false;
   }
 
   // --- ガントチャート本体 ---
@@ -375,14 +419,19 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     onShiftPress?: (shift: ShiftItem) => void;
     getStatusConfig: (status: string) => ShiftStatusConfig;
   };
-
   const GanttChartGrid: React.FC<GanttChartGridProps> = ({
     shifts,
     onShiftPress,
     getStatusConfig,
   }) => (
     <View
-      style={[styles.ganttCell, { width: ganttColumnWidth }]}
+      style={[
+        styles.ganttCell,
+        {
+          width: ganttColumnWidth,
+          height: "100%", // 親コンテナの高さに合わせる
+        },
+      ]}
       ref={ganttContainerRef}
     >
       <View style={styles.ganttBgRow}>
@@ -401,15 +450,34 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
         ))}
       </View>
 
-      {shifts.map((shift) => {
+      {shifts.map((shift, index) => {
         const statusConfig = getStatusConfig(shift.status);
         const startPos = timeToPosition(shift.startTime);
         const endPos = timeToPosition(shift.endTime);
 
-        // セルに合わせて開始と終了位置を調整（より厳密に）
+        // セルに合わせて開始と終了位置を調整
+        // 厳密に開始時間に合わせる
         const startCell = Math.floor(startPos * 2);
-        const endCell = Math.ceil(endPos * 2);
-        const cellSpan = endCell - startCell;
+        // 終了時間は必ず次のセルまでとする
+        const endCell = Math.ceil(endPos * 2); // 最低幅を確保（少なくとも2セル分）
+        const cellSpan = Math.max(endCell - startCell, 2); // ガントチャートの高さを均等に分割
+
+        // シフトが1つだけの場合はセル全体を埋める、複数ある場合は分割表示
+        const totalShifts = shifts.length;
+        const cellHeight = 65; // セルの高さ
+
+        let singleBarHeight;
+        let barVerticalOffset;
+
+        if (totalShifts === 1) {
+          // シフトが1つの場合、セル全体を埋める
+          singleBarHeight = cellHeight;
+          barVerticalOffset = 0;
+        } else {
+          // 複数シフトがある場合は分割表示（最大3つ想定）
+          singleBarHeight = Math.floor(cellHeight / Math.min(totalShifts, 3));
+          barVerticalOffset = index * singleBarHeight;
+        }
 
         return (
           <TouchableOpacity
@@ -419,23 +487,36 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
               {
                 left: startCell * cellWidth,
                 width: cellSpan * cellWidth,
+                height: singleBarHeight,
+                top: barVerticalOffset,
                 backgroundColor: statusConfig.color,
                 opacity:
                   shift.status === "deleted" ||
                   shift.status === "deletion_requested"
                     ? 0.5
                     : 1,
-                borderColor: statusConfig.color,
               },
             ]}
             onPress={() => onShiftPress?.(shift)}
           >
-            <Text style={styles.shiftBarText} numberOfLines={1}>
-              {shift.nickname}
-            </Text>
-            <Text style={styles.shiftTimeText} numberOfLines={1}>
-              {shift.startTime}～{shift.endTime}
-            </Text>
+            {" "}
+            <View
+              style={{
+                width: "100%",
+                height: "100%",
+                justifyContent: "center", // 中央揃え
+                alignItems: "center",
+                paddingHorizontal: 4, // パディングを調整
+                flexDirection: "column", // 縦並びに変更
+              }}
+            >
+              <Text style={styles.shiftBarText} numberOfLines={1}>
+                {shift.nickname}
+              </Text>
+              <Text style={styles.shiftTimeText} numberOfLines={1}>
+                {shift.startTime}～{shift.endTime}
+              </Text>
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -449,93 +530,110 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     onShiftPress?: (shift: ShiftItem) => void;
     onDelete: (shift: ShiftItem) => void;
   };
-
   const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     shifts,
     getStatusConfig,
     onShiftPress,
     onDelete,
-  }) => (
-    <View
-      style={[
-        styles.infoCell,
-        {
-          width: infoColumnWidth,
-          backgroundColor: "#f0f5fb",
-          // 右側のパディングを削除
-        },
-      ]}
-    >
-      <CustomScrollView
-        style={{ flex: 1, width: "100%" }}
-        contentContainerStyle={{ paddingVertical: 0 }}
+  }) => {
+    // マスター権限を持つ場合の追加チェック
+    // 講師ユーザーも承認済みシフトを編集申請できるように
+    const canEditStatus = (status: string) => {
+      const statusConfig = getStatusConfig(status);
+      return statusConfig.canEdit || status === "approved";
+    };
+
+    return (
+      <View
+        style={[
+          styles.infoCell,
+          {
+            width: infoColumnWidth,
+            backgroundColor: "#f0f5fb",
+            height: "100%", // 親コンテナの高さに合わせる
+          },
+        ]}
       >
-        {shifts.map((shift) => {
-          const statusConfig = getStatusConfig(shift.status);
-          return (
-            <View
-              key={shift.id}
-              style={[
-                styles.infoContent,
-                {
-                  borderWidth: 0.5,
-                  borderColor: statusConfig.color,
-                  backgroundColor: statusConfig.canEdit ? "#f8fafd" : "#f3f3f3",
-                  width: infoColumnWidth - 4, // スクロールバーのみ考慮
-                },
-              ]}
-            >
-              <View style={styles.infoHeader}>
-                <Text
-                  style={styles.infoText}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {shift.nickname}
-                </Text>
-                {statusConfig.canEdit && (
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => onDelete(shift)}
-                  >
-                    <Ionicons name="trash-outline" size={14} color="#FF4444" />
-                  </TouchableOpacity>
-                )}
-              </View>
-              <TouchableOpacity
-                style={styles.timeButton}
-                onPress={() => onShiftPress?.(shift)}
-                disabled={!statusConfig.canEdit}
+        <CustomScrollView
+          style={{ flex: 1, width: "100%" }}
+          contentContainerStyle={{ paddingVertical: 0 }}
+        >
+          {shifts.map((shift) => {
+            const statusConfig = getStatusConfig(shift.status);
+            const isEditable = canEditStatus(shift.status);
+            return (
+              <View
+                key={shift.id}
+                style={[
+                  styles.infoContent,
+                  {
+                    borderWidth: 0.5,
+                    borderColor: statusConfig.color,
+                    backgroundColor: isEditable ? "#f8fafd" : "#f3f3f3",
+                    width: infoColumnWidth - 4, // スクロールバーのみ考慮
+                  },
+                ]}
               >
-                <View style={styles.infoTimeContainer}>
+                <View style={styles.infoHeader}>
                   <Text
-                    style={[
-                      styles.infoTimeText,
-                      !statusConfig.canEdit && styles.infoTimeTextDisabled,
-                    ]}
+                    style={styles.infoText}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
-                    {shift.startTime}～{shift.endTime}
+                    {shift.nickname}
                   </Text>
-                  {statusConfig.canEdit && (
-                    <Ionicons name="pencil-outline" size={12} color="#4A90E2" />
+                  {isEditable && (
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => onDelete(shift)}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={14}
+                        color="#FF4444"
+                      />
+                    </TouchableOpacity>
                   )}
                 </View>
-              </TouchableOpacity>
-              <Text
-                style={styles.statusText}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {statusConfig.label}
-              </Text>
-            </View>
-          );
-        })}
-      </CustomScrollView>
-    </View>
-  );
+                <TouchableOpacity
+                  style={styles.timeButton}
+                  onPress={() => onShiftPress?.(shift)}
+                  disabled={!isEditable}
+                >
+                  <View style={styles.infoTimeContainer}>
+                    <Text
+                      style={[
+                        styles.infoTimeText,
+                        !isEditable && styles.infoTimeTextDisabled,
+                      ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {shift.startTime}～{shift.endTime}
+                    </Text>
+                    {isEditable && (
+                      <Ionicons
+                        name="pencil-outline"
+                        size={12}
+                        color="#4A90E2"
+                      />
+                    )}
+                  </View>
+                </TouchableOpacity>
+                <Text
+                  style={styles.statusText}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {statusConfig.label}
+                </Text>
+              </View>
+            );
+          })}
+        </CustomScrollView>
+      </View>
+    );
+  };
 
   // --- 日付表示 ---
   type DateCellProps = {
@@ -672,6 +770,8 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
           updatedAt: new Date(),
         } as ShiftItem);
       }
+
+      refreshScreen(); // 画面をリフレッシュ
     } catch (error) {
       console.error("シフト追加エラー:", error);
       Alert.alert("エラー", "シフトの追加に失敗しました");
@@ -698,12 +798,10 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
       );
 
       if (onShiftUpdate) {
-        onShiftUpdate({
-          ...shift,
-          status: newStatus,
-        });
+        onShiftUpdate({ ...shift, status: newStatus });
       }
 
+      refreshScreen(); // 画面をリフレッシュ
       setActionModalVisible(false);
     } catch (error) {
       console.error("シフトステータス変更エラー:", error);
@@ -1024,8 +1122,12 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     );
   };
 
+  // 画面をリフレッシュする関数
+  const refreshScreen = () => {
+    setRefreshKey((prevKey) => prevKey + 1); // 再描画をトリガー
+  };
   return (
-    <View style={styles.container}>
+    <View style={styles.container} key={refreshKey}>
       {/* 月選択 - 時間行の前に移動 */}
       <View style={styles.monthSelector}>
         <View style={styles.monthNavigator}>
@@ -1110,7 +1212,17 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
             {/* 日付エリア */}
             {row.groups.length > 0 ? (
               row.groups.map((group, idx) => (
-                <View key={`${row.date}-${idx}`} style={styles.shiftRow}>
+                <View
+                  key={`${row.date}-${idx}`}
+                  style={[
+                    styles.shiftRow,
+                    {
+                      // シフトの数に応じて高さを調整
+                      height: Math.max(65, group.length * 20 + 20),
+                      minHeight: Math.max(65, group.length * 20 + 20),
+                    },
+                  ]}
+                >
                   {idx === 0 ? (
                     <DateCell date={row.date} />
                   ) : (
@@ -1245,8 +1357,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-    minHeight: 60,
-    height: 60,
+    minHeight: 65, // 高さを調整
+    height: 65, // 高さを調整
   },
   dateCell: {
     padding: 6,
@@ -1269,18 +1381,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
   },
   emptyCell: {
-    height: 60,
+    height: 65, // 高さを調整
     borderRightWidth: 1,
     borderRightColor: "#ddd",
     position: "relative", // グリッド線表示のため追加
   },
   emptyInfoCell: {
-    height: 60,
+    height: 65, // 高さを調整
     backgroundColor: "#f9f9f9", // 背景色を追加
   },
   ganttCell: {
     position: "relative",
-    height: 60,
+    height: 65, // 高さを調整
     borderRightWidth: 1,
     borderRightColor: "#ddd",
     overflow: "hidden",
@@ -1298,34 +1410,39 @@ const styles = StyleSheet.create({
     borderRightColor: "#e0e0e0",
   },
   classTimeCell: {
-    backgroundColor: "rgba(180, 180, 180, 0.3)",
+    backgroundColor: "rgba(180, 180, 180, 0.15)", // 透明度を下げて目立たなくする
   },
   shiftBar: {
     position: "absolute",
-    height: 50,
-    top: 5,
-    borderRadius: 3,
+    // 高さはコード内で動的に設定する（shifts.lengthに応じて）
+    borderRadius: 0, // 角を丸めない
     justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 2,
-    elevation: 2,
-    borderWidth: 1,
+    alignItems: "flex-start", // 左寄せ
+    paddingHorizontal: 0, // パディングをなくす
+    paddingVertical: 0, // パディングをなくす
+    elevation: 3,
+    borderWidth: 0, // 枠線を消す
   },
   shiftBarText: {
-    color: "#000",
-    fontSize: 14,
+    color: "#000", // 黒色テキストに変更
+    fontSize: 14, // フォントサイズを調整
     fontWeight: "bold",
     textAlign: "center",
+    marginBottom: 2, // 下に少しマージンを追加
   },
   shiftTimeText: {
-    color: "#000",
-    fontSize: 12,
+    color: "#000", // 黒色テキストに変更
+    fontSize: 12, // 時間表示のフォントサイズを調整
+    fontWeight: "500", // やや太く
     textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.5)", // テキストシャドウを追加
+    textShadowOffset: { width: 0.5, height: 0.5 },
+    textShadowRadius: 1,
   },
   infoCell: {
     padding: 0,
     justifyContent: "flex-start",
-    height: 60,
+    height: 65, // 高さを調整
     overflow: "hidden",
     backgroundColor: "#f9f9f9", // MonthViewと同じ背景色に変更
   },
