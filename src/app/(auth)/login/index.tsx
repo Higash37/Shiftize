@@ -10,9 +10,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { router } from "expo-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "@/core/firebase/firebase";
-import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "@/core/auth/useAuth";
 
 export default function Login() {
@@ -33,23 +30,7 @@ export default function Login() {
     setLoading(true);
     try {
       const email = `${username}@example.com`;
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-      const userData = userDoc.data();
-
-      // You may want to call signIn here if your useAuth handles state
-      // await signIn(email, password);
-
-      if (userData?.role === "master") {
-        router.replace("/(main)/master/home");
-      } else {
-        router.replace("/(main)/teacher/home");
-      }
+      await signIn(email, password);
     } catch (error) {
       console.error("Login error:", error);
       Alert.alert("エラー", "ログインに失敗しました");

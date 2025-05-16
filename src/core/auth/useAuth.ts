@@ -6,7 +6,7 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { User } from "./auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 export const useAuth = () => {
@@ -21,15 +21,30 @@ export const useAuth = () => {
         email,
         password
       );
+
+      // Firestoreからユーザー情報を取得
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-      const userData = userDoc.data();
+      let userData = userDoc.data();
+
+      // ユーザー情報が存在しない場合は新規作成
+      if (!userData) {
+        const isMaster = email.startsWith("master@");
+        userData = {
+          nickname: email.split("@")[0],
+          role: isMaster ? "master" : "teacher",
+          email: email,
+          createdAt: new Date(),
+        };
+        await setDoc(doc(db, "users", userCredential.user.uid), userData);
+      }
+
       setUser({
         uid: userCredential.user.uid,
-        nickname: userData?.nickname || "",
-        role: userData?.role || "teacher",
+        nickname: userData.nickname,
+        role: userData.role,
         email: userCredential.user.email || undefined,
       });
-      setRole(userData?.role || "teacher");
+      setRole(userData.role);
     } catch (error) {
       console.error("ログインに失敗しました:", error);
       throw error;
@@ -54,13 +69,15 @@ export const useAuth = () => {
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
         const userData = userDoc.data();
 
-        setUser({
-          uid: firebaseUser.uid,
-          nickname: userData?.nickname || "",
-          role: userData?.role || "teacher",
-          email: firebaseUser.email || undefined,
-        });
-        setRole(userData?.role || "teacher");
+        if (userData) {
+          setUser({
+            uid: firebaseUser.uid,
+            nickname: userData.nickname,
+            role: userData.role,
+            email: firebaseUser.email || undefined,
+          });
+          setRole(userData.role);
+        }
       } else {
         setUser(null);
         setRole(null);

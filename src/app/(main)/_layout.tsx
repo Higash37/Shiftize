@@ -2,6 +2,8 @@ import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
 import { useAuth } from "@/core/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
+import { View, ActivityIndicator } from "react-native";
+import { colors } from "@/shared/constants/theme";
 
 export default function MainLayout() {
   const { user, role, loading } = useAuth();
@@ -9,29 +11,42 @@ export default function MainLayout() {
   const segments = useSegments();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (loading) return;
+    if (loading) return;
 
-        if (!user) {
-          await router.replace("/(auth)/login");
-        } else {
-          const inAuthGroup = segments[0] === "(auth)";
-          if (inAuthGroup) {
-            if (role === "master") {
-              await router.replace("/(main)/master/home");
-            } else if (role === "teacher") {
-              await router.replace("/(main)/teacher/home");
-            }
-          }
-        }
-      } catch (error) {
-        console.error("認証チェック中にエラーが発生しました:", error);
+    // 未認証の場合は何もしない（ルートレイアウトで処理）
+    if (!user) return;
+
+    // 認証済みユーザーがauthグループにいる場合のみリダイレクト
+    const inAuthGroup = segments[0] === "(auth)";
+    if (inAuthGroup) {
+      if (role === "master") {
+        router.replace("/(main)/master/home");
+      } else if (role === "teacher") {
+        router.replace("/(main)/teacher/home");
       }
-    };
-
-    checkAuth();
+    }
   }, [user, role, loading, segments]);
+
+  // ローディング中は待機画面を表示
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // 未認証の場合は何も表示しない（ルートレイアウトで処理）
+  if (!user) {
+    return null;
+  }
 
   return (
     <Stack
