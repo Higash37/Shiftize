@@ -1,6 +1,6 @@
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { db } from "../../../services/firebase"; // Firebaseの初期化を行ったファイルをインポート
+import { db } from "@/core/firebase/firebase"; // Firebaseの初期化を行ったファイルをインポート
 
 const auth = getAuth();
 

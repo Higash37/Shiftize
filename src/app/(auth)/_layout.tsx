@@ -1,10 +1,10 @@
 import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
-import { useAuth } from "../../providers/AuthContext";
+import { useAuth } from "@/core/auth/useAuth";
 import { useRouter } from "expo-router";
 
 export default function AuthLayout() {
-  const { user, userRole, loading } = useAuth();
+  const { user, role, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -12,14 +12,13 @@ export default function AuthLayout() {
       if (loading) return;
 
       if (user) {
-        const route =
-          userRole === "master" ? "/(main)/master" : "/(main)/shifts";
+        const route = role === "master" ? "/(main)/master" : "/(main)/shifts";
         await router.replace(route);
       }
     };
 
     checkAuth();
-  }, [user, userRole, loading]);
+  }, [user, role, loading]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

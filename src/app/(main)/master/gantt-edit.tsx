@@ -1,12 +1,12 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Stack } from "expo-router";
-import { GanttChartMonthEdit } from "@/components/Shift";
-import { useShifts } from "@/hooks/useShifts";
-import { useUsers } from "@/hooks/useUsers";
-import { ShiftItem } from "@/types/shift";
+import { GanttChartMonthEdit } from "@/features/shift/components/Shift";
+import { useShifts } from "@/features/shift/hooks/useShifts";
+import { useUsers } from "@/features/user/hooks/useUsers";
+import { ShiftItem } from "@/features/shift/types/shift";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/services/firebase";
+import { db } from "@/core/firebase/firebase";
 
 export default function GanttEditScreen() {
   const {

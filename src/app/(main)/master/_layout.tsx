@@ -1,14 +1,14 @@
 import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
-import { useAuth } from "@/providers/AuthContext";
+import { useAuth } from "@/core/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
-import { colors } from "@/constants/theme";
-import { MasterFooter } from "@/components/Layout";
+import { colors } from "@/shared/constants/theme";
+import { MasterFooter } from "@/shared/components/Layout";
 import Toast from "react-native-toast-message";
 
 export default function MasterLayout() {
-  const { user, loading, userRole } = useAuth();
+  const { user, loading, role } = useAuth();
   const router = useRouter();
   const segments = useSegments();
 
@@ -23,7 +23,7 @@ export default function MasterLayout() {
     }
 
     // ユーザーロールが不適切な場合はリダイレクト
-    if (userRole !== "master") {
+    if (role !== "master") {
       router.replace("/(main)/teacher");
       return;
     }
@@ -33,8 +33,7 @@ export default function MasterLayout() {
     if (inAuthGroup) {
       router.replace("/(main)/master/home");
     }
-  }, [user, loading, userRole, segments]);
-
+  }, [user, loading, role, segments]);
   // ローディング中は待機画面を表示
   if (loading) {
     return (
@@ -52,7 +51,7 @@ export default function MasterLayout() {
   }
 
   // 未認証の場合は何も表示しない（リダイレクト待ち）
-  if (!user || userRole !== "master") {
+  if (!user || role !== "master") {
     return null;
   }
 

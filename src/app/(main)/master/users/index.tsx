@@ -1,15 +1,12 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
-import { useUser } from "../../../../hooks/useUser";
-import { UserForm } from "../../../../components/User/UserForm";
-import { UserList } from "../../../../components/User/UserList";
-import { User } from "../../../../services/firebase";
-import { colors } from "../../../../constants/theme";
-import UserManagement from "../../../../components/User/UserManagement";
-import { Header } from "../../../../components/Layout/Header";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "../../../../services/firebase";
-import { MasterHeader } from "@/components/Layout/";
+import { useUser } from "@/features/user/hooks/useUser";
+import { UserForm } from "@/features/user/components/User/UserForm";
+import { UserList } from "@/features/user/components/User/UserList";
+import { User } from "@/features/user/types/user";
+import { colors } from "@/shared/constants/theme";
+import UserManagement from "@/features/user/components/User/UserManagement";
+import { Header, MasterHeader } from "@/shared/components/Layout";
 
 interface UserFormData {
   email: string;
@@ -89,7 +86,6 @@ export default function UsersScreen() {
       console.error("ユーザー編集エラー:", err);
     }
   };
-
   const handleDeleteUser = async (userId: string) => {
     try {
       // Firestoreで削除フラグを設定
@@ -97,9 +93,7 @@ export default function UsersScreen() {
       await setDoc(userRef, { deleted: true }, { merge: true });
 
       // ユーザー一覧を更新してUIから削除
-      setUsers((prevUsers: UserWithPassword[]) =>
-        prevUsers.filter((user: UserWithPassword) => user.uid !== userId)
-      );
+      setUsers((prevUsers) => prevUsers.filter((user) => user.uid !== userId));
 
       // パスワード情報も削除
       const newPasswords = { ...userPasswords };

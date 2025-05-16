@@ -7,10 +7,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Link } from "expo-router";
-import { useUser } from "../../../hooks/useUser";
-import { colors, typography } from "../../../constants/theme";
-import { User } from "../../../services/firebase";
-import { MasterHeader } from "@/components/Layout/";
+import { useUser } from "@/features/user/hooks/useUser";
+import { colors, typography } from "@/shared/constants/theme";
+import { User } from "@/features/user/types/user";
+import { MasterHeader } from "@/shared/components/Layout";
 
 export default function MasterDashboard() {
   const { users, loading, error } = useUser();

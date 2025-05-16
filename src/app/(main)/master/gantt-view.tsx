@@ -1,9 +1,9 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Stack } from "expo-router";
-import { GanttChartMonthView } from "@components/Shift";
-import { useShifts } from "@/hooks/useShifts";
-import { useUsers } from "@/hooks/useUsers";
+import { GanttChartMonthView } from "@/features/shift/components/Shift";
+import { useShifts } from "@/features/shift/hooks/useShifts";
+import { useUsers } from "@/features/user/hooks/useUsers";
 
 interface User {
   id: string;

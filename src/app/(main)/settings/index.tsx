@@ -1,15 +1,15 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
-import { Header } from "../../../components/Layout/";
-import { Footer } from "../../../components/Layout/";
-import { useAuth } from "../../../providers/AuthContext";
+import { Header } from "@/shared/components/Layout";
+import { Footer } from "@/shared/components/Layout";
+import { useAuth } from "@/core/auth/useAuth";
 import { router } from "expo-router";
 import { signOut } from "firebase/auth";
-import { auth } from "../../../services/firebase";
-import { User } from "../../../types/user";
+import { auth } from "@/core/firebase/firebase";
+import { User } from "@/features/user/types/user";
 
 export default function Settings() {
-  const { user } = useAuth() as { user: User | null };
+  const { user, role } = useAuth();
 
   const handleLogout = async () => {
     Alert.alert("確認", "ログアウトしてもよろしいですか？", [
@@ -31,7 +31,7 @@ export default function Settings() {
   };
 
   const menuItems = [
-    ...(user?.role === "master"
+    ...(role === "master"
       ? [
           {
             label: "ユーザー管理",

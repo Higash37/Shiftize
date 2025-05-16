@@ -7,10 +7,13 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Stack } from "expo-router";
-import { ShiftStatusConfig, DEFAULT_SHIFT_STATUS_CONFIG } from "@/types/shift";
+import {
+  ShiftStatusConfig,
+  DEFAULT_SHIFT_STATUS_CONFIG,
+} from "@/features/shift/types/shift";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/services/firebase";
-import { ColorPicker } from "@/components/ColorPicker";
+import { db } from "@/core/firebase/firebase";
+import { ColorPicker } from "@/shared/components/ColorPicker";
 
 export default function ShiftStatusSettingsScreen() {
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
@@ -74,12 +77,11 @@ export default function ShiftStatusSettingsScreen() {
             </View>
           </View>
         ))}
-      </ScrollView>
-
+      </ScrollView>{" "}
       <ColorPicker
         visible={isColorPickerVisible}
         onClose={() => setIsColorPickerVisible(false)}
-        onSelectColor={(color) => {
+        onSelectColor={(color: string) => {
           if (selectedStatus) {
             handleColorChange(selectedStatus, color);
           }

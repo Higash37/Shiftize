@@ -1,16 +1,16 @@
-// app/_layout.tsx
 import React, { useEffect } from "react";
 import { Stack, Slot, useRouter, useSegments } from "expo-router";
-import { AuthProvider, useAuth } from "@/providers/AuthContext";
+import { AuthProvider } from "@/core/auth/AuthContext";
+import { useAuth } from "@/core/auth/useAuth";
 import { StatusBar } from "expo-status-bar";
-import { createInitialMasterUser } from "@/services/firebase";
+import { createInitialMasterUser } from "@/core/firebase/firebase";
 import { View, ActivityIndicator } from "react-native";
-import { colors } from "@/constants/theme";
+import { colors } from "@/shared/constants/theme";
 import { ThemeProvider } from "@react-navigation/native";
 import { AppState } from "react-native";
 
 function RootLayoutNav() {
-  const { user, userRole, loading } = useAuth();
+  const { user, role, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -33,13 +33,13 @@ function RootLayoutNav() {
       }
     } else if (inAuthGroup) {
       // 認証済みの場合はメインページへ
-      if (userRole === "master") {
+      if (role === "master") {
         router.replace("/(main)/master/home");
       } else {
         router.replace("/(main)/teacher/home");
       }
     }
-  }, [user, userRole, loading, segments]);
+  }, [user, role, loading, segments]);
 
   // アプリがバックグラウンドから復帰した時に認証状態をチェック
   useEffect(() => {

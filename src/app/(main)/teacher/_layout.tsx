@@ -1,14 +1,14 @@
 import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
-import { useAuth } from "../../../providers/AuthContext";
+import { useAuth } from "@/core/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
-import { colors } from "@/constants/theme";
-import Footer from "@/components/Layout/Footer";
+import { colors } from "@/shared/constants/theme";
+import { Footer } from "@/shared/components/Layout";
 import Toast from "react-native-toast-message";
 
 export default function TeacherLayout() {
-  const { user, loading, userRole } = useAuth();
+  const { user, loading, role } = useAuth();
   const router = useRouter();
   const segments = useSegments();
 
@@ -23,7 +23,7 @@ export default function TeacherLayout() {
     }
 
     // ユーザーロールが不適切な場合はリダイレクト
-    if (userRole !== "user") {
+    if (role !== "teacher") {
       router.replace("/(main)/master/home");
       return;
     }
@@ -33,7 +33,7 @@ export default function TeacherLayout() {
     if (inAuthGroup) {
       router.replace("/(main)/teacher/home");
     }
-  }, [user, loading, userRole, segments]);
+  }, [user, loading, role, segments]);
 
   // ローディング中は待機画面を表示
   if (loading) {
@@ -52,7 +52,7 @@ export default function TeacherLayout() {
   }
 
   // 未認証の場合は何も表示しない（リダイレクト待ち）
-  if (!user || userRole !== "user") {
+  if (!user || role !== "teacher") {
     return null;
   }
 

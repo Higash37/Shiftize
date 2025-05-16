@@ -11,15 +11,15 @@ import {
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { ShiftCalendar } from "@/components/calendar/ShiftCalendar";
-import { ShiftList } from "@/components/Shift/ShiftList";
-import { colors } from "@/theme/colors";
-import { useShift } from "@/hooks/useShift";
-import { Header } from "@/components/Layout/Header";
-import { useAuth } from "@/providers/AuthContext";
+import { ShiftCalendar } from "@/features/calendar/components/calendar/ShiftCalendar";
+import { ShiftList } from "@/features/shift/components/Shift/ShiftList";
+import { colors } from "@/shared/theme/colors";
+import { useShift } from "@/features/shift/hooks/useShift";
+import { Header } from "@/shared/components/Layout/Header";
+import { useAuth } from "@/core/auth/useAuth";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { getPlatformShadow } from "@/utils/time";
+import { getPlatformShadow } from "@/shared/utils/time";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CALENDAR_WIDTH = SCREEN_WIDTH * 0.35;

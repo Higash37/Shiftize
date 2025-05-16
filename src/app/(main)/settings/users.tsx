@@ -9,9 +9,9 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import { Header } from "@/components/Layout";
-import { Footer } from "@/components/Layout";
-import { useAuth } from "@/providers/AuthContext";
+import { Header } from "@/shared/components/Layout";
+import { Footer } from "@/shared/components/Layout";
+import { useAuth } from "@/core/auth/useAuth";
 import { router } from "expo-router";
 import {
   collection,
@@ -29,8 +29,8 @@ import {
   updatePassword,
   getAuth,
 } from "firebase/auth";
-import { db, auth } from "@/services/firebase";
-import { User } from "@/types/user";
+import { db, auth } from "@/core/firebase/firebase";
+import { User } from "@/features/user/types/user";
 
 type UserManagement = {
   uid: string;
@@ -39,7 +39,7 @@ type UserManagement = {
 };
 
 export default function UsersManagement() {
-  const { user } = useAuth() as { user: User | null };
+  const { user, role } = useAuth();
   const [users, setUsers] = useState<UserManagement[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newUser, setNewUser] = useState({
@@ -53,11 +53,11 @@ export default function UsersManagement() {
 
   // マスター権限チェック
   useEffect(() => {
-    if (user?.role !== "master") {
+    if (role !== "master") {
       Alert.alert("権限エラー", "この画面にはアクセスできません");
       router.back();
     }
-  }, [user]);
+  }, [role]);
 
   // ユーザー一覧を取得
   useEffect(() => {

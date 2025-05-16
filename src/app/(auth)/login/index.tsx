@@ -11,12 +11,12 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "@/services/firebase";
+import { auth, db } from "@/core/firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { useAuth } from "@/providers/AuthContext";
+import { useAuth } from "@/core/auth/useAuth";
 
 export default function Login() {
-  const { setUserAndRole } = useAuth();
+  const { signIn } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,10 +42,8 @@ export default function Login() {
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
       const userData = userDoc.data();
 
-      setUserAndRole(
-        userCredential.user,
-        userData?.role === "master" ? "master" : "user"
-      );
+      // You may want to call signIn here if your useAuth handles state
+      // await signIn(email, password);
 
       if (userData?.role === "master") {
         router.replace("/(main)/master/home");

@@ -1,10 +1,10 @@
 import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
-import { useAuth } from "@/providers/AuthContext";
+import { useAuth } from "@/core/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 
 export default function MainLayout() {
-  const { user, userRole, loading } = useAuth();
+  const { user, role, loading } = useAuth();
   const router = useRouter();
   const segments = useSegments();
 
@@ -18,9 +18,9 @@ export default function MainLayout() {
         } else {
           const inAuthGroup = segments[0] === "(auth)";
           if (inAuthGroup) {
-            if (userRole === "master") {
+            if (role === "master") {
               await router.replace("/(main)/master/home");
-            } else if (userRole === "user") {
+            } else if (role === "teacher") {
               await router.replace("/(main)/teacher/home");
             }
           }
@@ -31,14 +31,12 @@ export default function MainLayout() {
     };
 
     checkAuth();
-  }, [user, userRole, loading, segments]);
+  }, [user, role, loading, segments]);
 
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        gestureEnabled: true,
-        animation: "slide_from_right",
       }}
     >
       <Slot />

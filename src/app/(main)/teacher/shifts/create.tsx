@@ -23,19 +23,20 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "@/services/firebase";
+import { db } from "@/core/firebase/firebase";
 import { AntDesign } from "@expo/vector-icons";
-import { colors } from "@/constants/theme";
-import TimeSelect from "@/components/Shift/TimeSelect";
-import { CalendarModal } from "@/components/Shift/";
-import { useShift, type Shift } from "@/hooks/useShift";
-import { useAuth } from "@/providers/AuthContext";
-import type { User } from "@/types/auth";
-import { Header } from "@/components/Layout/Header";
+import { colors } from "@/shared/constants/theme";
+import TimeSelect from "@/features/shift/components/Shift/TimeSelect";
+import { CalendarModal } from "@/features/shift/components/Shift/";
+import { useShift } from "@/features/shift/hooks/useShift";
+import type { Shift } from "@/features/shift/types/shift";
+import { useAuth } from "@/core/auth/useAuth";
+import type { User } from "@/features/user/types/user";
+import { Header } from "@/shared/components/Layout";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { getUserData, type UserData } from "@/services/firebase";
-import { ShiftStatus } from "@/types/shift";
+import { getUserData, type UserData } from "@/core/firebase/firebase";
+import { ShiftStatus } from "@/features/shift/types/shift";
 
 interface ShiftData {
   startTime: string;
@@ -452,10 +453,10 @@ export default function ShiftCreateScreen() {
                   <TimeSelect
                     startTime={classTime.startTime}
                     endTime={classTime.endTime}
-                    onStartTimeChange={(time) =>
+                    onStartTimeChange={(time: string) =>
                       handleClassTimeChange(index, "startTime", time)
                     }
-                    onEndTimeChange={(time) =>
+                    onEndTimeChange={(time: string) =>
                       handleClassTimeChange(index, "endTime", time)
                     }
                   />

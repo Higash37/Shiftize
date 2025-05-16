@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { router } from "expo-router";
-import { useAuth } from "../../providers/AuthContext";
-import { Header } from "@/components/Layout";
-import { User } from "@/types/user";
+import { useAuth } from "@/core/auth/useAuth";
+import { Header } from "@/shared/components/Layout";
+import { User } from "@/features/user/types/user";
 
 export default function HomePage() {
   const { user } = useAuth() as { user: User | null };
