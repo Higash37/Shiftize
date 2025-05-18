@@ -1,9 +1,12 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import { Stack } from "expo-router";
 import { GanttChartMonthView } from "@/features/shift/components/Shift";
 import { useShifts } from "@/features/shift/hooks/useShifts";
 import { useUsers } from "@/features/user/hooks/useUsers";
+import { ShiftItem } from "@/features/shift/types/shift";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/core/firebase/firebase";
 
 interface User {
   id: string;
@@ -43,6 +46,29 @@ export default function GanttViewScreen() {
     await fetchShiftsByMonth(year, month);
   };
 
+  // シフト更新ハンドラを実装
+  const handleShiftUpdate = async (updatedShift: ShiftItem) => {
+    try {
+      // Firestoreの更新
+      const shiftRef = doc(db, "shifts", updatedShift.id);
+      await updateDoc(shiftRef, {
+        startTime: updatedShift.startTime,
+        endTime: updatedShift.endTime,
+        updatedAt: new Date(),
+      });
+      Alert.alert("更新完了", "シフトを更新しました");
+    } catch (error) {
+      console.error("Error updating shift:", error);
+      Alert.alert("エラー", "シフトの更新に失敗しました");
+    }
+  };
+
+  // シフト選択ハンドラ
+  const handleShiftPress = (shift: ShiftItem) => {
+    // シフトの詳細表示や追加の編集機能を実装する場合はここに追加
+    console.log("Shift pressed:", shift);
+  };
+
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -50,11 +76,13 @@ export default function GanttViewScreen() {
           title: "シフト確認",
           headerShown: true,
         }}
-      />{" "}
+      />
       <GanttChartMonthView
         shifts={shifts}
         days={days}
         users={users.map((user: User) => user.nickname)}
+        onShiftPress={handleShiftPress}
+        onShiftUpdate={handleShiftUpdate}
         onMonthChange={handleMonthChange}
         classTimes={[]} /* 授業時間帯を空に設定して灰色の縦線を表示しない */
       />

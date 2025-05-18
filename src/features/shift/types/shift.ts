@@ -105,6 +105,10 @@ export interface Shift {
   duration?: number;
   createdAt?: Date;
   updatedAt?: Date;
+  classes?: Array<{
+    startTime: string;
+    endTime: string;
+  }>;
   requestedChanges?: Array<{
     startTime: string;
     endTime: string;

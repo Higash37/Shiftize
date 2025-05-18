@@ -60,6 +60,16 @@ const halfHourLines = Array.from({ length: (22 - 9) * 2 + 1 }, (_, i) => {
   return `${hour}:${min}`;
 });
 
+// 30分ごとの時間選択リストを生成
+function generateTimeOptions() {
+  const options = [];
+  for (let hour = 9; hour <= 22; hour++) {
+    options.push(`${hour.toString().padStart(2, "0")}:00`);
+    options.push(`${hour.toString().padStart(2, "0")}:30`);
+  }
+  return options;
+}
+
 export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
   shifts,
   onShiftPress,
@@ -95,6 +105,11 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
   const { role } = useAuth(); // ユーザーロールを取得
   const isMaster = role === "master"; // マスター権限かどうかを判定
   const [refreshKey, setRefreshKey] = useState(0); // 再描画用のキー
+
+  // 画面をリフレッシュする関数
+  // const refreshScreen = () => {
+  //   setRefreshKey((prevKey) => prevKey + 1); // 再描画をトリガー
+  // };
 
   const screenWidth = Dimensions.get("window").width;
   const dateColumnWidth = 50;
@@ -166,17 +181,7 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
   const handleTimeUpdate = async () => {
     if (!editingShift) return;
 
-    const [startHour, startMinute] = timeInput.start.split(":").map(Number);
-    const [endHour, endMinute] = timeInput.end.split(":").map(Number);
-
-    if (
-      isNaN(startHour) ||
-      isNaN(startMinute) ||
-      isNaN(endHour) ||
-      isNaN(endMinute)
-    ) {
-      return;
-    }
+    // ピッカーからの選択なので、バリデーションは不要
 
     const updatedShift = {
       ...editingShift,
@@ -360,7 +365,38 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
 
     setShowClassTimeModal(false);
     setEditingShift(null);
+  }; // 空白セルをクリックした時の処理
+  const handleEmptyCellClick = (date: string, position: number) => {
+    // クリックした位置に基づいて時間を計算
+    const startTime = positionToTime(position);
+    // 終了時間は1時間後をデフォルトにする
+    const startHour = parseInt(startTime.split(":")[0]);
+    const startMinute = parseInt(startTime.split(":")[1]);
+    let endHour = startHour + 1;
+    let endMinute = startMinute;
+
+    if (endHour > 22) {
+      endHour = 22;
+      endMinute = 0;
+    }
+
+    const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute
+      .toString()
+      .padStart(2, "0")}`;
+
+    // 新規シフト情報を設定
+    setNewShift({
+      userId: users.length > 0 ? users[0].uid : "",
+      nickname: "",
+      date,
+      startTime: startTime,
+      endTime: endTime,
+      status: "pending",
+    });
+
+    setShowAddShiftModal(true);
   };
+
   // 前月に移動する関数
   const handlePrevMonth = () => {
     const newDate = subMonths(selectedDate, 1);
@@ -399,13 +435,14 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     const groups = groupShiftsByOverlap(dayShifts);
     // 空のグループを除外
     return { date, groups: groups.filter((group) => group.length > 0) };
-  });
-  // シフトの重なりをグループ化
+  }); // シフトの重なりをグループ化
   function groupShiftsByOverlap(shifts: ShiftItem[]) {
     if (shifts.length === 0) return [];
 
-    // 1人1行表示のために、すべてのシフトを1つのグループにまとめる
-    return [shifts.sort((a, b) => a.startTime.localeCompare(b.startTime))];
+    // 1人1行表示のために、各シフトを別々のグループとして返す
+    return shifts
+      .sort((a, b) => a.startTime.localeCompare(b.startTime))
+      .map((shift) => [shift]);
   }
   // 授業時間帯のセル判定
   function isClassTime(time: string) {
@@ -434,6 +471,17 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
       ]}
       ref={ganttContainerRef}
     >
+      {/* クリック可能な背景レイヤー */}
+      <TouchableOpacity
+        style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
+        onPress={() => {
+          // シフトの日付情報を取得
+          const date = shifts.length > 0 ? shifts[0].date : "";
+          if (date) handleEmptyCellClick(date, 0);
+        }}
+        activeOpacity={0.7}
+      />
+
       <View style={styles.ganttBgRow}>
         {halfHourLines.map((t, i) => (
           <View
@@ -629,7 +677,7 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
                 </Text>
               </View>
             );
-          })}
+          })}{" "}
         </CustomScrollView>
       </View>
     );
@@ -677,38 +725,46 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>時間を編集</Text>
-            <Text style={styles.modalSubtitle}>{editingShift.nickname}</Text>
-
+            <Text style={styles.modalSubtitle}>
+              {editingShift.nickname}
+            </Text>{" "}
             <View style={styles.timeInputContainer}>
               <View style={styles.timeInputGroup}>
                 <Text style={styles.timeInputLabel}>開始時間</Text>
-                <TextInput
-                  style={styles.timeInput}
-                  value={timeInput.start}
-                  onChangeText={(text) =>
-                    setTimeInput((prev) => ({ ...prev, start: text }))
-                  }
-                  placeholder="00:00"
-                  keyboardType="numbers-and-punctuation"
-                />
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={timeInput.start}
+                    onValueChange={(itemValue) =>
+                      setTimeInput((prev) => ({ ...prev, start: itemValue }))
+                    }
+                    style={styles.picker}
+                  >
+                    {generateTimeOptions().map((time) => (
+                      <Picker.Item key={time} label={time} value={time} />
+                    ))}
+                  </Picker>
+                </View>
               </View>
 
               <Text style={styles.timeInputSeparator}>～</Text>
 
               <View style={styles.timeInputGroup}>
                 <Text style={styles.timeInputLabel}>終了時間</Text>
-                <TextInput
-                  style={styles.timeInput}
-                  value={timeInput.end}
-                  onChangeText={(text) =>
-                    setTimeInput((prev) => ({ ...prev, end: text }))
-                  }
-                  placeholder="00:00"
-                  keyboardType="numbers-and-punctuation"
-                />
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={timeInput.end}
+                    onValueChange={(itemValue) =>
+                      setTimeInput((prev) => ({ ...prev, end: itemValue }))
+                    }
+                    style={styles.picker}
+                  >
+                    {generateTimeOptions().map((time) => (
+                      <Picker.Item key={time} label={time} value={time} />
+                    ))}
+                  </Picker>
+                </View>
               </View>
             </View>
-
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
@@ -779,7 +835,6 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
       setLoading(false);
     }
   };
-
   // シフトステータスを変更する処理
   const handleChangeStatus = async (
     shift: ShiftItem,
@@ -809,44 +864,11 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     }
   };
 
-  // 空白セルをクリックした時の処理
-  const handleEmptyCellClick = (date: string, position: number) => {
-    // クリックした位置に基づいて時間を計算
-    const startTime = positionToTime(position);
-    // 終了時間は30分後
-    const startHour = parseInt(startTime.split(":")[0]);
-    const startMinute = parseInt(startTime.split(":")[1]);
-    let endHour = startHour;
-    let endMinute = startMinute + 30;
-
-    if (endMinute >= 60) {
-      endHour += 1;
-      endMinute -= 60;
-    }
-
-    const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute
-      .toString()
-      .padStart(2, "0")}`;
-
-    // 新規シフト情報を設定
-    setNewShift({
-      userId: users.length > 0 ? users[0].uid : "",
-      nickname: "",
-      date,
-      startTime,
-      endTime,
-      status: "pending",
-    });
-
-    setShowAddShiftModal(true);
-  };
-
   // DatePickerModalで日付が選択されたときの処理
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     setShowYearMonthPicker(false);
   };
-
   // 空白セルコンポーネント
   const EmptyCell: React.FC<{
     date: string;
@@ -855,9 +877,15 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     isClassTime: (time: string) => boolean;
   }> = ({ date, width, halfHourLines, isClassTime }) => (
     <View style={[styles.emptyCell, { width }]}>
+      {/* 背景全体をクリック可能にする */}
+      <TouchableOpacity
+        style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
+        onPress={() => handleEmptyCellClick(date, 0)} // デフォルトは9:00から
+        activeOpacity={0.7}
+      />
       <View style={styles.ganttBgRow}>
         {halfHourLines.map((t, i) => (
-          <TouchableOpacity
+          <View
             key={t}
             style={[
               styles.ganttBgCell,
@@ -867,7 +895,6 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
                 borderRightWidth: i % 2 === 0 ? 0.5 : 1,
               },
             ]}
-            onPress={() => handleEmptyCellClick(date, i / 2)}
           />
         ))}
       </View>
@@ -886,7 +913,6 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>新規シフト追加</Text>
           <Text style={styles.modalSubtitle}>{newShift.date}</Text>
-
           <View style={styles.formGroup}>
             <Text style={styles.formLabel}>スタッフ</Text>
             <View style={styles.pickerContainer}>
@@ -907,38 +933,44 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
                 ))}
               </Picker>
             </View>
-          </View>
-
+          </View>{" "}
           <View style={styles.timeInputContainer}>
             <View style={styles.timeInputGroup}>
               <Text style={styles.timeInputLabel}>開始時間</Text>
-              <TextInput
-                style={styles.timeInput}
-                value={newShift.startTime}
-                onChangeText={(text) =>
-                  setNewShift((prev) => ({ ...prev, startTime: text }))
-                }
-                placeholder="00:00"
-                keyboardType="numbers-and-punctuation"
-              />
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={newShift.startTime}
+                  onValueChange={(itemValue) =>
+                    setNewShift((prev) => ({ ...prev, startTime: itemValue }))
+                  }
+                  style={styles.picker}
+                >
+                  {generateTimeOptions().map((time) => (
+                    <Picker.Item key={time} label={time} value={time} />
+                  ))}
+                </Picker>
+              </View>
             </View>
 
             <Text style={styles.timeInputSeparator}>～</Text>
 
             <View style={styles.timeInputGroup}>
               <Text style={styles.timeInputLabel}>終了時間</Text>
-              <TextInput
-                style={styles.timeInput}
-                value={newShift.endTime}
-                onChangeText={(text) =>
-                  setNewShift((prev) => ({ ...prev, endTime: text }))
-                }
-                placeholder="00:00"
-                keyboardType="numbers-and-punctuation"
-              />
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={newShift.endTime}
+                  onValueChange={(itemValue) =>
+                    setNewShift((prev) => ({ ...prev, endTime: itemValue }))
+                  }
+                  style={styles.picker}
+                >
+                  {generateTimeOptions().map((time) => (
+                    <Picker.Item key={time} label={time} value={time} />
+                  ))}
+                </Picker>
+              </View>
             </View>
           </View>
-
           <View style={styles.modalButtons}>
             <TouchableOpacity
               style={[styles.modalButton, styles.cancelButton]}
@@ -1069,38 +1101,49 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>授業時間を設定</Text>
-            <Text style={styles.modalSubtitle}>{editingShift.nickname}</Text>
-
+            <Text style={styles.modalSubtitle}>
+              {editingShift.nickname}
+            </Text>{" "}
             <View style={styles.timeInputContainer}>
               <View style={styles.timeInputGroup}>
                 <Text style={styles.timeInputLabel}>開始時間</Text>
-                <TextInput
-                  style={styles.timeInput}
-                  value={classTimeInput.start}
-                  onChangeText={(text) =>
-                    setClassTimeInput((prev) => ({ ...prev, start: text }))
-                  }
-                  placeholder="00:00"
-                  keyboardType="numbers-and-punctuation"
-                />
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={classTimeInput.start}
+                    onValueChange={(itemValue) =>
+                      setClassTimeInput((prev) => ({
+                        ...prev,
+                        start: itemValue,
+                      }))
+                    }
+                    style={styles.picker}
+                  >
+                    {generateTimeOptions().map((time) => (
+                      <Picker.Item key={time} label={time} value={time} />
+                    ))}
+                  </Picker>
+                </View>
               </View>
 
               <Text style={styles.timeInputSeparator}>～</Text>
 
               <View style={styles.timeInputGroup}>
                 <Text style={styles.timeInputLabel}>終了時間</Text>
-                <TextInput
-                  style={styles.timeInput}
-                  value={classTimeInput.end}
-                  onChangeText={(text) =>
-                    setClassTimeInput((prev) => ({ ...prev, end: text }))
-                  }
-                  placeholder="00:00"
-                  keyboardType="numbers-and-punctuation"
-                />
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={classTimeInput.end}
+                    onValueChange={(itemValue) =>
+                      setClassTimeInput((prev) => ({ ...prev, end: itemValue }))
+                    }
+                    style={styles.picker}
+                  >
+                    {generateTimeOptions().map((time) => (
+                      <Picker.Item key={time} label={time} value={time} />
+                    ))}
+                  </Picker>
+                </View>
               </View>
             </View>
-
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
