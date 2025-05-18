@@ -14,14 +14,12 @@ export default function MainLayout() {
     if (loading) return;
 
     // 未認証の場合は何もしない（ルートレイアウトで処理）
-    if (!user) return;
-
-    // 認証済みユーザーがauthグループにいる場合のみリダイレクト
+    if (!user) return; // 認証済みユーザーがauthグループにいる場合のみリダイレクト
     const inAuthGroup = segments[0] === "(auth)";
     if (inAuthGroup) {
       if (role === "master") {
         router.replace("/(main)/master/home");
-      } else if (role === "teacher") {
+      } else if (role === "user") {
         router.replace("/(main)/teacher/home");
       }
     }

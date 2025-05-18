@@ -13,7 +13,7 @@
 
 - Firebase Authentication を使用
 - ユーザー情報は Firebase Firestore に保存
-- ロール（master/teacher）による権限管理
+- ロール（master/user）による権限管理
 - 新規ユーザー登録時は自動的にロールを決定
 
 ### 3. ログイン後のフロー

@@ -21,7 +21,7 @@
 interface User {
   id: string; // ユーザーID
   nickname: string; // ニックネーム
-  role: "master" | "teacher"; // ロール
+  role: "master" | "user"; // ロール
   email: string; // メールアドレス
   createdAt: Date; // 作成日時
   updatedAt: Date; // 更新日時

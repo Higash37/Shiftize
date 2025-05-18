@@ -35,7 +35,7 @@ function RootLayoutNav() {
       // 認証済みの場合はメインページへ
       if (role === "master") {
         router.replace("/(main)/master/home");
-      } else {
+      } else if (role === "user") {
         router.replace("/(main)/teacher/home");
       }
     }

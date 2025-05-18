@@ -26,7 +26,7 @@
 interface User {
   uid: string; // ユーザーID
   nickname: string; // ニックネーム
-  role: "master" | "teacher"; // ロール
+  role: "master" | "user"; // ロール
   createdAt: Date; // 作成日時
 }
 ```

@@ -20,11 +20,9 @@ export default function MasterLayout() {
     if (!user) {
       router.replace("/(auth)/login");
       return;
-    }
-
-    // ユーザーロールが不適切な場合はリダイレクト
+    } // ユーザーロールが不適切な場合はリダイレクト
     if (role !== "master") {
-      router.replace("/(main)/teacher");
+      router.replace("/(main)/teacher/home");
       return;
     }
 

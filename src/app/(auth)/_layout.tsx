@@ -6,14 +6,19 @@ import { useRouter } from "expo-router";
 export default function AuthLayout() {
   const { user, role, loading } = useAuth();
   const router = useRouter();
-
   useEffect(() => {
     const checkAuth = async () => {
       if (loading) return;
-
       if (user) {
-        const route = role === "master" ? "/(main)/master" : "/(main)/shifts";
-        await router.replace(route);
+        let route;
+        if (role === "master") {
+          route = "/(main)/master/home";
+        } else if (role === "user") {
+          route = "/(main)/teacher/home";
+        }
+        if (route) {
+          await router.replace(route);
+        }
       }
     };
 

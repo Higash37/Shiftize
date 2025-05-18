@@ -23,7 +23,7 @@ export default function TeacherLayout() {
     }
 
     // ユーザーロールが不適切な場合はリダイレクト
-    if (role !== "teacher") {
+    if (role !== "user") {
       router.replace("/(main)/master/home");
       return;
     }
@@ -52,7 +52,7 @@ export default function TeacherLayout() {
   }
 
   // 未認証の場合は何も表示しない（リダイレクト待ち）
-  if (!user || role !== "teacher") {
+  if (!user || role !== "user") {
     return null;
   }
 

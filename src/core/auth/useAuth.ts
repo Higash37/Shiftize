@@ -12,7 +12,7 @@ import { db } from "../firebase/firebase";
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<"master" | "teacher" | null>(null);
+  const [role, setRole] = useState<"master" | "user" | null>(null);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -31,7 +31,7 @@ export const useAuth = () => {
         const isMaster = email.startsWith("master@");
         userData = {
           nickname: email.split("@")[0],
-          role: isMaster ? "master" : "teacher",
+          role: isMaster ? "master" : "user",
           email: email,
           createdAt: new Date(),
         };
