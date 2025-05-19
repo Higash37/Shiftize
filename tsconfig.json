@@ -6,9 +6,9 @@
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@components/*": ["./src/shared/components/*"],
-      "@utils/*": ["./src/shared/utils/*"],
-      "@types/*": ["./src/shared/types/*"],
+      "@components/*": ["src/common/common-ui/*"],
+      "@utils/*": ["src/common/common-utils/*"],
+      "@types/*": ["src/common/common-models/*"],
       "@services/*": ["./src/services/*"],
       "@providers/*": ["./src/providers/*"]
     }

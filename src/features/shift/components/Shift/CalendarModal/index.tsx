@@ -3,7 +3,7 @@ import { View, Text, Modal, TouchableOpacity } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { styles } from "./styles";
 import { CalendarModalProps } from "./types";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 import { DAY_WIDTH } from "./styles";
 
 /**

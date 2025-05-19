@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { styles, getStatusColor } from "./styles";
@@ -111,42 +111,49 @@ export const ShiftList: React.FC<ShiftListProps> = ({
                   </View>
 
                   {/* 授業時間 */}
-                  {shift.classes?.map((classTime: { startTime: string; endTime: string }, index: number) => (
-                    <React.Fragment key={index}>
-                      <View style={[styles.timeSlot, styles.classTimeSlot]}>
-                        <Text
-                          style={[
-                            styles.timeSlotTitle,
-                            { color: colors.primary },
-                          ]}
-                        >
-                          授業時間
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailsText,
-                            { color: colors.primary },
-                          ]}
-                        >
-                          {format(new Date(classTime.startTime), "HH:mm")} ~{" "}
-                          {format(new Date(classTime.endTime), "HH:mm")}
-                        </Text>
-                      </View>
-                      {/* 授業と授業の間のスタッフ時間 */}
-                      {shift.classes?.[index + 1] && (
-                        <View style={styles.timeSlot}>
-                          <Text style={styles.timeSlotTitle}>スタッフ時間</Text>
-                          <Text style={styles.detailsText}>
-                            {format(new Date(classTime.endTime), "HH:mm")} ~{" "}
-                            {format(
-                              new Date(shift.classes[index + 1].startTime),
-                              "HH:mm"
-                            )}
+                  {shift.classes?.map(
+                    (
+                      classTime: { startTime: string; endTime: string },
+                      index: number
+                    ) => (
+                      <React.Fragment key={index}>
+                        <View style={[styles.timeSlot, styles.classTimeSlot]}>
+                          <Text
+                            style={[
+                              styles.timeSlotTitle,
+                              { color: colors.primary },
+                            ]}
+                          >
+                            授業時間
+                          </Text>
+                          <Text
+                            style={[
+                              styles.detailsText,
+                              { color: colors.primary },
+                            ]}
+                          >
+                            {format(new Date(classTime.startTime), "HH:mm")} ~{" "}
+                            {format(new Date(classTime.endTime), "HH:mm")}
                           </Text>
                         </View>
-                      )}
-                    </React.Fragment>
-                  ))}
+                        {/* 授業と授業の間のスタッフ時間 */}
+                        {shift.classes?.[index + 1] && (
+                          <View style={styles.timeSlot}>
+                            <Text style={styles.timeSlotTitle}>
+                              スタッフ時間
+                            </Text>
+                            <Text style={styles.detailsText}>
+                              {format(new Date(classTime.endTime), "HH:mm")} ~{" "}
+                              {format(
+                                new Date(shift.classes[index + 1].startTime),
+                                "HH:mm"
+                              )}
+                            </Text>
+                          </View>
+                        )}
+                      </React.Fragment>
+                    )
+                  )}
 
                   {/* 最後のスタッフ時間（授業後） */}
                   {shift.classes && shift.classes.length > 0 && (

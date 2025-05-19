@@ -7,7 +7,7 @@ import {
   ScrollView,
   StyleSheet,
 } from "react-native";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 
 interface DatePickerModalProps {
   isVisible: boolean;

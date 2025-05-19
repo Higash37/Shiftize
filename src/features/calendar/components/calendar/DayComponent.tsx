@@ -1,6 +1,6 @@
 import React from "react";
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 import { DayComponentProps } from "./types";
 import { getDayColor } from "./utils";
 import { DAY_WIDTH, DAY_HEIGHT } from "./constants";

@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import { useAuth } from "@/core/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
-import { colors } from "@/shared/constants/theme";
-import { Footer } from "@/shared/components/Layout";
+import { colors } from "@/common/common-constants/ThemeConstants";
+import { Footer } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
 
 export default function TeacherLayout() {

@@ -9,8 +9,8 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import { Header } from "@/shared/components/Layout";
-import { Footer } from "@/shared/components/Layout";
+import { Header } from "@/common/common-ui/ui-layout";
+import { Footer } from "@/common/common-ui/ui-layout";
 import { useAuth } from "@/core/auth/useAuth";
 import { router } from "expo-router";
 import {

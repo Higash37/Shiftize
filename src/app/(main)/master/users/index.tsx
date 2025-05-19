@@ -4,9 +4,9 @@ import { useUser } from "@/features/user/hooks/useUser";
 import { UserForm } from "@/features/user/components/User/UserForm";
 import { UserList } from "@/features/user/components/User/UserList";
 import { User } from "@/features/user/types/user";
-import { colors } from "@/shared/constants/theme";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import UserManagement from "@/features/user/components/User/UserManagement";
-import { Header, MasterHeader } from "@/shared/components/Layout";
+import { Header, MasterHeader } from "@/common/common-ui/ui-layout";
 
 interface UserFormData {
   email: string;

@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 import { ShiftListStyles } from "./types";
 import { ShiftStatus } from "@/features/shift/types/shift";
 

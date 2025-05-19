@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text } from "react-native";
-import Input from "@components/Common/Input";
-import Button from "@components/Common/Button";
+import Input from "@/common/common-ui/ui-forms/FormInput";
+import Button from "@/common/common-ui/ui-forms/FormButton";
 import {
   getAuth,
   updatePassword,

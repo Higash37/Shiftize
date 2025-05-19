@@ -13,13 +13,13 @@ import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { ShiftCalendar } from "@/features/calendar/components/calendar/ShiftCalendar";
 import { ShiftList } from "@/features/shift/components/Shift/ShiftList";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 import { useShift } from "@/features/shift/hooks/useShift";
-import { Header } from "@/shared/components/Layout/Header";
+import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
 import { useAuth } from "@/core/auth/useAuth";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { getPlatformShadow } from "@/shared/core/style/utils";
+import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CALENDAR_WIDTH = SCREEN_WIDTH * 0.35;

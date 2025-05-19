@@ -1,5 +1,5 @@
 import { ShiftStatus } from "@/features/shift/types/shift";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 import { HOLIDAYS } from "./constants";
 
 // ステータスのテキストを取得する関数

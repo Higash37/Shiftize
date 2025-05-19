@@ -5,7 +5,7 @@ import { useAuth } from "@/core/auth/useAuth";
 import { StatusBar } from "expo-status-bar";
 import { createInitialMasterUser } from "@/core/firebase/firebase";
 import { View, ActivityIndicator } from "react-native";
-import { colors } from "@/shared/constants/theme";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
 import { AppState } from "react-native";
 

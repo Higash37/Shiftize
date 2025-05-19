@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 import { styles, calendarTheme } from "./styles";
 import { ShiftDateSelectorProps } from "./types";
 

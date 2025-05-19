@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Shift } from "@/features/shift/types/shift";

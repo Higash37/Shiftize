@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/core/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
-import { colors } from "@/shared/constants/theme";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 export default function MainLayout() {
   const { user, role, loading } = useAuth();

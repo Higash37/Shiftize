@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { colors } from "@/shared/constants/colors";
+import { colors } from "@/common/common-constants/ColorConstants";
 
 interface CalendarHeaderProps {
   date: Date;

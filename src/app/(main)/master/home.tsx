@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { colors } from "@/shared/constants/theme";
-import { MasterHeader } from "@/shared/components/Layout";
+import { colors } from "@/common/common-constants/ThemeConstants";
+import { MasterHeader } from "@/common/common-ui/ui-layout";
 
 export default function MasterHomeScreen() {
   return (

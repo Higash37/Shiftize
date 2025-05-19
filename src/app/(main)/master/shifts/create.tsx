@@ -26,14 +26,14 @@ import {
 } from "firebase/firestore";
 import { db } from "@/core/firebase/firebase";
 import { AntDesign } from "@expo/vector-icons";
-import { colors } from "@/shared/constants/theme";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import TimeSelect from "@/features/shift/components/Shift/TimeSelect";
 import { CalendarModal } from "@/features/shift/components/Shift/";
 import { useShift } from "@/features/shift/hooks/useShift";
 import type { Shift, ShiftStatus } from "@/features/shift/types/shift";
 import { useAuth } from "@/core/auth/useAuth";
 import type { User } from "@/features/user/types/user";
-import { Header } from "@/shared/components/Layout";
+import { Header } from "@/common/common-ui/ui-layout";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getUserData, type UserData } from "@/core/firebase/firebase";

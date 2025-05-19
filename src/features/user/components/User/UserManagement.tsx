@@ -6,7 +6,7 @@ import { User } from "@/features/user/types/user";
 import { UserList } from "./UserList";
 import { UserForm } from "./UserForm";
 import { UserManagementProps } from "./types";
-import { colors, typography } from "@/shared/constants/theme";
+import { colors, typography } from "@/common/common-constants/ThemeConstants";
 
 /**
  * ユーザー管理コンポーネント

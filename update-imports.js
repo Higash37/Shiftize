@@ -19,16 +19,22 @@ const importPathMap = {
   "@/types/user": "@/features/user/types/user",
 
   "@/components/calendar": "@/features/calendar/components/calendar",
-  "@/types/Calendar": "@/features/calendar/types/Calendar",
-  // 新しいコンポーネントパス
-  "@/components/primitives": "@/shared/components/primitives",
-  "@/components/inputs": "@/shared/components/inputs",
-  "@/components/feedback": "@/shared/components/feedback",
-  "@/components/Common": "@/shared/components/Common", // 後方互換性
-  "@/components/Layout": "@/shared/components/Layout",
-  "@/components/Stepper": "@/shared/components/Stepper",
-  "@/components/TimePicker": "@/shared/components/TimePicker",
-  "@/components/CustomScrollView": "@/shared/components/CustomScrollView",
+  "@/types/Calendar": "@/features/calendar/types/Calendar", // 新しいコンポーネントパス
+  "@/components/primitives": "@/common/common-ui/ui-base",
+  "@/components/inputs": "@/common/common-ui/ui-forms",
+  "@/components/feedback": "@/common/common-ui/ui-feedback",
+  // "@/components/Common": "@/common/common-ui/Common", // 後方互換性（不要になりました）
+  "@/components/Layout": "@/common/common-ui/ui-layout",
+  "@/components/Stepper": "@/common/common-ui/ui-progress",
+  "@/components/TimePicker": "@/common/common-ui/ui-time",
+  "@/components/CustomScrollView": "@/common/common-ui/ui-scroll",
+
+  // 直接的なコンポーネントインポート
+  "@components/Common/Input": "@common/common-ui/ui-forms/FormInput",
+  "@components/Common/Button": "@common/common-ui/ui-forms/FormButton",
+  "@components/Common/Box": "@common/common-ui/ui-base/BaseBox",
+  "@components/Common/ErrorMessage":
+    "@common/common-ui/ui-feedback/FeedbackError",
 
   "@/constants": "@/shared/constants",
   "@/theme": "@/shared/theme",

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Calendar } from "react-native-calendars";
 import { View, StyleSheet } from "react-native";
-import { colors } from "@/shared/theme/colors";
+import { colors } from "@/common/common-theme/ThemeColors";
 import { ShiftCalendarProps, DayComponentProps } from "./types";
 import { DayComponent } from "./DayComponent";
 import { CalendarHeader } from "./CalendarHeader";

@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/core/auth/useAuth";
-import { Header } from "@/shared/components/Layout";
+import { Header } from "@/common/common-ui/ui-layout";
 import { User } from "@/features/user/types/user";
 
 export default function HomePage() {

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { colors } from "@/shared/constants/theme";
-import { Header } from "@/shared/components/Layout";
+import { colors } from "@/common/common-constants/ThemeConstants";
+import { Header } from "@/common/common-ui/ui-layout";
 
 export default function HomeScreen() {
   return (
