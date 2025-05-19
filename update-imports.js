@@ -20,18 +20,25 @@ const importPathMap = {
 
   "@/components/calendar": "@/features/calendar/components/calendar",
   "@/types/Calendar": "@/features/calendar/types/Calendar",
-
-  "@/components/Common": "@/shared/components/Common",
+  // 新しいコンポーネントパス
+  "@/components/primitives": "@/shared/components/primitives",
+  "@/components/inputs": "@/shared/components/inputs",
+  "@/components/feedback": "@/shared/components/feedback",
+  "@/components/Common": "@/shared/components/Common", // 後方互換性
   "@/components/Layout": "@/shared/components/Layout",
   "@/components/Stepper": "@/shared/components/Stepper",
   "@/components/TimePicker": "@/shared/components/TimePicker",
-  "@/components/ColorPicker": "@/shared/components/ColorPicker",
   "@/components/CustomScrollView": "@/shared/components/CustomScrollView",
 
   "@/constants": "@/shared/constants",
   "@/theme": "@/shared/theme",
   "@/types/theme": "@/shared/types/theme",
-  "@/utils": "@/shared/utils",
+  "@/utils": "@/shared/core", // coreに移行
+  "@/utils/date": "@/shared/core/date",
+  "@/utils/time": "@/shared/core/time",
+  "@/utils/style": "@/shared/core/style",
+  "@/utils/validation": "@/shared/core/validation",
+  "@/utils/types": "@/shared/core/types",
 };
 
 // 再帰的にディレクトリを探索する関数

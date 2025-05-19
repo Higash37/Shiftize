@@ -1,6 +1,6 @@
 import { StyleSheet, Platform, Dimensions } from "react-native";
 import { colors } from "@/shared/theme/colors";
-import { getPlatformShadow } from "@/shared/utils/time";
+import { getPlatformShadow } from "@/shared/core/style/utils";
 import { CalendarModalStyles } from "./types";
 
 // 画面幅に基づいてカレンダーのサイズを計算

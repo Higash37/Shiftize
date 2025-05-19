@@ -19,7 +19,7 @@ import { Header } from "@/shared/components/Layout/Header";
 import { useAuth } from "@/core/auth/useAuth";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { getPlatformShadow } from "@/shared/utils/time";
+import { getPlatformShadow } from "@/shared/core/style/utils";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CALENDAR_WIDTH = SCREEN_WIDTH * 0.35;

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text } from "react-native";
-import Input from "@/shared/components/Common/Input";
-import Button from "@/shared/components/Common/Button";
-import ErrorMessage from "@/shared/components/Common/ErrorMessage";
+import Input from "@/shared/components/inputs/Input";
+import Button from "@/shared/components/inputs/Button";
+import ErrorMessage from "@/shared/components/feedback/ErrorMessage";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/core/firebase/firebase";
 import { styles } from "./UserForm.styles";

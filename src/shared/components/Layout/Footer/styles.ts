@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from "react-native";
 import { colors } from "@/shared/theme/colors";
-import { getPlatformShadow } from "@/shared/utils/time";
+import { getPlatformShadow } from "@/shared/core/style/utils";
 
 export const styles = StyleSheet.create({
   footer: {

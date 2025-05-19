@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/shared/theme/colors";
-import { getPlatformShadow } from "@/shared/utils/time";
+import { getPlatformShadow } from "@/shared/core/style/utils";
 import { TimeInputSectionStyles } from "./types";
 
 export const styles = StyleSheet.create<TimeInputSectionStyles>({

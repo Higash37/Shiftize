@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { User } from "@/features/user/types/user";
-import Button from "@/shared/components/Common/Button";
+import Button from "@/shared/components/inputs/Button";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "@/shared/theme/colors";
 import { styles } from "./UserList.styles";
