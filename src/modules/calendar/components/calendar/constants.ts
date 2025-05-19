@@ -11,7 +11,7 @@ export const CALENDAR_WIDTH = Math.min(
   500 // 最大幅を500pxに制限
 );
 export const DAY_WIDTH = Math.floor(CALENDAR_WIDTH / 7);
-export const DAY_HEIGHT = Math.floor(DAY_WIDTH * 0.8); // 少し高さを調整
+export const DAY_HEIGHT = Math.floor(DAY_WIDTH * 0.6); // 少し高さを調整
 
 /**
  * レスポンシブサイズを取得するフック
@@ -22,12 +22,16 @@ export const useResponsiveCalendarSize = () => {
     // 画面サイズを再取得（画面回転などに対応）
     const { width } = Dimensions.get("window"); // 画面サイズに基づいて適切な値を計算
     const isSmallScreen = width < 768;
+
+    // 全体的なサイズ縮小率（小さな画面ではさらに縮小）
+    const scaleFactor = isSmallScreen ? 0.95 : 0.95;
+
     const calendarWidth = isSmallScreen
-      ? width * 0.9 // 小さい画面では90%幅に調整（見切れ防止のため）
-      : Math.min(width * BASE_CALENDAR_WIDTH_RATIO, 500);
+      ? width * 0.95 * scaleFactor // 小さい画面では80%幅に縮小
+      : Math.min(width * BASE_CALENDAR_WIDTH_RATIO * scaleFactor, 430); // 最大幅も縮小
 
     const dayWidth = Math.floor(calendarWidth / 7);
-    const dayHeight = Math.floor(dayWidth * (isSmallScreen ? 0.9 : 0.8));
+    const dayHeight = Math.floor(dayWidth * (isSmallScreen ? 0.9 : 0.75)); // 高さをさらに調整
 
     return {
       calendarWidth,

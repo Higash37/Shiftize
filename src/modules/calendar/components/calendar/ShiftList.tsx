@@ -114,8 +114,8 @@ export const ShiftList: React.FC<ShiftListProps> = ({
 
 const styles = StyleSheet.create({
   shiftList: {
-    width: "90%", // 90%幅に調整
-    padding: 10,
+    width: "85%", // 85%幅に調整
+    padding: 8, // パディングも縮小
     alignSelf: "center", // 中央揃え
   },
   shiftItemContainer: {
@@ -129,12 +129,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 12,
+    padding: 8, // パディングを縮小
     backgroundColor: colors.surface,
-    borderRadius: 8,
-    marginBottom: 8, // 項目間の間隔を広げる
-    marginHorizontal: 5, // 左右の余白を追加
-    borderWidth: 2,
+    borderRadius: 6, // より小さく
+    marginBottom: 6, // 間隔を少し縮小
+    marginHorizontal: 3, // 左右の余白を縮小
+    borderWidth: 1, // 境界線も細く
     ...getPlatformShadow(1),
   },
   shiftHeaderContent: {
@@ -145,20 +145,20 @@ const styles = StyleSheet.create({
     gap: 8, // 間隔を少し詰める
   },
   statusText: {
-    fontSize: 11, // サイズを小さく
+    fontSize: 10, // さらにサイズを小さく
     fontWeight: "bold",
   },
   shiftTime: {
-    fontSize: 13, // サイズを小さく
+    fontSize: 11, // さらにサイズを小さく
     fontWeight: "bold",
     color: colors.text.primary,
     flexShrink: 1, // 必要に応じて縮小
   },
   dateText: {
-    fontSize: 14, // サイズを小さく
+    fontSize: 12, // さらにサイズを小さく
     fontWeight: "bold",
     color: colors.text.primary,
-    marginLeft: 4, // 左余白を小さく
+    marginLeft: 3, // 左余白をさらに小さく
   },
   staffLabel: {
     fontSize: 14,

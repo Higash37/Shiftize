@@ -16,20 +16,20 @@ export const DayComponent = memo<{
   onPress: (dateString: string) => void;
 }>(({ date, state, marking, onPress }) => {
   // レスポンシブサイズの取得
-  const { dayWidth, dayHeight, isSmallScreen } = useResponsiveCalendarSize();
-
-  // スタイルの動的生成
+  const { dayWidth, dayHeight, isSmallScreen } = useResponsiveCalendarSize(); // スタイルの動的生成
   const dynamicStyles = useMemo(() => {
     return {
       dayContainer: {
         width: dayWidth,
         height: dayHeight,
+        padding: 0, // パディングを0に設定して余白をなくす
       },
       selectedDay: {
         borderRadius: Math.min(dayWidth, dayHeight) / 2,
       },
       dayText: {
-        fontSize: isSmallScreen ? 12 : 14,
+        fontSize: isSmallScreen ? 14 : 14, // フォントサイズをさらに小さく
+        letterSpacing: -1.0, // 文字間隔を狭める
       },
     };
   }, [dayWidth, dayHeight, isSmallScreen]);
@@ -82,6 +82,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "transparent",
     position: "relative",
+    paddingVertical: 0, // 縦方向のパディングを0に
+    paddingHorizontal: 0, // 横方向のパディングも0に
   },
   selectedDay: {
     position: "absolute",
@@ -92,9 +94,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.selected,
   },
   dayText: {
-    fontWeight: "bold",
+    fontWeight: "normal", // 太字ではなく通常の太さに
     color: "#333",
     zIndex: 1,
+    margin: 0, // マージンを0に
   },
   todayText: {
     color: "#2196F3",
