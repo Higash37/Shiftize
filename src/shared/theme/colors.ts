@@ -1,3 +1,5 @@
+import { ShiftStatus } from "@/features/shift/types/shift";
+
 export const colors = {
   primary: "#007AFF",
   secondary: "#5856D6",
@@ -21,13 +23,14 @@ export const colors = {
     approved: "#007AFF",
     rejected: "#FF3B30",
   },
+  // ShiftStatus型に準拠したステータスカラー
   status: {
     draft: "#B0BEC5",
     approved: "#4CAF50",
     pending: "#FFC107",
     deleted: "#F44336",
-    completed: "#2196F3",
     rejected: "#EF5350",
-    deletion_requested: "#FF7043", // 削除リクエスト用の色を追加
-  },
+    deletion_requested: "#FF7043",
+    completed: "#2196F3", // 注: ShiftStatus型に含まれていないが互換性のために残す
+  } as Record<ShiftStatus, string> & { completed: string },
 };
