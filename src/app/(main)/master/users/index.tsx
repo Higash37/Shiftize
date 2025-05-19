@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
-import { useUser } from "@/features/user/hooks/useUser";
-import { UserForm } from "@/features/user/components/User/UserForm";
-import { UserList } from "@/features/user/components/User/UserList";
-import { User } from "@/features/user/types/user";
+import { useUser } from "@/modules/user/hooks/useUser";
+import { UserForm } from "@/modules/user/components/User/UserForm";
+import { UserList } from "@/modules/user/components/User/UserList";
+import { User } from "@/modules/user/types/user";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import UserManagement from "@/features/user/components/User/UserManagement";
+import UserManagement from "@/modules/user/components/User/UserManagement";
 import { Header, MasterHeader } from "@/common/common-ui/ui-layout";
 import { db } from "@/services/firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";

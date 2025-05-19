@@ -17,7 +17,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-import { Shift, ShiftStatus } from "@/features/shift/types/shift";
+import { Shift, ShiftStatus } from "@/modules/shift/types/shift";
 import { db } from "./firebase-core";
 
 /**

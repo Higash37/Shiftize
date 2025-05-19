@@ -10,7 +10,7 @@ import { Stack } from "expo-router";
 import {
   ShiftStatusConfig,
   DEFAULT_SHIFT_STATUS_CONFIG,
-} from "@/features/shift/types/shift";
+} from "@/modules/shift/types/shift";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { ColorPicker } from "@/common/common-ui/ui-forms/FormColorPicker";

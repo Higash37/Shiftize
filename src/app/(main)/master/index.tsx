@@ -7,9 +7,9 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Link } from "expo-router";
-import { useUser } from "@/features/user/hooks/useUser";
+import { useUser } from "@/modules/user/hooks/useUser";
 import { colors, typography } from "@/common/common-constants/ThemeConstants";
-import { User } from "@/features/user/types/user";
+import { User } from "@/modules/user/types/user";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 
 export default function MasterDashboard() {

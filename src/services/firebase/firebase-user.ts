@@ -10,8 +10,10 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  query,
+  where,
 } from "firebase/firestore";
-import { User } from "@/features/user/types/user";
+import { User } from "@/modules/user/types/user";
 import { db } from "./firebase-core";
 
 // ユーザーデータの型定義
@@ -65,8 +67,7 @@ export const UserService = {
 
   /**
    * ユーザーデータを取得します
-   */
-  getUserData: async (userId: string): Promise<UserData | null> => {
+   */ getUserData: async (userId: string): Promise<UserData | null> => {
     try {
       const userRef = doc(db, "users", userId);
       const userDoc = await getDoc(userRef);
@@ -87,7 +88,43 @@ export const UserService = {
       throw error;
     }
   },
+
+  /**
+   * マスターユーザーが存在するか確認します
+   */
+  checkMasterExists: async (): Promise<boolean> => {
+    try {
+      const usersRef = collection(db, "users");
+      const masterQuery = query(usersRef, where("role", "==", "master"));
+      const masterSnapshot = await getDocs(masterQuery);
+      return !masterSnapshot.empty;
+    } catch (error) {
+      console.error("マスターユーザーの確認に失敗しました:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * メールアドレスが既に使用されているか確認します
+   */
+  checkEmailExists: async (email: string): Promise<boolean> => {
+    try {
+      const usersRef = collection(db, "users");
+      const emailQuery = query(usersRef, where("email", "==", email));
+      const emailSnapshot = await getDocs(emailQuery);
+      return !emailSnapshot.empty;
+    } catch (error) {
+      console.error("メールアドレスの確認に失敗しました:", error);
+      throw error;
+    }
+  },
 };
 
 // エクスポート
-export const { getUsers, deleteUser, getUserData } = UserService;
+export const {
+  getUsers,
+  deleteUser,
+  getUserData,
+  checkMasterExists,
+  checkEmailExists,
+} = UserService;

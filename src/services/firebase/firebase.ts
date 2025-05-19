@@ -15,6 +15,7 @@ export {
   signOutUser,
   createUser,
   updateUser,
+  changePassword,
   createInitialMasterUser,
   AuthService,
 } from "./firebase-auth";
@@ -35,9 +36,11 @@ export {
   getUsers,
   deleteUser,
   getUserData,
+  checkMasterExists,
+  checkEmailExists,
   UserService,
   UserData,
 } from "./firebase-user";
 
 // ユーザーの型をエクスポート
-export { User } from "@/features/user/types/user";
+export { User } from "@/modules/user/types/user";

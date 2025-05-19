@@ -16,7 +16,7 @@ import {
 
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
-import { User } from "@/features/user/types/user";
+import { User } from "@/modules/user/types/user";
 import { auth, db } from "./firebase-core";
 
 /**
@@ -197,6 +197,47 @@ export const AuthService = {
   },
 
   /**
+   * ユーザーのパスワードを変更します
+   */
+  changePassword: async (
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> => {
+    try {
+      const user = auth.currentUser;
+      if (!user || !user.email) {
+        throw new Error("ユーザーが認証されていません");
+      }
+
+      // 現在のパスワードで再認証
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        currentPassword
+      );
+      await reauthenticateWithCredential(user, credential);
+
+      // パスワードの更新
+      await updatePassword(user, newPassword);
+
+      // Firestoreのユーザーデータも更新
+      if (user.uid) {
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, {
+          currentPassword: newPassword,
+        });
+      }
+    } catch (error: any) {
+      console.error("パスワード変更エラー:", error);
+      if (error.code === "auth/wrong-password") {
+        throw new Error("現在のパスワードが正しくありません");
+      } else if (error.code === "auth/weak-password") {
+        throw new Error("パスワードは6文字以上で入力してください");
+      }
+      throw new Error("パスワードの変更に失敗しました");
+    }
+  },
+
+  /**
    * 初期マスターユーザーの作成（必要な場合のみ使用）
    */
   createInitialMasterUser: async (): Promise<void> => {
@@ -221,5 +262,6 @@ export const {
   signOut: signOutUser,
   createUser,
   updateUser,
+  changePassword,
   createInitialMasterUser,
 } = AuthService;

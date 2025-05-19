@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/services/auth/useAuth";
 import { Header } from "@/common/common-ui/ui-layout";
-import { User } from "@/features/user/types/user";
+import { User } from "@/modules/user/types/user";
 
 export default function HomePage() {
   const { user } = useAuth() as { user: User | null };

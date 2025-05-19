@@ -6,7 +6,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { router } from "expo-router";
 import { signOut } from "firebase/auth";
 import { auth } from "@/services/firebase/firebase";
-import { User } from "@/features/user/types/user";
+import { User } from "@/modules/user/types/user";
 
 export default function Settings() {
   const { user, role } = useAuth();
