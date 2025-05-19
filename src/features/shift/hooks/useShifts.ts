@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/core/firebase/firebase";
+import { db } from "@/services/firebase/firebase";
 import { ShiftItem, ShiftStatus } from "@/features/shift/types/shift";
 
 export const useShifts = () => {

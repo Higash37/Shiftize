@@ -16,7 +16,7 @@ import { ShiftList } from "@/features/shift/components/Shift/ShiftList";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { useShift } from "@/features/shift/hooks/useShift";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
-import { useAuth } from "@/core/auth/useAuth";
+import { useAuth } from "@/services/auth/useAuth";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";

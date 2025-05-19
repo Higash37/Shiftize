@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { Stack, Slot, useRouter, useSegments } from "expo-router";
-import { AuthProvider } from "@/core/auth/AuthContext";
-import { useAuth } from "@/core/auth/useAuth";
+import { AuthProvider } from "@/services/auth/AuthContext";
+import { useAuth } from "@/services/auth/useAuth";
 import { StatusBar } from "expo-status-bar";
-import { createInitialMasterUser } from "@/core/firebase/firebase";
+import { createInitialMasterUser } from "@/services/firebase/firebase";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";

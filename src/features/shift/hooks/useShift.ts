@@ -4,8 +4,8 @@ import {
   addShift,
   updateShift,
   approveShiftChanges,
-} from "@/core/firebase/firebase";
-import { useAuth } from "@/core/auth/useAuth";
+} from "@/services/firebase/firebase";
+import { useAuth } from "@/services/auth/useAuth";
 import { Shift, ShiftItem, ShiftStatus } from "@/features/shift/types/shift";
 
 export const useShift = () => {

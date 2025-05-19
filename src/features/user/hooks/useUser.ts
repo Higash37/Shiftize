@@ -6,7 +6,7 @@ import {
   auth,
   db,
   deleteUser,
-} from "@/core/firebase/firebase";
+} from "@/services/firebase/firebase";
 import {
   collection,
   getDocs,

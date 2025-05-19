@@ -1,6 +1,6 @@
 import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
-import { useAuth } from "@/core/auth/useAuth";
+import { useAuth } from "@/services/auth/useAuth";
 import { useRouter } from "expo-router";
 
 export default function AuthLayout() {

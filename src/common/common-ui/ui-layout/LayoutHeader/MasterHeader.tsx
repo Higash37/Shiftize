@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { auth } from "@/core/firebase/firebase";
+import { auth } from "@/services/firebase/firebase";
 import { styles } from "./styles";
 import { MasterHeaderProps } from "./types";
 

@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Header } from "@/common/common-ui/ui-layout";
 import { Footer } from "@/common/common-ui/ui-layout";
-import { useAuth } from "@/core/auth/useAuth";
+import { useAuth } from "@/services/auth/useAuth";
 import { router } from "expo-router";
 import {
   collection,
@@ -29,7 +29,7 @@ import {
   updatePassword,
   getAuth,
 } from "firebase/auth";
-import { db, auth } from "@/core/firebase/firebase";
+import { db, auth } from "@/services/firebase/firebase";
 import { User } from "@/features/user/types/user";
 
 type UserManagement = {

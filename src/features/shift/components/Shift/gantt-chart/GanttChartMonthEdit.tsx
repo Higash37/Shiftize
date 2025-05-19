@@ -29,7 +29,7 @@ import {
   getDocs,
   DocumentData,
 } from "firebase/firestore";
-import { db } from "@/core/firebase/firebase";
+import { db } from "@/services/firebase/firebase";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { format, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -37,7 +37,7 @@ import { Ionicons } from "@expo/vector-icons";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { DatePickerModal } from "@/features/calendar/components/calendar/DatePickerModal";
 import { Picker } from "@react-native-picker/picker";
-import { useAuth } from "@/core/auth/useAuth";
+import { useAuth } from "@/services/auth/useAuth";
 
 // インポートしたユーティリティ関数
 import {

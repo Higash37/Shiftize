@@ -24,19 +24,19 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "@/core/firebase/firebase";
+import { db } from "@/services/firebase/firebase";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import TimeSelect from "@/features/shift/components/Shift/TimeSelect";
 import { CalendarModal } from "@/features/shift/components/Shift/";
 import { useShift } from "@/features/shift/hooks/useShift";
 import type { Shift, ShiftStatus } from "@/features/shift/types/shift";
-import { useAuth } from "@/core/auth/useAuth";
+import { useAuth } from "@/services/auth/useAuth";
 import type { User } from "@/features/user/types/user";
 import { Header } from "@/common/common-ui/ui-layout";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { getUserData, type UserData } from "@/core/firebase/firebase";
+import { getUserData, type UserData } from "@/services/firebase/firebase";
 import { Picker } from "@react-native-picker/picker";
 import { useUsers } from "@/features/user/hooks/useUsers";
 

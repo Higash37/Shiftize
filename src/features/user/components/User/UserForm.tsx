@@ -4,7 +4,7 @@ import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import ErrorMessage from "@/common/common-ui/ui-feedback/FeedbackError";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/core/firebase/firebase";
+import { db } from "@/services/firebase/firebase";
 import { styles } from "./UserForm.styles";
 import { UserFormProps } from "./types";
 

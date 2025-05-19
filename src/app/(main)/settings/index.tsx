@@ -2,10 +2,10 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Header } from "@/common/common-ui/ui-layout";
 import { Footer } from "@/common/common-ui/ui-layout";
-import { useAuth } from "@/core/auth/useAuth";
+import { useAuth } from "@/services/auth/useAuth";
 import { router } from "expo-router";
 import { signOut } from "firebase/auth";
-import { auth } from "@/core/firebase/firebase";
+import { auth } from "@/services/firebase/firebase";
 import { User } from "@/features/user/types/user";
 
 export default function Settings() {

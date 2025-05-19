@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/core/firebase/firebase";
+import { db } from "@/services/firebase/firebase";
 import { User } from "@/features/user/types/user";
 import { UserList } from "./UserList";
 import { UserForm } from "./UserForm";

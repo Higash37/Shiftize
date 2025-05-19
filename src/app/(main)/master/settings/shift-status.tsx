@@ -12,7 +12,7 @@ import {
   DEFAULT_SHIFT_STATUS_CONFIG,
 } from "@/features/shift/types/shift";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/core/firebase/firebase";
+import { db } from "@/services/firebase/firebase";
 import { ColorPicker } from "@/common/common-ui/ui-forms/FormColorPicker";
 
 export default function ShiftStatusSettingsScreen() {

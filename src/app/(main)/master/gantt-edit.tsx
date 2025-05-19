@@ -6,7 +6,7 @@ import { useShifts } from "@/features/shift/hooks/useShifts";
 import { useUsers } from "@/features/user/hooks/useUsers";
 import { ShiftItem } from "@/features/shift/types/shift";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/core/firebase/firebase";
+import { db } from "@/services/firebase/firebase";
 
 export default function GanttEditScreen() {
   const {

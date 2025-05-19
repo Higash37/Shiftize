@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { router } from "expo-router";
-import { useAuth } from "@/core/auth/useAuth";
+import { useAuth } from "@/services/auth/useAuth";
 
 export default function Login() {
   const { signIn } = useAuth();

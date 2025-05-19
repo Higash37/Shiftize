@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { router } from "expo-router";
-import { useAuth } from "@/core/auth/useAuth";
+import { useAuth } from "@/services/auth/useAuth";
 import { Header } from "@/common/common-ui/ui-layout";
 import { User } from "@/features/user/types/user";
 

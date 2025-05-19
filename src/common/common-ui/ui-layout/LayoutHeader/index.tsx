@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome, AntDesign } from "@expo/vector-icons";
-import { useAuth } from "@/core/auth/useAuth";
+import { useAuth } from "@/services/auth/useAuth";
 import { router } from "expo-router";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { styles } from "./styles";
