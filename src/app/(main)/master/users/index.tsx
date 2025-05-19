@@ -7,6 +7,8 @@ import { User } from "@/features/user/types/user";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import UserManagement from "@/features/user/components/User/UserManagement";
 import { Header, MasterHeader } from "@/common/common-ui/ui-layout";
+import { db } from "@/services/firebase/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 interface UserFormData {
   email: string;
