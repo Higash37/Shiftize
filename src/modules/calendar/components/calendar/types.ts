@@ -1,4 +1,4 @@
-import { Shift } from "@/modules/shift/types/shift";
+import { Shift } from "@/common/common-models/ModelIndex";
 
 export interface MarkedDate {
   selected?: boolean;

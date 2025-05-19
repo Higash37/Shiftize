@@ -1,4 +1,4 @@
-import { ShiftStatus } from "@/modules/shift/types/shift";
+import { ShiftStatus } from "@/common/common-models/ModelIndex";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { HOLIDAYS } from "./constants";
 

@@ -1,20 +1,53 @@
-import React from "react";
+import React, { memo, useMemo } from "react";
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { DayComponentProps } from "./types";
 import { getDayColor } from "./utils";
-import { DAY_WIDTH, DAY_HEIGHT } from "./constants";
+import { useResponsiveCalendarSize } from "./constants";
 
-export const DayComponent: React.FC<{
+/**
+ * カレンダーの日付コンポーネント
+ * メモ化して不要な再レンダリングを防止
+ */
+export const DayComponent = memo<{
   date?: DayComponentProps["date"];
   state?: DayComponentProps["state"];
   marking?: DayComponentProps["marking"];
   onPress: (dateString: string) => void;
-}> = ({ date, state, marking, onPress }) => {
+}>(({ date, state, marking, onPress }) => {
+  // レスポンシブサイズの取得
+  const { dayWidth, dayHeight, isSmallScreen } = useResponsiveCalendarSize();
+
+  // スタイルの動的生成
+  const dynamicStyles = useMemo(() => {
+    return {
+      dayContainer: {
+        width: dayWidth,
+        height: dayHeight,
+      },
+      selectedDay: {
+        borderRadius: Math.min(dayWidth, dayHeight) / 2,
+      },
+      dayText: {
+        fontSize: isSmallScreen ? 12 : 14,
+      },
+    };
+  }, [dayWidth, dayHeight, isSmallScreen]);
+
+  // 選択中の日付かどうか
+  const isSelected = marking?.selected;
+  // 今日の日付かどうか
+  const isToday = state === "today";
+  // ドットマーカーの有無
+  const hasMarker = marking?.marked;
+  // 日付の色を取得
+  const dayColor = getDayColor(date?.dateString, state, isSelected);
+
   return (
     <TouchableOpacity
       style={[
         styles.dayContainer,
+        dynamicStyles.dayContainer,
         {
           borderRightWidth: 1,
           borderRightColor: "#E5E5E5",
@@ -23,28 +56,28 @@ export const DayComponent: React.FC<{
         },
       ]}
       onPress={() => date && onPress(date.dateString)}
+      activeOpacity={0.6}
     >
-      {marking?.selected && <View style={styles.selectedDay} />}
+      {isSelected && (
+        <View style={[styles.selectedDay, dynamicStyles.selectedDay]} />
+      )}
       <Text
         style={[
           styles.dayText,
-          {
-            color: getDayColor(date?.dateString, state, marking?.selected),
-          },
-          state === "today" && styles.todayText,
+          dynamicStyles.dayText,
+          { color: dayColor },
+          isToday && styles.todayText,
         ]}
       >
         {date?.day}
       </Text>
-      {marking?.marked && <View style={[styles.dot, marking.dotStyle]} />}
+      {hasMarker && <View style={[styles.dot, marking.dotStyle]} />}
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   dayContainer: {
-    width: DAY_WIDTH,
-    height: DAY_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
@@ -57,10 +90,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: colors.selected,
-    borderRadius: DAY_WIDTH / 2,
   },
   dayText: {
-    fontSize: 14,
     fontWeight: "bold",
     color: "#333",
     zIndex: 1,
@@ -70,10 +101,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    marginTop: 1,
+    width: 6, // サイズを少し大きく
+    height: 6,
+    borderRadius: 3,
+    marginTop: 2, // 少し下に
     zIndex: 1,
   },
 });

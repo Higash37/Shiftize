@@ -1,10 +1,42 @@
-import { Dimensions } from "react-native";
+import { Dimensions, Platform } from "react-native";
+import { useMemo } from "react";
+
+// 画面サイズを取得
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 // 画面幅に基づいてカレンダーのサイズを計算
-export const SCREEN_WIDTH = Dimensions.get("window").width;
-export const CALENDAR_WIDTH = SCREEN_WIDTH * 0.3;
+export const BASE_CALENDAR_WIDTH_RATIO = 0.3; // 画面幅の30%をデフォルトに
+export const CALENDAR_WIDTH = Math.min(
+  SCREEN_WIDTH * BASE_CALENDAR_WIDTH_RATIO,
+  500 // 最大幅を500pxに制限
+);
 export const DAY_WIDTH = Math.floor(CALENDAR_WIDTH / 7);
-export const DAY_HEIGHT = Math.floor(DAY_WIDTH * 0.6);
+export const DAY_HEIGHT = Math.floor(DAY_WIDTH * 0.8); // 少し高さを調整
+
+/**
+ * レスポンシブサイズを取得するフック
+ * 画面サイズに基づいて最適なサイズを計算
+ */
+export const useResponsiveCalendarSize = () => {
+  return useMemo(() => {
+    // 画面サイズを再取得（画面回転などに対応）
+    const { width } = Dimensions.get("window"); // 画面サイズに基づいて適切な値を計算
+    const isSmallScreen = width < 768;
+    const calendarWidth = isSmallScreen
+      ? width * 0.9 // 小さい画面では90%幅に調整（見切れ防止のため）
+      : Math.min(width * BASE_CALENDAR_WIDTH_RATIO, 500);
+
+    const dayWidth = Math.floor(calendarWidth / 7);
+    const dayHeight = Math.floor(dayWidth * (isSmallScreen ? 0.9 : 0.8));
+
+    return {
+      calendarWidth,
+      dayWidth,
+      dayHeight,
+      isSmallScreen,
+    };
+  }, []);
+};
 
 // 日本の祝日（2024-2025年分）
 export const HOLIDAYS: { [key: string]: string } = {
@@ -33,7 +65,21 @@ export const HOLIDAYS: { [key: string]: string } = {
   "2025-05-03": "憲法記念日",
   "2025-05-04": "みどりの日",
   "2025-05-05": "こどもの日",
+  "2025-07-21": "海の日",
+  "2025-08-11": "山の日",
+  "2025-09-15": "敬老の日",
+  "2025-09-23": "秋分の日",
+  "2025-10-13": "スポーツの日",
+  "2025-11-03": "文化の日",
+  "2025-11-23": "勤労感謝の日",
 };
 
 // 日本語の曜日を定義
 export const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
+
+// プラットフォーム固有の設定
+export const PLATFORM_SPECIFIC = {
+  isWeb: Platform.OS === "web",
+  isIOS: Platform.OS === "ios",
+  isAndroid: Platform.OS === "android",
+};

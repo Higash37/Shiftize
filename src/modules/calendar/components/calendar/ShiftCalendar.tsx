@@ -1,13 +1,19 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Calendar } from "react-native-calendars";
-import { View, StyleSheet } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  useWindowDimensions,
+} from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { ShiftCalendarProps, DayComponentProps } from "./types";
 import { DayComponent } from "./DayComponent";
 import { CalendarHeader } from "./CalendarHeader";
 import { ShiftList } from "./ShiftList";
 import { DatePickerModal } from "./DatePickerModal";
-import { CALENDAR_WIDTH } from "./constants";
+import { useResponsiveCalendarSize, PLATFORM_SPECIFIC } from "./constants";
+import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 
 // react-native-calendars の型定義を拡張
 interface CalendarHeaderInfo {
@@ -29,6 +35,20 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date(currentMonth));
+  const { calendarWidth, isSmallScreen } = useResponsiveCalendarSize();
+  const { width: windowWidth } = useWindowDimensions();
+
+  // レスポンシブなスタイルを生成
+  const responsiveStyles = useMemo(
+    () => ({
+      calendar: {
+        width: isSmallScreen ? "90%" : calendarWidth, // 90%に変更
+        maxWidth: 500,
+        marginHorizontal: "auto", // 中央揃え
+      },
+    }),
+    [calendarWidth, isSmallScreen]
+  );
 
   useEffect(() => {
     if (onMount) {
@@ -86,14 +106,20 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, isSmallScreen && styles.containerFullWidth]}
+    >
       <Calendar
         current={currentMonth}
         onDayPress={onDayPress}
         onMonthChange={onMonthChange}
         markedDates={markedDates}
         enableSwipeMonths={true}
-        style={styles.calendar}
+        style={[
+          styles.calendar,
+          styles.calendarShadow,
+          responsiveStyles.calendar,
+        ]}
         renderHeader={(date: CalendarHeaderInfo) => (
           <CalendarHeader
             date={new Date(date.timestamp)}
@@ -106,12 +132,12 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         theme={{
           backgroundColor: "transparent",
           calendarBackground: "transparent",
-          textSectionTitleColor: "#666",
+          textSectionTitleColor: colors.text.secondary,
           dayTextColor: colors.text.primary,
           textDisabledColor: colors.text.secondary,
-          selectedDayBackgroundColor: "#E3F2FD",
-          selectedDayTextColor: "#2196F3",
-          todayTextColor: "#2196F3",
+          selectedDayBackgroundColor: colors.primary + "20",
+          selectedDayTextColor: colors.primary,
+          todayTextColor: colors.primary,
           dotColor: colors.primary,
           selectedDotColor: colors.primary,
           monthTextColor: colors.text.primary,
@@ -157,9 +183,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 0,
     backgroundColor: "transparent",
+    width: "100%",
+  },
+  containerFullWidth: {
+    paddingHorizontal: 16, // 余白を増やして見切れないようにする
   },
   calendar: {
-    width: CALENDAR_WIDTH,
     backgroundColor: "transparent",
+    borderRadius: 8,
+    marginHorizontal: "auto", // 中央揃え
+  },
+  calendarShadow: {
+    ...getPlatformShadow(2),
+    marginBottom: 16, // 下の余白も少し増やす
   },
 });

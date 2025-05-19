@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, memo } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,67 @@ import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Shift } from "@/modules/shift/types/shift";
-import { ShiftDetails } from "@/modules/shift/components/Shift/ShiftDetails";
+import { Shift } from "@/common/common-models/ModelIndex";
 import { getStatusColor, getStatusText } from "./utils";
 import { ShiftListProps } from "./types";
+import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
+import { ShiftDetailsAdapter } from "./ShiftListAdapter";
 
+/**
+ * 個別のシフトアイテムコンポーネント
+ */
+const ShiftItem = memo(
+  ({
+    shift,
+    isExpanded,
+    onToggle,
+  }: {
+    shift: Shift;
+    isExpanded: boolean;
+    onToggle: () => void;
+  }) => {
+    const borderColor = getStatusColor(shift.status);
+
+    return (
+      <View key={shift.id} style={styles.shiftItemContainer}>
+        <TouchableOpacity
+          style={[styles.shiftHeader, { borderColor }]}
+          onPress={onToggle}
+          activeOpacity={0.7}
+        >
+          <View style={styles.shiftHeaderContent}>
+            <AntDesign name="user" size={16} color={borderColor} />
+            <Text style={styles.dateText} numberOfLines={1}>
+              {format(new Date(shift.date), "d日(E)", {
+                locale: ja,
+              })}
+            </Text>
+            <Text
+              style={[styles.statusText, { color: borderColor }]}
+              numberOfLines={1}
+            >
+              {getStatusText(shift.status)}
+            </Text>
+            <Text style={styles.shiftTime} numberOfLines={1}>
+              {shift.startTime} ~ {shift.endTime}
+            </Text>
+          </View>
+          <AntDesign
+            name={isExpanded ? "up" : "down"}
+            size={14}
+            color={colors.text.primary}
+            style={styles.expandIcon}
+          />
+        </TouchableOpacity>
+        <ShiftDetailsAdapter shift={shift} isOpen={isExpanded} />
+      </View>
+    );
+  }
+);
+
+/**
+ * シフトリストコンポーネント
+ */
 export const ShiftList: React.FC<ShiftListProps> = ({
   shifts,
   selectedDate,
@@ -23,6 +79,13 @@ export const ShiftList: React.FC<ShiftListProps> = ({
     [key: string]: boolean;
   }>({});
 
+  // 選択された日付のシフトをフィルタリング
+  const filteredShifts = useMemo(
+    () => shifts.filter((shift) => shift.date === selectedDate),
+    [shifts, selectedDate]
+  );
+
+  // シフトの詳細表示切替
   const toggleShiftDetails = (shiftId: string) => {
     setExpandedShifts((prev) => ({
       ...prev,
@@ -30,57 +93,37 @@ export const ShiftList: React.FC<ShiftListProps> = ({
     }));
   };
 
-  const filteredShifts = shifts.filter((shift) => shift.date === selectedDate);
-
+  // シフトがない場合は何も表示しない
   if (filteredShifts.length === 0) {
     return null;
   }
 
   return (
     <ScrollView style={styles.shiftList}>
-      {filteredShifts.map((shift) => {
-        const borderColor = getStatusColor(shift.status);
-        return (
-          <View key={shift.id}>
-            <TouchableOpacity
-              style={[styles.shiftHeader, { borderColor: borderColor }]}
-              onPress={() => toggleShiftDetails(shift.id)}
-            >
-              <View style={styles.shiftHeaderContent}>
-                <AntDesign name="user" size={20} color={borderColor} />
-                <Text style={styles.dateText}>
-                  {format(new Date(shift.date), "d日(E)", {
-                    locale: ja,
-                  })}
-                </Text>
-                <Text style={[styles.statusText, { color: borderColor }]}>
-                  {getStatusText(shift.status)}
-                </Text>
-                <Text style={styles.shiftTime}>
-                  {shift.startTime} ~ {shift.endTime}
-                </Text>
-              </View>
-              <AntDesign
-                name={expandedShifts[shift.id] ? "up" : "down"}
-                size={16}
-                color={colors.text.primary}
-              />
-            </TouchableOpacity>
-            <ShiftDetails
-              shift={shift}
-              isOpen={expandedShifts[shift.id] || false}
-            />
-          </View>
-        );
-      })}
+      {filteredShifts.map((shift) => (
+        <ShiftItem
+          key={shift.id}
+          shift={shift}
+          isExpanded={expandedShifts[shift.id] || false}
+          onToggle={() => toggleShiftDetails(shift.id)}
+        />
+      ))}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   shiftList: {
-    width: "100%",
+    width: "90%", // 90%幅に調整
     padding: 10,
+    alignSelf: "center", // 中央揃え
+  },
+  shiftItemContainer: {
+    marginBottom: 8,
+    width: "100%",
+  },
+  expandIcon: {
+    marginLeft: 4,
   },
   shiftHeader: {
     flexDirection: "row",
@@ -89,29 +132,33 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: colors.surface,
     borderRadius: 8,
-    marginBottom: 1,
+    marginBottom: 8, // 項目間の間隔を広げる
+    marginHorizontal: 5, // 左右の余白を追加
     borderWidth: 2,
+    ...getPlatformShadow(1),
   },
   shiftHeaderContent: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    flexWrap: "wrap", // 折り返しを許可
+    gap: 8, // 間隔を少し詰める
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 11, // サイズを小さく
     fontWeight: "bold",
   },
   shiftTime: {
-    fontSize: 14,
+    fontSize: 13, // サイズを小さく
     fontWeight: "bold",
     color: colors.text.primary,
+    flexShrink: 1, // 必要に応じて縮小
   },
   dateText: {
-    fontSize: 16,
+    fontSize: 14, // サイズを小さく
     fontWeight: "bold",
     color: colors.text.primary,
-    marginLeft: 8,
+    marginLeft: 4, // 左余白を小さく
   },
   staffLabel: {
     fontSize: 14,
