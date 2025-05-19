@@ -23,7 +23,7 @@ export type ClassTimeSlot = {
 /**
  * シフトの種類
  */
-export type ShiftType = "staff" | "class" | "deleted";
+export type ShiftType = "user" | "class" | "deleted";
 
 /**
  * 基本的なシフト表示用スタイル

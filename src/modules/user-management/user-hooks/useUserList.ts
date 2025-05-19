@@ -1,11 +1,6 @@
 import { useState, useEffect } from "react";
-import { User } from "@/modules/user/types/user";
 import { getUsers } from "@/services/firebase/firebase-user";
-
-// 内部でのみ使用するユーザー拡張インターフェース
-interface ExtendedUser extends User {
-  currentPassword?: string;
-}
+import { ExtendedUser } from "../user-types/components";
 
 export const useUsers = () => {
   const [users, setUsers] = useState<ExtendedUser[]>([]);

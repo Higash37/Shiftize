@@ -5,7 +5,7 @@ import Button from "@/common/common-ui/ui-forms/FormButton";
 import ErrorMessage from "@/common/common-ui/ui-feedback/FeedbackError";
 import { checkMasterExists } from "@/services/firebase/firebase";
 import { styles } from "./UserForm.styles";
-import { UserFormProps } from "./types";
+import { UserFormProps } from "../user-types/components";
 
 /**
  * ユーザー情報入力フォームコンポーネント

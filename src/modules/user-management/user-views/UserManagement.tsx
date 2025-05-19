@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
-import { User } from "@/modules/user/types/user";
+import { User } from "@/common/common-models/model-user/UserModel";
 import { UserList } from "./UserList";
 import { UserForm } from "./UserForm";
-import { UserManagementProps } from "./types";
+import { UserManagementProps } from "../user-types/components";
 import { colors, typography } from "@/common/common-constants/ThemeConstants";
 
 /**
@@ -13,7 +13,7 @@ import { colors, typography } from "@/common/common-constants/ThemeConstants";
  * ユーザー一覧の表示、追加、編集、削除などの管理機能を提供します
  */
 const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [userList, setUserList] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -21,7 +21,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
   const [userPasswords, setUserPasswords] = useState<Record<string, string>>(
     {}
   );
-
   // ユーザーデータを取得する
   const fetchUsers = async () => {
     setLoading(true);
@@ -32,7 +31,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
       usersSnapshot.forEach((doc) => {
         usersList.push({ uid: doc.id, ...doc.data() } as User);
       });
-      setUsers(usersList);
+      setUserList(usersList);
       setError(null);
     } catch (err: any) {
       console.error("ユーザー取得エラー:", err);
@@ -45,7 +44,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
   useEffect(() => {
     fetchUsers();
   }, []);
-
   // ユーザーを編集する
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
@@ -61,7 +59,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
       console.log(`ユーザー削除: ${userId}`);
 
       // 削除後に一覧を更新
-      setUsers(users.filter((user) => user.uid !== userId));
+      setUserList(userList.filter((user: User) => user.uid !== userId));
     } catch (err) {
       setError("ユーザーの削除に失敗しました");
     } finally {
@@ -83,12 +81,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
         console.log("ユーザー更新:", { ...data, uid: selectedUser.uid });
 
         // ユーザー一覧を更新
-        const updatedUsers = users.map((user) =>
+        const updatedUsers = userList.map((user: User) =>
           user.uid === selectedUser.uid
             ? { ...user, nickname: data.nickname, role: data.role }
             : user
         );
-        setUsers(updatedUsers);
+        setUserList(updatedUsers);
       } else {
         // 新規ユーザーの追加処理（実際には実装しない）
         const newUserId = `user_${Date.now()}`;
@@ -100,7 +98,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
           nickname: data.nickname,
           role: data.role,
         };
-        setUsers([...users, newUser]);
+        setUserList([...userList, newUser]);
 
         // 仮パスワードを保存
         if (data.password) {
@@ -148,7 +146,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
         />
       ) : (
         <UserList
-          users={users}
+          userList={userList}
           onEdit={handleEditUser}
           onDelete={handleDeleteUser}
           onAdd={() => setShowForm(true)}

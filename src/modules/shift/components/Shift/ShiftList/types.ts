@@ -30,4 +30,4 @@ export interface ShiftListStyles {
   timeSlotTitle: TextStyle;
 }
 
-export type ShiftTypeMap = "staff" | "class" | "deleted";
+export type ShiftTypeMap = "user" | "class" | "deleted";

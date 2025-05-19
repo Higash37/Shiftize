@@ -35,5 +35,6 @@
     "android/": true,
     "ios/": true
   },
-  "problems.decorations.enabled": false
+  "problems.decorations.enabled": false,
+  "terminal.integrated.showExitAlert": false
 }

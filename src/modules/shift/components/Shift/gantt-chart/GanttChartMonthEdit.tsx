@@ -814,7 +814,7 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
           ...newShift,
           id: "temp-id", // 一時的なID、実際には使用されない
           nickname: selectedUser?.nickname || "名前なし",
-          type: "staff",
+        type: "user",
           isCompleted: false,
           duration: "",
           createdAt: new Date(),

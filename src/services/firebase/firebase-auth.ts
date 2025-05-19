@@ -1,7 +1,7 @@
 /**
  * Firebase 認証モジュール
  *
- * ユーザーの認証と権限管理を提供します。
+ * スタッフの認証と権限管理を提供します。
  */
 
 import {
@@ -16,12 +16,12 @@ import {
 
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
-import { User } from "@/modules/user/types/user";
+import { User } from "@/common/common-models/model-user/UserModel";
 import { auth, db } from "./firebase-core";
 
 /**
  * 認証関連のサービス
- * ユーザーの認証と権限管理を提供します
+ * スタッフの認証と権限管理を提供します
  */
 export const AuthService = {
   /**

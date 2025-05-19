@@ -22,8 +22,8 @@ export const ShiftList: React.FC<ShiftListProps> = ({
   // シフトタイプに応じたテキストを取得する関数
   const getShiftTypeText = (type: ShiftTypeMap) => {
     switch (type) {
-      case "staff":
-        return "スタッフ";
+      case "user":
+        return "ユーザー";
       case "class":
         return "講師";
       case "deleted":

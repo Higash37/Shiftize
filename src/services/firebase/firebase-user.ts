@@ -13,17 +13,8 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { User } from "@/modules/user/types/user";
+import { User, UserData } from "@/common/common-models/model-user/UserModel";
 import { db } from "./firebase-core";
-
-// ユーザーデータの型定義
-export interface UserData {
-  nickname: string;
-  role: "master" | "user";
-  email: string;
-  currentPassword?: string;
-  createdAt: Date;
-}
 
 /**
  * ユーザー管理サービス
@@ -64,7 +55,6 @@ export const UserService = {
       throw error;
     }
   },
-
   /**
    * ユーザーデータを取得します
    */ getUserData: async (userId: string): Promise<UserData | null> => {

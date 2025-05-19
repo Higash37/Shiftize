@@ -39,8 +39,7 @@ export {
   checkMasterExists,
   checkEmailExists,
   UserService,
-  UserData,
 } from "./firebase-user";
 
 // ユーザーの型をエクスポート
-export { User } from "@/modules/user/types/user";
+export { User, UserData } from "@/common/common-models/model-user/UserModel";

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
-import { useUser } from "@/modules/user/hooks/useUser";
-import { UserForm } from "@/modules/user/components/User/UserForm";
-import { UserList } from "@/modules/user/components/User/UserList";
-import { User } from "@/modules/user/types/user";
+import { useUser } from "@/modules/user-management/user-hooks/useUser";
+import { UserForm } from "@/modules/user-management/user-views/UserForm";
+import { UserList } from "@/modules/user-management/user-views/UserList";
+import { User } from "@/common/common-models/model-user/UserModel";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import UserManagement from "@/modules/user/components/User/UserManagement";
+import UserManagement from "@/modules/user-management/user-views/UserManagement";
 import { Header, MasterHeader } from "@/common/common-ui/ui-layout";
 import { db } from "@/services/firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -22,8 +22,7 @@ interface UserWithPassword extends User {
 }
 
 export default function UsersScreen() {
-  const { users, loading, error, addUser, editUser, removeUser, setUsers } =
-    useUser();
+  const { users, loading, error, addUser, editUser, removeUser } = useUser();
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(
     null
@@ -31,7 +30,6 @@ export default function UsersScreen() {
   const [userPasswords, setUserPasswords] = useState<Record<string, string>>(
     {}
   );
-
   const handleAddUser = async (data: UserFormData) => {
     if (!data.password) {
       console.error("パスワードは必須です");
@@ -64,7 +62,6 @@ export default function UsersScreen() {
       // setIsAddingUser(false); // ここでは解除しない
     }
   };
-
   const handleEditUser = async (data: UserFormData) => {
     if (!selectedUser) return;
 
@@ -95,7 +92,7 @@ export default function UsersScreen() {
       await setDoc(userRef, { deleted: true }, { merge: true });
 
       // ユーザー一覧を更新してUIから削除
-      setUsers((prevUsers) => prevUsers.filter((user) => user.uid !== userId));
+      removeUser(userId);
 
       // パスワード情報も削除
       const newPasswords = { ...userPasswords };
@@ -141,7 +138,7 @@ export default function UsersScreen() {
         </View>
       ) : (
         <UserList
-          users={users}
+          userList={users}
           loading={loading}
           onEdit={handleSelectUser}
           onDelete={handleDeleteUser}

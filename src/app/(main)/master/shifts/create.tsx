@@ -38,7 +38,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getUserData, type UserData } from "@/services/firebase/firebase";
 import { Picker } from "@react-native-picker/picker";
-import { useUsers } from "@/modules/user/hooks/useUsers";
+import { useUsers } from "@/modules/user-management/user-hooks/useUserList";
 
 interface ShiftData {
   startTime: string;

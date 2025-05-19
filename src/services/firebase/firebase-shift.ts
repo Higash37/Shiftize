@@ -72,7 +72,7 @@ export const ShiftService = {
       const shiftsRef = collection(db, "shifts");
       const docRef = await addDoc(shiftsRef, {
         ...shift,
-        type: shift.type || "staff",
+        type: shift.type || "user",
         status: "draft",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),

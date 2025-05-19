@@ -93,7 +93,7 @@ export const useShifts = () => {
               startTime: change.startTime,
               endTime: change.endTime,
               date: data.date,
-              type: data.type || "staff",
+
               subject: data.subject,
             })),
             classes: data.classes || [],

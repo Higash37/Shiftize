@@ -5,7 +5,7 @@ import Button from "@/common/common-ui/ui-forms/FormButton";
 import { changePassword } from "@/services/firebase/firebase";
 import { useRouter } from "expo-router";
 import { styles } from "./ChangePassword.styles";
-import { ChangePasswordProps } from "./types";
+import { ChangePasswordProps } from "../user-types/components";
 
 /**
  * パスワード変更コンポーネント
@@ -52,7 +52,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
     try {
       // サービスを使用してパスワードを変更
       await changePassword(currentPassword, newPassword);
-      
+
       setMessage("パスワードが正常に更新されました");
       setIsSuccess(true);
 
@@ -66,7 +66,8 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
         setTimeout(() => {
           onComplete();
         }, 1500);
-      }    } catch (error: any) {
+      }
+    } catch (error: any) {
       setIsSuccess(false);
       // サービスからのエラーメッセージをそのまま使用
       setMessage(error.message || "パスワード変更中にエラーが発生しました");

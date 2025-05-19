@@ -7,19 +7,19 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { User } from "@/modules/user/types/user";
+import { User } from "@/common/common-models/model-user/UserModel";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { styles } from "./UserList.styles";
-import { UserListProps } from "./types";
+import { UserListProps } from "../user-types/components";
 
 /**
  * ユーザー一覧表示コンポーネント
  * ユーザーの検索、編集、削除機能を提供
  */
 export const UserList: React.FC<UserListProps> = ({
-  users,
+  userList,
   onEdit,
   onDelete,
   onAdd,
@@ -28,8 +28,8 @@ export const UserList: React.FC<UserListProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredUsers =
-    users?.filter((user) => {
+  const filteredUserList =
+    userList?.filter((user) => {
       if (!user) return false;
       const query = searchQuery.toLowerCase();
       return (
@@ -46,7 +46,7 @@ export const UserList: React.FC<UserListProps> = ({
     );
   }
 
-  const renderItem = ({ item: user }: { item: User }) => (
+  const renderItem = ({ item }: { item: User }) => (
     <View style={styles.userCard}>
       <View style={styles.leftSection}>
         <View style={styles.iconContainer}>
@@ -58,29 +58,29 @@ export const UserList: React.FC<UserListProps> = ({
         </View>
       </View>
       <View style={styles.middleSection}>
-        <Text style={styles.userName}>{user.nickname || "名前なし"}</Text>
+        <Text style={styles.userName}>{item.nickname || "名前なし"}</Text>
         <Text style={styles.userRole}>
-          {user.role === "master" ? "マスター" : "一般ユーザー"}
+          {item.role === "master" ? "マスター" : "一般ユーザー"}
         </Text>
       </View>
       <View style={styles.rightSection}>
-        {userPasswords[user.uid] && (
+        {userPasswords[item.uid] && (
           <View style={styles.passwordContainer}>
             <Text style={styles.passwordLabel}>パスワード</Text>
-            <Text style={styles.passwordValue}>{userPasswords[user.uid]}</Text>
+            <Text style={styles.passwordValue}>{userPasswords[item.uid]}</Text>
           </View>
         )}
         <View style={styles.actions}>
           <Button
             title="編集"
-            onPress={() => onEdit(user)}
+            onPress={() => onEdit(item)}
             variant="outline"
             size="small"
             style={styles.actionButton}
           />
           <Button
             title="削除"
-            onPress={() => onDelete(user.uid)}
+            onPress={() => onDelete(item.uid)}
             variant="outline"
             size="small"
             style={{
@@ -110,18 +110,24 @@ export const UserList: React.FC<UserListProps> = ({
         />
       </View>
       <FlatList
-        data={filteredUsers}
+        data={filteredUserList}
         renderItem={renderItem}
-        keyExtractor={(user) => user.uid}
+        keyExtractor={(user: User) => user.uid}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>
-            {searchQuery
-              ? "検索結果が見つかりません"
-              : "ユーザーが登録されていません"}
-          </Text>
+          <View>
+            <View>
+              <Text style={styles.emptyText}>
+                {searchQuery
+                  ? "検索結果が見つかりません"
+                  : "ユーザーが登録されていません"}
+              </Text>
+            </View>
+          </View>
         }
       />
     </View>
   );
 };
+
+// エクスポートは上部で直接行うように修正

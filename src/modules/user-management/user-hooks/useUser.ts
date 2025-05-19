@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User } from "@/modules/user/types/user";
+import { User } from "@/common/common-models/model-user/UserModel";
 import {
   collection,
   query,
@@ -30,9 +30,8 @@ export const useUser = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      // UserServiceを利用してデータを取得
-      const usersData = await getUsersService();
-      setUsers(usersData);
+      const userData = await getUsersService();
+      setUsers(userData);
       setError(null);
     } catch (err) {
       setError("ユーザー情報の取得に失敗しました");
@@ -41,7 +40,10 @@ export const useUser = () => {
       setLoading(false);
     }
   };
-
+  // For backward compatibility with old naming
+  async function fetchUMembers() {
+    await fetchUsers();
+  }
   const addUser = async (
     email: string,
     password: string,
@@ -59,7 +61,6 @@ export const useUser = () => {
         throw new Error("パスワードは6文字以上で入力してください");
       }
 
-      // マスターユーザーの場合、既存のマスターユーザーをチェック
       if (role === "master") {
         const hasMaster = await checkMasterExists();
         if (hasMaster) {
@@ -67,20 +68,16 @@ export const useUser = () => {
         }
       }
 
-      // メールアドレスをニックネームから生成
       const userEmail =
-        role === "master" ? "master@example.com" : `${nickname}@example.com`; // 一般ユーザーの場合、メールアドレスの重複をチェック
+        role === "master" ? "master@example.com" : `${nickname}@example.com`;
       if (role === "user") {
         const emailExists = await checkEmailExists(userEmail);
         if (emailExists) {
           throw new Error("このニックネームは既に使用されています");
         }
       }
-
-      // Firebase AuthenticationとFirestoreにユーザーを作成
       const newUser = await createUser(userEmail, password);
 
-      // ユーザー一覧を更新
       await fetchUsers();
       return newUser;
     } catch (err: any) {
@@ -110,7 +107,6 @@ export const useUser = () => {
     try {
       setLoading(true);
       const updatedUser = await updateUser(user, updates);
-
       if (updatedUser) {
         setUsers((prev) =>
           prev.map((u) => (u.uid === user.uid ? updatedUser : u))
@@ -127,14 +123,11 @@ export const useUser = () => {
       setLoading(false);
     }
   };
+
   const removeUser = async (uid: string) => {
     try {
       setLoading(true);
-
-      // UserServiceを使用してユーザーを削除
       await deleteUser(uid);
-
-      // ユーザー一覧を更新
       await fetchUsers();
     } catch (err) {
       setError("ユーザーの削除に失敗しました");
@@ -144,7 +137,6 @@ export const useUser = () => {
       setLoading(false);
     }
   };
-
   return {
     users,
     loading,
