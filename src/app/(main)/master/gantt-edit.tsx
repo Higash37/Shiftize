@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Stack } from "expo-router";
-import { GanttChartMonthEdit } from "@/modules";
+import { GanttChartMonthEdit } from "@/modules/gantt-chart/GanttChartMonthEdit";
 import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 import { useUsers } from "@/modules/user-management/user-hooks/useUserList";
 import { ShiftItem } from "@/common/common-models/ModelIndex";

@@ -27,7 +27,7 @@ import { db } from "@/services/firebase/firebase";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import TimeSelect from "@/modules/shift-ui/shift-ui-components/TimeSelect";
-import { CalendarModal } from "@/modules";
+import CalendarModal from "@/modules/calendar/calendar-components/calendar-modal/CalendarModal";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import type {
   Shift,

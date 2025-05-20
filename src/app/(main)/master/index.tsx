@@ -9,7 +9,7 @@ import {
 import { Link } from "expo-router";
 import { useUser } from "@/modules/user-management/user-hooks/useUser";
 import { colors, typography } from "@/common/common-constants/ThemeConstants";
-import { User } from "@/modules/user/types/user";
+import { User } from "@/common/common-models/model-user/UserModel";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 
 export default function MasterDashboard() {
