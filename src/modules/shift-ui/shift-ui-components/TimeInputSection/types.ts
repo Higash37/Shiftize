@@ -1,18 +1,17 @@
 import { ViewStyle, TextStyle } from "react-native";
+import { BaseTimeProps, BaseStyles } from "../../shift-ui-utils/ui-interfaces";
 
 export type TimeSlot = {
   start: string;
   end: string;
 };
 
-export interface TimeInputSectionProps {
+export interface TimeInputSectionProps extends BaseTimeProps {
   value: TimeSlot[];
   onChange: (newValue: TimeSlot[]) => void;
 }
 
-export interface TimeInputSectionStyles {
-  container: ViewStyle;
-  label: TextStyle;
+export interface TimeInputSectionStyles extends BaseStyles {
   timeContainer: ViewStyle;
   timeInput: ViewStyle;
   timeLabel: TextStyle;

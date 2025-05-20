@@ -1,9 +1,7 @@
+import { BaseTimeProps, BaseStyles } from "../../shift-ui-utils/ui-interfaces";
 import { ViewStyle, TextStyle } from "react-native";
 
-export interface TimeSelectProps {
-  label?: string;
-  value?: string;
-  onChange?: (time: string) => void;
+export interface TimeSelectProps extends BaseTimeProps {
   startTime?: string;
   endTime?: string;
   onStartTimeChange?: (time: string) => void;
@@ -11,11 +9,9 @@ export interface TimeSelectProps {
   zIndex?: number;
 }
 
-export interface TimeSelectStyles {
-  container: ViewStyle;
+export interface TimeSelectStyles extends BaseStyles {
   timeContainer: ViewStyle;
   timeSelect: ViewStyle;
-  label: TextStyle;
   button: ViewStyle;
   buttonText: TextStyle;
   modalOverlay: ViewStyle;

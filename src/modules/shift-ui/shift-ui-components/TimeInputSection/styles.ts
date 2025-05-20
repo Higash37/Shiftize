@@ -2,16 +2,18 @@ import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 import { TimeInputSectionStyles } from "./types";
+import {
+  shiftUIConstants,
+  shiftUIStyles,
+} from "../../shift-ui-utils/ui-constants";
 
 export const styles = StyleSheet.create<TimeInputSectionStyles>({
+  ...shiftUIStyles,
   container: {
-    padding: 16,
+    ...shiftUIStyles.container,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: colors.text.primary,
+    ...shiftUIStyles.title,
   },
   timeContainer: {
     flexDirection: "row",
@@ -22,18 +24,14 @@ export const styles = StyleSheet.create<TimeInputSectionStyles>({
     flex: 1,
   },
   timeLabel: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    marginBottom: 4,
+    ...shiftUIStyles.label,
   },
   separator: {
-    marginHorizontal: 8,
+    marginHorizontal: shiftUIConstants.spacing.sm,
     color: colors.text.secondary,
   },
   timeButton: {
-    backgroundColor: colors.surface,
-    padding: 12,
-    borderRadius: 8,
+    ...shiftUIStyles.input,
     borderWidth: 1,
     borderColor: colors.primary,
   },

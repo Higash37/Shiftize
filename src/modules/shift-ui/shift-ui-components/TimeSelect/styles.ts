@@ -1,30 +1,32 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { TimeSelectStyles } from "./types";
+import {
+  shiftUIConstants,
+  shiftUIStyles,
+} from "../../shift-ui-utils/ui-constants";
 
 export const styles = StyleSheet.create<TimeSelectStyles>({
+  ...shiftUIStyles,
   container: {
-    marginBottom: 16,
+    ...shiftUIStyles.container,
+    marginBottom: shiftUIConstants.spacing.md,
   },
   timeContainer: {
     flexDirection: "row",
-    gap: 16,
+    gap: shiftUIConstants.spacing.md,
   },
   timeSelect: {
     flex: 1,
   },
   label: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    marginBottom: 8,
+    ...shiftUIStyles.label,
   },
   button: {
-    padding: 12,
-    backgroundColor: colors.surface,
-    borderRadius: 8,
+    ...shiftUIStyles.input,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: shiftUIConstants.fontSize.lg,
     color: colors.text.primary,
   },
   modalOverlay: {
