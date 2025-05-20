@@ -110,14 +110,17 @@ export interface Shift extends BaseShift {
   isCompleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  duration?: number;
   classes?: Array<ClassTimeSlot>;
-  requestedChanges?: {
-    startTime?: string;
-    endTime?: string;
+  requestedChanges?: Array<{
+    startTime: string;
+    endTime: string;
+    status: ShiftStatus;
+    requestedAt: Date;
     date?: string;
     type?: ShiftType;
     subject?: string;
-  };
+  }>;
 }
 
 /**
@@ -148,4 +151,43 @@ export interface RecurringSettings {
   friday: boolean;
   saturday: boolean;
   sunday: boolean;
+}
+
+/**
+ * シフトデータ（表示用）
+ */
+export interface ShiftData {
+  id: string;
+  staffName: string;
+  startTime: string;
+  endTime: string;
+  color?: string;
+  status: ShiftStatus;
+}
+
+/**
+ * シフト項目（表示用の拡張情報を含む）
+ */
+export interface ShiftItem {
+  id: string;
+  userId: string;
+  nickname: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  type: "user" | "class" | "deleted";
+  subject?: string;
+  isCompleted: boolean;
+  status: ShiftStatus;
+  duration: string;
+  createdAt: Date;
+  updatedAt: Date;
+  classes?: Array<ClassTimeSlot>;
+  requestedChanges?: {
+    startTime?: string;
+    endTime?: string;
+    date?: string;
+    type?: "user" | "class";
+    subject?: string;
+  };
 }
