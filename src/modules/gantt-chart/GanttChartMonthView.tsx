@@ -36,6 +36,7 @@ import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { DatePickerModal } from "@/modules/calendar/calendar-components/calendar-modal/DatePickerModal";
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
+import { ShiftStatusConfig } from "./gantt-chart-types/GanttChartTypes";
 
 // シフトステータスの設定
 const DEFAULT_SHIFT_STATUS_CONFIG = [
@@ -70,13 +71,6 @@ const DEFAULT_SHIFT_STATUS_CONFIG = [
     canEdit: false,
   },
 ];
-
-interface ShiftStatusConfig {
-  status: ShiftStatus;
-  label: string;
-  color: string;
-  canEdit: boolean;
-}
 
 interface GanttChartMonthViewProps {
   shifts: ShiftItem[];
