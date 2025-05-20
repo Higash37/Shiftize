@@ -27,10 +27,10 @@ import {
 import { db } from "@/services/firebase/firebase";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import TimeSelect from "@/modules/shift/components/Shift/TimeSelect";
-import { CalendarModal } from "@/modules/shift/components/Shift";
-import { useShift } from "@/modules/shift/hooks/useShift";
-import type { Shift, ShiftStatus } from "@/modules/shift/types/shift";
+import TimeSelect from "@/modules/components/Shift/TimeSelect";
+import { CalendarModal } from "@/modules/components/Shift";
+import { useShift } from "@/modules/hooks/useShift";
+import type { Shift, ShiftStatus } from "@/modules/types/shift";
 import { useAuth } from "@/services/auth/useAuth";
 import type { User } from "@/modules/user/types/user";
 import { Header } from "@/common/common-ui/ui-layout";

@@ -1,4 +1,4 @@
-import { ShiftStatus } from "@/modules/shift/types/shift";
+import { ShiftStatus } from "@/modules/types/shift";
 
 export const colors = {
   primary: "#007AFF",

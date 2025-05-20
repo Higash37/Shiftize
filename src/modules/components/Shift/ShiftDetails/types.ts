@@ -1,5 +1,5 @@
 import { ViewStyle, TextStyle } from "react-native";
-import { Shift } from "@/modules/shift/types/shift";
+import { Shift } from "@/common/common-models/ModelIndex";
 
 export interface ShiftDetailsProps {
   shift: Shift;

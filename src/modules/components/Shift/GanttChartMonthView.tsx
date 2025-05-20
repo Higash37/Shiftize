@@ -16,7 +16,7 @@ import {
   ShiftStatusConfig,
   DEFAULT_SHIFT_STATUS_CONFIG,
   ShiftStatus,
-} from "@/modules/shift/types/shift";
+} from "@/modules/types/shift";
 import {
   doc,
   onSnapshot,

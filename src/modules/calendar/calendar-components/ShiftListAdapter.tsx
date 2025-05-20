@@ -1,8 +1,8 @@
 import React, { memo } from "react";
 import { View, StyleSheet } from "react-native";
 import { Shift as CommonShift } from "@/common/common-models/ModelIndex";
-import { Shift as ModuleShift } from "@/modules/shift/types/shift";
-import { ShiftDetails } from "@/modules/shift/components/Shift/ShiftDetails";
+import { Shift as ModuleShift } from "@/modules/types/shift";
+import { ShiftDetails } from "@/modules/components/Shift/ShiftDetails";
 
 interface ShiftAdapterProps {
   shift: CommonShift;

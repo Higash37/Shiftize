@@ -1,10 +1,10 @@
 import React from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { Stack } from "expo-router";
-import { GanttChartMonthView } from "@/modules/shift/components/Shift";
-import { useShifts } from "@/modules/shift/hooks/useShifts";
+import { GanttChartMonthView } from "@/modules/components/Shift";
+import { useShifts } from "@/modules/hooks/useShifts";
 import { useUsers } from "@/modules/user-management/user-hooks/useUserList";
-import { ShiftItem } from "@/modules/shift/types/shift";
+import { ShiftItem } from "@/modules/types/shift";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 

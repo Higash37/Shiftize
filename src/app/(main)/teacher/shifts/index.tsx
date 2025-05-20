@@ -12,9 +12,9 @@ import {
 import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { ShiftCalendar } from "@/modules/calendar/calendar-components/ShiftCalendar";
-import { ShiftList } from "@/modules/shift/components/Shift/ShiftList";
+import { ShiftList } from "@/modules/components/Shift/ShiftList";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { useShift } from "@/modules/shift/hooks/useShift";
+import { useShift } from "@/modules/hooks/useShift";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
 import { useAuth } from "@/services/auth/useAuth";
 import { format } from "date-fns";
