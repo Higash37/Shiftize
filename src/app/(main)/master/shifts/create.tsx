@@ -27,9 +27,9 @@ import {
 import { db } from "@/services/firebase/firebase";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import TimeSelect from "@/modules/components/Shift/TimeSelect";
-import { CalendarModal } from "@/modules/components/Shift";
-import { useShift } from "@/modules/hooks/useShift";
+import TimeSelect from "@/modules/shift-ui/shift-ui-components/TimeSelect";
+import { CalendarModal } from "@/modules";
+import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
 import type { ExtendedUser } from "@/modules/user-management/user-types/components";
@@ -439,7 +439,7 @@ export default function MasterShiftCreateScreen() {
               <Text style={styles.timeLabel}>開始時間</Text>{" "}
               <TimeSelect
                 value={shiftData.startTime}
-                onChange={(time) =>
+                onChange={(time: string) =>
                   setShiftData({ ...shiftData, startTime: time })
                 }
               />
@@ -451,7 +451,7 @@ export default function MasterShiftCreateScreen() {
               <Text style={styles.timeLabel}>終了時間</Text>{" "}
               <TimeSelect
                 value={shiftData.endTime}
-                onChange={(time) =>
+                onChange={(time: string) =>
                   setShiftData({ ...shiftData, endTime: time })
                 }
               />

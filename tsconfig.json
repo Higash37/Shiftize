@@ -13,5 +13,9 @@
       "@providers/*": ["./src/providers/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "src/common/common-utils/util-shift/useShift"
+  ]
 }

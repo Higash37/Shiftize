@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { styles } from "./styles";
 import { TimeInputSectionProps, TimeSlot } from "./types";
-import { generateTimeOptions } from "../utils";
+import { generateTimeOptions } from "../../shift-ui-utils/ui-utils";
 
 /**
  * TimeInputSection - 時間帯入力コンポーネント

@@ -30,7 +30,7 @@ import {
   getAuth,
 } from "firebase/auth";
 import { db, auth } from "@/services/firebase/firebase";
-import { User } from "@/modules/user/types/user";
+import { User } from "@/common/common-models/ModelIndex";
 
 type UserManagement = {
   uid: string;

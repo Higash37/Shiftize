@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { styles } from "./styles";
 import { TimeSelectProps } from "./types";
-import { generateTimeOptions } from "../utils";
+import { generateTimeOptions } from "../../shift-ui-utils/ui-utils";
 
 /**
  * TimeSelect - 時間選択コンポーネント

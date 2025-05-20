@@ -14,7 +14,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { ShiftCalendar } from "@/modules/calendar/calendar-components/calendar-main/ShiftCalendar";
 import { ShiftList } from "@/modules/calendar/calendar-components/calendar-shift/ShiftListView";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { useShift } from "@/modules/hooks/useShift";
+import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
 import { useAuth } from "@/services/auth/useAuth";
 import { format } from "date-fns";

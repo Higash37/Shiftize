@@ -1,8 +1,8 @@
 import React from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { Stack } from "expo-router";
-import { GanttChartMonthView } from "@/modules/components/Shift";
-import { useShifts } from "@/modules/hooks/useShifts";
+import { GanttChartMonthView } from "@/modules";
+import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 import { useUsers } from "@/modules/user-management/user-hooks/useUserList";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { doc, updateDoc } from "firebase/firestore";
