@@ -6,7 +6,11 @@ import {
   approveShiftChanges,
 } from "@/services/firebase/firebase";
 import { useAuth } from "@/services/auth/useAuth";
-import { Shift, ShiftItem, ShiftStatus } from "@/modules/types/shift";
+import {
+  Shift,
+  ShiftItem,
+  ShiftStatus,
+} from "@/common/common-models/ModelIndex";
 
 export const useShift = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);

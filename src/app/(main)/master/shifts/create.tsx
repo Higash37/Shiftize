@@ -30,9 +30,9 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import TimeSelect from "@/modules/components/Shift/TimeSelect";
 import { CalendarModal } from "@/modules/components/Shift";
 import { useShift } from "@/modules/hooks/useShift";
-import type { Shift, ShiftStatus } from "@/modules/types/shift";
+import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
-import type { User } from "@/modules/user/types/user";
+import type { ExtendedUser } from "@/modules/user-management/user-types/components";
 import { Header } from "@/common/common-ui/ui-layout";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -130,8 +130,8 @@ export default function MasterShiftCreateScreen() {
           });
 
           // 既存のシフトのユーザーを選択
-          setSelectedUserId(shiftData.userId);
-          setSelectedUserNickname(shiftData.nickname);
+          setSelectedUserId(shiftData.userId || "");
+          setSelectedUserNickname(shiftData.nickname || "");
           setSelectedStatus(shiftData.status);
 
           setShiftData({
@@ -186,7 +186,7 @@ export default function MasterShiftCreateScreen() {
       // ユーザーのニックネーム取得
       let nickname = selectedUserNickname;
       if (!nickname) {
-        const selectedUser = users.find((u) => u.id === selectedUserId);
+        const selectedUser = users.find((u) => u.uid === selectedUserId);
         if (selectedUser) {
           nickname = selectedUser.nickname;
           setSelectedUserNickname(nickname);
@@ -363,20 +363,21 @@ export default function MasterShiftCreateScreen() {
             {filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
                 <TouchableOpacity
-                  key={user.id}
+                  key={user.uid}
                   style={[
                     styles.userItem,
-                    selectedUserId === user.id && styles.selectedUserItem,
+                    selectedUserId === user.uid && styles.selectedUserItem,
                   ]}
                   onPress={() => {
-                    setSelectedUserId(user.id);
+                    setSelectedUserId(user.uid);
                     setSelectedUserNickname(user.nickname);
                   }}
                 >
                   <Text
                     style={[
                       styles.userItemText,
-                      selectedUserId === user.id && styles.selectedUserItemText,
+                      selectedUserId === user.uid &&
+                        styles.selectedUserItemText,
                     ]}
                   >
                     {user.nickname} (

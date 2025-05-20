@@ -29,14 +29,17 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import TimeSelect from "@/modules/components/Shift/TimeSelect";
 import { CalendarModal } from "@/modules/components/Shift";
 import { useShift } from "@/modules/hooks/useShift";
-import type { Shift } from "@/modules/types/shift";
+import type {
+  Shift,
+  ShiftStatus,
+  ShiftType,
+} from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
-import type { User } from "@/modules/user/types/user";
+import type { ExtendedUser } from "@/modules/user-management/user-types/components";
 import { Header } from "@/common/common-ui/ui-layout";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getUserData, type UserData } from "@/services/firebase/firebase";
-import { ShiftStatus } from "@/modules/types/shift";
 
 interface ShiftData {
   startTime: string;
@@ -301,12 +304,12 @@ export default function ShiftCreateScreen() {
           date,
           startTime: shiftData.startTime,
           endTime: shiftData.endTime,
-          status: "draft" as ShiftStatus,
-          type: "staff",
+          status: "pending" as ShiftStatus,
+          type: "staff" as ShiftType,
           isCompleted: false,
           duration: calculateDuration(shiftData.startTime, shiftData.endTime),
-          classes: cleanedClasses,
-          hasClass: cleanedClasses.length > 0,
+          classes: shiftData.classes,
+          hasClass: shiftData.hasClass,
         };
 
         await createShift(shiftToSend);

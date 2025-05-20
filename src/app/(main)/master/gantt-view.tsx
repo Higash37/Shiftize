@@ -4,15 +4,10 @@ import { Stack } from "expo-router";
 import { GanttChartMonthView } from "@/modules/components/Shift";
 import { useShifts } from "@/modules/hooks/useShifts";
 import { useUsers } from "@/modules/user-management/user-hooks/useUserList";
-import { ShiftItem } from "@/modules/types/shift";
+import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
-
-interface User {
-  id: string;
-  nickname: string;
-  role: string;
-}
+import type { ExtendedUser } from "@/modules/user-management/user-types/components";
 
 export default function GanttViewScreen() {
   const { shifts, fetchShiftsByMonth } = useShifts();
@@ -80,7 +75,7 @@ export default function GanttViewScreen() {
       <GanttChartMonthView
         shifts={shifts}
         days={days}
-        users={users.map((user: User) => user.nickname)}
+        users={users.map((user: ExtendedUser) => user.nickname)}
         onShiftPress={handleShiftPress}
         onShiftUpdate={handleShiftUpdate}
         onMonthChange={handleMonthChange}

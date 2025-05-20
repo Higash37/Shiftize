@@ -1,7 +1,10 @@
 import React, { memo } from "react";
 import { View, StyleSheet } from "react-native";
-import { Shift as CommonShift } from "@/common/common-models/ModelIndex";
-import { Shift as ModuleShift } from "@/modules/types/shift";
+import {
+  Shift as CommonShift,
+  ShiftType,
+} from "@/common/common-models/ModelIndex";
+import { Shift as ModuleShift } from "@/common/common-models/ModelIndex";
 import { ShiftDetails } from "@/modules/components/Shift/ShiftDetails";
 
 interface ShiftAdapterProps {
@@ -34,7 +37,7 @@ export const ShiftDetailsAdapter = memo<ShiftAdapterProps>(
       date: shift.date,
       startTime: shift.startTime,
       endTime: shift.endTime,
-      type: shift.type || "user",
+      type: shift.type || ("staff" as ShiftType),
       subject: shift.subject,
       isCompleted: shift.status === "completed" || shift.isCompleted || false, // completedステータスの場合はisCompletedをtrueに
       status: adaptedStatus,

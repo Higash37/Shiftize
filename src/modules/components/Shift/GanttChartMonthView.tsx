@@ -12,11 +12,13 @@ import {
   ActivityIndicator,
 } from "react-native";
 import {
+  Shift,
   ShiftItem,
-  ShiftStatusConfig,
-  DEFAULT_SHIFT_STATUS_CONFIG,
   ShiftStatus,
-} from "@/modules/types/shift";
+  ClassTimeSlot,
+  TimeSlot,
+  ShiftType,
+} from "@/common/common-models/ModelIndex";
 import {
   doc,
   onSnapshot,
@@ -35,12 +37,53 @@ import { DatePickerModal } from "@/modules/calendar/calendar-components/DatePick
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
 
+// シフトステータスの設定
+const DEFAULT_SHIFT_STATUS_CONFIG = [
+  {
+    status: "pending" as ShiftStatus,
+    label: "申請中",
+    color: "#FFA500",
+    canEdit: true,
+  },
+  {
+    status: "approved" as ShiftStatus,
+    label: "承認済み",
+    color: "#4CAF50",
+    canEdit: true,
+  },
+  {
+    status: "rejected" as ShiftStatus,
+    label: "却下",
+    color: "#FF4444",
+    canEdit: true,
+  },
+  {
+    status: "deleted" as ShiftStatus,
+    label: "削除済み",
+    color: "#999999",
+    canEdit: false,
+  },
+  {
+    status: "deletion_requested" as ShiftStatus,
+    label: "削除申請中",
+    color: "#FF9800",
+    canEdit: false,
+  },
+];
+
+interface ShiftStatusConfig {
+  status: ShiftStatus;
+  label: string;
+  color: string;
+  canEdit: boolean;
+}
+
 interface GanttChartMonthViewProps {
   shifts: ShiftItem[];
   days: string[];
   users: string[];
   onShiftPress?: (shift: ShiftItem) => void;
-  onShiftUpdate?: (shift: ShiftItem) => void; // シフト更新ハンドラを追加
+  onShiftUpdate?: (shift: ShiftItem) => void;
   onMonthChange?: (year: number, month: number) => void;
   classTimes?: { start: string; end: string }[];
 }

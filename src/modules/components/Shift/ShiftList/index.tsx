@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { styles, getStatusColor } from "./styles";
 import { ShiftListProps, ShiftTypeMap } from "./types";
-import { Shift, ShiftStatus } from "@/modules/types/shift";
+import { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 
 /**
  * ShiftList - シフト一覧表示コンポーネント

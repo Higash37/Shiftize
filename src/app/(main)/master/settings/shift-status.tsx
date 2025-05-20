@@ -8,9 +8,10 @@ import {
 } from "react-native";
 import { Stack } from "expo-router";
 import {
+  ShiftStatus,
   ShiftStatusConfig,
   DEFAULT_SHIFT_STATUS_CONFIG,
-} from "@/modules/types/shift";
+} from "@/common/common-models/ModelIndex";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { ColorPicker } from "@/common/common-ui/ui-forms/FormColorPicker";
