@@ -38,6 +38,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
 import { ShiftStatusConfig } from "./gantt-chart-types/GanttChartTypes";
 import styles from "./gantt-chart-styles/GanttChartMonthView.styles";
+import { GanttChartMonthViewProps } from "./gantt-chart-types/GanttChartProps";
 
 // シフトステータスの設定
 const DEFAULT_SHIFT_STATUS_CONFIG = [
@@ -72,16 +73,6 @@ const DEFAULT_SHIFT_STATUS_CONFIG = [
     canEdit: false,
   },
 ];
-
-interface GanttChartMonthViewProps {
-  shifts: ShiftItem[];
-  days: string[];
-  users: string[];
-  onShiftPress?: (shift: ShiftItem) => void;
-  onShiftUpdate?: (shift: ShiftItem) => void;
-  onMonthChange?: (year: number, month: number) => void;
-  classTimes?: { start: string; end: string }[];
-}
 
 // シフトの重なりをグループ化
 function groupShiftsByOverlap(shifts: ShiftItem[]) {

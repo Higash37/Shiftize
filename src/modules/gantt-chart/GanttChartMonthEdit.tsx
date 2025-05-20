@@ -41,6 +41,8 @@ import { DatePickerModal } from "@/modules/calendar/calendar-components/calendar
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
 import styles from "./gantt-chart-styles/GanttChartMonthEdit.styles";
+import { GanttChartMonthEditProps } from "./gantt-chart-types/GanttChartProps";
+import { ShiftStatusConfig } from "./gantt-chart-types/GanttChartTypes";
 
 // シフトステータスの設定
 const DEFAULT_SHIFT_STATUS_CONFIG = [
@@ -75,21 +77,6 @@ const DEFAULT_SHIFT_STATUS_CONFIG = [
     canEdit: false,
   },
 ];
-
-interface ShiftStatusConfig {
-  status: ShiftStatus;
-  label: string;
-  color: string;
-  canEdit: boolean;
-}
-
-interface GanttChartMonthEditProps {
-  shifts: ShiftItem[];
-  onShiftPress?: (shift: ShiftItem) => void;
-  onShiftUpdate?: (shift: ShiftItem) => void;
-  onMonthChange?: (year: number, month: number) => void;
-  classTimes?: { start: string; end: string }[];
-}
 
 // 1時間ごとのラベル
 const hourLabels = Array.from({ length: 22 - 9 + 1 }, (_, i) => {
@@ -726,8 +713,6 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
       </View>
     );
   };
-
-  // --- 日付表示 ---
   type DateCellProps = {
     date: string;
   };
