@@ -42,7 +42,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const responsiveStyles = useMemo(
     () => ({
       calendar: {
-        width: isSmallScreen ? "80%" : calendarWidth, // 85%に縮小
+        width: isSmallScreen ? "90%" : calendarWidth, // 85%に縮小
         maxWidth: 480,
         marginHorizontal: "auto", // 中央揃え
       },

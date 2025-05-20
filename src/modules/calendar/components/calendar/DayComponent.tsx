@@ -28,7 +28,7 @@ export const DayComponent = memo<{
         borderRadius: Math.min(dayWidth, dayHeight) / 2,
       },
       dayText: {
-        fontSize: isSmallScreen ? 14 : 14, // フォントサイズをさらに小さく
+        fontSize: isSmallScreen ? 16 : 14, // フォントサイズをさらに小さく
         letterSpacing: -1.0, // 文字間隔を狭める
       },
     };

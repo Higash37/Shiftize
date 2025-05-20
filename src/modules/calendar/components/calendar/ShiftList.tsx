@@ -114,13 +114,13 @@ export const ShiftList: React.FC<ShiftListProps> = ({
 
 const styles = StyleSheet.create({
   shiftList: {
-    width: "85%", // 85%幅に調整
+    width: "70%", // 85%幅に調整
     padding: 8, // パディングも縮小
     alignSelf: "center", // 中央揃え
   },
   shiftItemContainer: {
     marginBottom: 8,
-    width: "100%",
+    width: "70%",
   },
   expandIcon: {
     marginLeft: 4,
