@@ -1,9 +1,9 @@
 import React, { memo, useMemo } from "react";
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { DayComponentProps } from "./types";
-import { getDayColor } from "./utils";
-import { useResponsiveCalendarSize } from "./constants";
+import { DayComponentProps } from "../calendar-types/types";
+import { getDayColor } from "../calendar-utils/utils";
+import { useResponsiveCalendarSize } from "../calendar-constants/constants";
 
 /**
  * カレンダーの日付コンポーネント

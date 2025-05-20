@@ -35,7 +35,7 @@ import { format, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Ionicons } from "@expo/vector-icons";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
-import { DatePickerModal } from "@/modules/calendar/components/calendar/DatePickerModal";
+import { DatePickerModal } from "@/modules/calendar/calendar-components/DatePickerModal";
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
 
@@ -814,7 +814,7 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
           ...newShift,
           id: "temp-id", // 一時的なID、実際には使用されない
           nickname: selectedUser?.nickname || "名前なし",
-        type: "user",
+          type: "user",
           isCompleted: false,
           duration: "",
           createdAt: new Date(),

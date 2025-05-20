@@ -1,6 +1,6 @@
 import { ShiftStatus } from "@/common/common-models/ModelIndex";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { HOLIDAYS } from "./constants";
+import { HOLIDAYS } from "../calendar-constants/constants";
 
 // ステータスのテキストを取得する関数
 export const getStatusText = (status: ShiftStatus) => {

@@ -11,8 +11,8 @@ import { colors } from "@/common/common-theme/ThemeColors";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Shift } from "@/common/common-models/ModelIndex";
-import { getStatusColor, getStatusText } from "./utils";
-import { ShiftListProps } from "./types";
+import { getStatusColor, getStatusText } from "../calendar-utils/utils";
+import { ShiftListProps } from "../calendar-types/types";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 import { ShiftDetailsAdapter } from "./ShiftListAdapter";
 

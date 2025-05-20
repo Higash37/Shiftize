@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { useResponsiveCalendarSize } from "./constants";
+import { useResponsiveCalendarSize } from "../calendar-constants/constants";
 
 interface CalendarHeaderProps {
   date: Date;
