@@ -11,62 +11,56 @@ import { colors } from "@/common/common-theme/ThemeColors";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Shift } from "@/common/common-models/ModelIndex";
-import { getStatusColor, getStatusText } from "../calendar-utils/utils";
-import { ShiftListProps } from "../calendar-types/types";
+import {
+  getStatusColor,
+  getStatusText,
+} from "../../calendar-utils/calendar.utils";
+import { ShiftListProps } from "../calendar-types/shift/ShiftList.types";
+import { ShiftItemProps } from "../calendar-types/shift/ShiftList.types";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 import { ShiftDetailsAdapter } from "./ShiftListAdapter";
 
 /**
  * 個別のシフトアイテムコンポーネント
  */
-const ShiftItem = memo(
-  ({
-    shift,
-    isExpanded,
-    onToggle,
-  }: {
-    shift: Shift;
-    isExpanded: boolean;
-    onToggle: () => void;
-  }) => {
-    const borderColor = getStatusColor(shift.status);
+const ShiftItem = memo(({ shift, isExpanded, onToggle }: ShiftItemProps) => {
+  const borderColor = getStatusColor(shift.status);
 
-    return (
-      <View key={shift.id} style={styles.shiftItemContainer}>
-        <TouchableOpacity
-          style={[styles.shiftHeader, { borderColor }]}
-          onPress={onToggle}
-          activeOpacity={0.7}
-        >
-          <View style={styles.shiftHeaderContent}>
-            <AntDesign name="user" size={16} color={borderColor} />
-            <Text style={styles.dateText} numberOfLines={1}>
-              {format(new Date(shift.date), "d日(E)", {
-                locale: ja,
-              })}
-            </Text>
-            <Text
-              style={[styles.statusText, { color: borderColor }]}
-              numberOfLines={1}
-            >
-              {getStatusText(shift.status)}
-            </Text>
-            <Text style={styles.shiftTime} numberOfLines={1}>
-              {shift.startTime} ~ {shift.endTime}
-            </Text>
-          </View>
-          <AntDesign
-            name={isExpanded ? "up" : "down"}
-            size={14}
-            color={colors.text.primary}
-            style={styles.expandIcon}
-          />
-        </TouchableOpacity>
-        <ShiftDetailsAdapter shift={shift} isOpen={isExpanded} />
-      </View>
-    );
-  }
-);
+  return (
+    <View key={shift.id} style={styles.shiftItemContainer}>
+      <TouchableOpacity
+        style={[styles.shiftHeader, { borderColor }]}
+        onPress={onToggle}
+        activeOpacity={0.7}
+      >
+        <View style={styles.shiftHeaderContent}>
+          <AntDesign name="user" size={16} color={borderColor} />
+          <Text style={styles.dateText} numberOfLines={1}>
+            {format(new Date(shift.date), "d日(E)", {
+              locale: ja,
+            })}
+          </Text>
+          <Text
+            style={[styles.statusText, { color: borderColor }]}
+            numberOfLines={1}
+          >
+            {getStatusText(shift.status)}
+          </Text>
+          <Text style={styles.shiftTime} numberOfLines={1}>
+            {shift.startTime} ~ {shift.endTime}
+          </Text>
+        </View>
+        <AntDesign
+          name={isExpanded ? "up" : "down"}
+          size={14}
+          color={colors.text.primary}
+          style={styles.expandIcon}
+        />
+      </TouchableOpacity>
+      <ShiftDetailsAdapter shift={shift} isOpen={isExpanded} />
+    </View>
+  );
+});
 
 /**
  * シフトリストコンポーネント

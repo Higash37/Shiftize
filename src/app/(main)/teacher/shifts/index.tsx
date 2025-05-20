@@ -11,8 +11,8 @@ import {
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { ShiftCalendar } from "@/modules/calendar/calendar-components/ShiftCalendar";
-import { ShiftList } from "@/modules/components/Shift/ShiftList";
+import { ShiftCalendar } from "@/modules/calendar/calendar-components/calendar-main/ShiftCalendar";
+import { ShiftList } from "@/modules/calendar/calendar-components/calendar-shift/ShiftListView";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { useShift } from "@/modules/hooks/useShift";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";

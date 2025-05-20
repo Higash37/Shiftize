@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, Modal, TouchableOpacity } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { styles } from "./styles";
-import { CalendarModalProps } from "./types";
+import { styles } from "./CalendarModal.styles";
+import { CalendarModalProps } from "./CalendarModal.types";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { DAY_WIDTH } from "./styles";
+import { DAY_WIDTH } from "./CalendarModal.styles";
 
 /**
  * CalendarModal - カレンダーモーダルコンポーネント

@@ -7,15 +7,18 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { ShiftCalendarProps, DayComponentProps } from "../calendar-types/types";
-import { DayComponent } from "./DayComponent";
-import { CalendarHeader } from "./CalendarHeader";
-import { ShiftList } from "./ShiftList";
-import { DatePickerModal } from "./DatePickerModal";
+import {
+  ShiftCalendarProps,
+  DayComponentProps,
+} from "../../calendar-types/common.types";
+import { DayComponent } from "../calendar-day/DayComponent";
+import { CalendarHeader } from "../calendar-header/CalendarHeader";
+import { ShiftList } from "../calendar-shift/ShiftList";
+import { DatePickerModal } from "../calendar-modal/DatePickerModal";
 import {
   useResponsiveCalendarSize,
   PLATFORM_SPECIFIC,
-} from "../calendar-constants/constants";
+} from "../../calendar-constants/constants";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 
 // react-native-calendars の型定義を拡張

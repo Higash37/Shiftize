@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { ShiftDetailsStyles } from "./types";
+import { ShiftDetailsStyles } from "./ShiftDetails.types";
 
 export const styles = StyleSheet.create<ShiftDetailsStyles>({
   container: {

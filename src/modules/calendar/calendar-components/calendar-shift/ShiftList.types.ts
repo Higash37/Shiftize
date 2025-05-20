@@ -1,5 +1,5 @@
 import { ViewStyle, TextStyle } from "react-native";
-import { ShiftItem, ShiftStatus } from "../../../types/shift";
+import { ShiftItem, ShiftStatus } from "@/common/common-models/ModelIndex";
 
 export interface ShiftListProps {
   shifts: ShiftItem[];

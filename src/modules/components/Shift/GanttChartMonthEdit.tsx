@@ -37,7 +37,7 @@ import { format, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Ionicons } from "@expo/vector-icons";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
-import { DatePickerModal } from "@/modules/calendar/calendar-components/DatePickerModal";
+import { DatePickerModal } from "@/modules/calendar/calendar-components/calendar-modal/DatePickerModal";
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
 

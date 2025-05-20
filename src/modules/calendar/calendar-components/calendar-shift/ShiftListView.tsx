@@ -4,8 +4,8 @@ import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { styles, getStatusColor } from "./styles";
-import { ShiftListProps, ShiftTypeMap } from "./types";
+import { styles, getStatusColor } from "./ShiftList.styles";
+import { ShiftListProps, ShiftTypeMap } from "./ShiftList.types";
 import { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 
 /**

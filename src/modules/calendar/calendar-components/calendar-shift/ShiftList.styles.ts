@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { ShiftListStyles } from "./types";
+import { ShiftListStyles } from "./ShiftList.types";
 import { ShiftStatus } from "@/common/common-models/ModelIndex";
 
 export const getStatusColor = (status: ShiftStatus) => {

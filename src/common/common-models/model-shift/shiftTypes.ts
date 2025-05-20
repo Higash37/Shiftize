@@ -175,7 +175,7 @@ export interface ShiftItem {
   date: string;
   startTime: string;
   endTime: string;
-  type: "user" | "class" | "deleted";
+  type: ShiftType;
   subject?: string;
   isCompleted: boolean;
   status: ShiftStatus;
@@ -187,7 +187,7 @@ export interface ShiftItem {
     startTime?: string;
     endTime?: string;
     date?: string;
-    type?: "user" | "class";
+    type?: ShiftType;
     subject?: string;
   };
 }

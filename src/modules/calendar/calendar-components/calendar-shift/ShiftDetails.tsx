@@ -2,9 +2,9 @@ import React, { useRef } from "react";
 import { View, Text, Animated } from "react-native";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { styles } from "./styles";
-import { ShiftDetailsProps } from "./types";
-import { parseTimeString } from "../utils";
+import { styles } from "./ShiftDetails.styles";
+import { ShiftDetailsProps } from "./ShiftDetails.types";
+import { parseTimeString } from "../../calendar-utils/shift.utils";
 
 /**
  * ShiftDetails - シフト詳細情報表示コンポーネント
