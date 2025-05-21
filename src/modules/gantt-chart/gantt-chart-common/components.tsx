@@ -276,27 +276,35 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
   isClassTime,
   styles,
   handleEmptyCellClick,
-}) => (
-  <View style={[styles.emptyCell, { width }]}>
-    <TouchableOpacity
-      style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
-      onPress={() => handleEmptyCellClick(date, 0)}
-      activeOpacity={0.7}
-    />
-    <View style={styles.ganttBgRow}>
-      {halfHourLines.map((t, i) => (
-        <View
-          key={t}
-          style={[
-            styles.ganttBgCell,
-            isClassTime(t) && styles.classTimeCell,
-            {
-              width: width / halfHourLines.length,
-              borderRightWidth: i % 2 === 0 ? 0.5 : 1,
-            },
-          ]}
-        />
-      ))}
+}) => {
+  // タップ位置から30分単位のセル位置を算出
+  const handlePress = (event: any) => {
+    const x = event.nativeEvent.locationX;
+    const position = ((x / width) * (halfHourLines.length - 1)) / 2; // 1時間=2セル
+    handleEmptyCellClick(date, position);
+  };
+  return (
+    <View style={[styles.emptyCell, { width }]}>
+      <TouchableOpacity
+        style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
+        onPress={handlePress}
+        activeOpacity={0.7}
+      />
+      <View style={styles.ganttBgRow}>
+        {halfHourLines.map((t, i) => (
+          <View
+            key={t}
+            style={[
+              styles.ganttBgCell,
+              isClassTime(t) && styles.classTimeCell,
+              {
+                width: width / halfHourLines.length,
+                borderRightWidth: i % 2 === 0 ? 0.5 : 1,
+              },
+            ]}
+          />
+        ))}
+      </View>
     </View>
-  </View>
-);
+  );
+};

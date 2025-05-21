@@ -182,6 +182,15 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     return hours - 9 + minutes / 60;
   }
 
+  // 位置を時間に変換する関数
+  function positionToTime(position: number): string {
+    const hours = Math.floor(position) + 9;
+    const minutes = Math.floor((position % 1) * 60);
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
   // 時間セル計算
   const cellWidth = ganttColumnWidth / (hourLabels.length - 1) / 2;
   // 前月に移動する関数
@@ -320,6 +329,33 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     setShowEditModal(true);
   };
 
+  // 空白セルをクリックした時の処理
+  const handleEmptyCellClick = (date: string, position: number) => {
+    // クリック位置から開始時間を計算
+    const startTime = positionToTime(position);
+    // 終了時間は1時間後（22:00を超えない）
+    const startHour = parseInt(startTime.split(":")[0]);
+    const startMinute = parseInt(startTime.split(":")[1]);
+    let endHour = startHour + 1;
+    let endMinute = startMinute;
+    if (endHour > 22) {
+      endHour = 22;
+      endMinute = 0;
+    }
+    const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute
+      .toString()
+      .padStart(2, "0")}`;
+    setNewShiftData({
+      date,
+      startTime,
+      endTime,
+      userId: "",
+      nickname: "",
+      status: "pending",
+    });
+    setShowAddModal(true);
+  };
+
   // --- 本体 ---
   return (
     <View style={styles.container}>
@@ -435,7 +471,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
                   halfHourLines={halfHourLines}
                   isClassTime={isClassTime}
                   styles={styles}
-                  handleEmptyCellClick={() => setShowAddModal(true)}
+                  handleEmptyCellClick={handleEmptyCellClick}
                 />
                 <View
                   style={[styles.emptyInfoCell, { width: infoColumnWidth }]}
@@ -461,7 +497,20 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         onSave={handleSaveShift}
       />
       {/* シフト追加モーダル */}
-      {/* ここにあったModalのJSXを削除（AddShiftModalViewで置き換え済み） */}
+      <AddShiftModalView
+        visible={showAddModal}
+        newShiftData={newShiftData}
+        users={users}
+        timeOptions={timeOptions}
+        statusConfigs={statusConfigs}
+        isLoading={isLoading}
+        styles={styles}
+        onChange={(field, value) =>
+          setNewShiftData({ ...newShiftData, [field]: value })
+        }
+        onClose={() => setShowAddModal(false)}
+        onSave={handleSaveShift}
+      />
     </View>
   );
 };
