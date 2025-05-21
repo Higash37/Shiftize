@@ -57,7 +57,7 @@ import { AddShiftModal } from "./edit-modals/AddShiftModal";
 import { ActionModal } from "./edit-modals/ActionModal";
 import { ClassTimeModal } from "./edit-modals/ClassTimeModal";
 import { EditModal } from "./edit-modals/EditModal";
-import { GanttChartEditRow } from "./GanttChartMonthEdit/GanttChartEditRow";
+import { GanttChartEditRow } from "./GanttChartMonthRow/GanttChartEditRow";
 
 // シフトステータスの設定
 const DEFAULT_SHIFT_STATUS_CONFIG = [
@@ -133,6 +133,7 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     startTime: "",
     endTime: "",
     status: "pending" as const,
+    classes: [], // 授業時間
   });
   const [users, setUsers] = useState<Array<{ uid: string; nickname: string }>>(
     []
@@ -428,6 +429,7 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
       startTime: startTime,
       endTime: endTime,
       status: "pending",
+      classes: [], // 授業時間の初期値
     });
 
     setShowAddShiftModal(true);
@@ -499,6 +501,7 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
     try {
       await addDoc(collection(db, "shifts"), {
         ...newShift,
+        classes: newShift.classes || [], // 必ず配列で保存
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -510,6 +513,7 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
         startTime: "",
         endTime: "",
         status: "pending",
+        classes: [],
       });
       refreshScreen();
     } catch (error) {

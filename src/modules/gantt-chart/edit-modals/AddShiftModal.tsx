@@ -19,10 +19,11 @@ export type AddShiftModalProps = {
     startTime: string;
     endTime: string;
     status: string;
+    classes: Array<{ startTime: string; endTime: string }>;
   };
   users: Array<{ uid: string; nickname: string }>;
   loading: boolean;
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: any) => void;
   onClose: () => void;
   onAdd: () => void;
 };
@@ -97,6 +98,85 @@ export const AddShiftModal: React.FC<AddShiftModalProps> = ({
               </Picker>
             </View>
           </View>
+        </View>
+        {/* 授業時間（複数可） */}
+        <View style={styles.formGroup}>
+          <Text style={styles.formLabel}>授業時間（任意・複数可）</Text>
+          {(newShift.classes || []).map((classTime, idx) => (
+            <View
+              key={idx}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 4,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.timeInputLabel}>開始</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={classTime.startTime}
+                    onValueChange={(v) => {
+                      const updated = [...(newShift.classes || [])];
+                      updated[idx] = { ...updated[idx], startTime: v };
+                      onChange("classes", updated);
+                    }}
+                    style={styles.picker}
+                  >
+                    {generateTimeOptions().map((time) => (
+                      <Picker.Item key={time} label={time} value={time} />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+              <Text style={styles.timeInputSeparator}>～</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.timeInputLabel}>終了</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={classTime.endTime}
+                    onValueChange={(v) => {
+                      const updated = [...(newShift.classes || [])];
+                      updated[idx] = { ...updated[idx], endTime: v };
+                      onChange("classes", updated);
+                    }}
+                    style={styles.picker}
+                  >
+                    {generateTimeOptions().map((time) => (
+                      <Picker.Item key={time} label={time} value={time} />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={{ marginLeft: 8 }}
+                onPress={() => {
+                  const updated = [...(newShift.classes || [])];
+                  updated.splice(idx, 1);
+                  onChange("classes", updated);
+                }}
+              >
+                <Text style={{ color: "#FF4444", fontWeight: "bold" }}>
+                  削除
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <TouchableOpacity
+            style={{ marginTop: 4, alignSelf: "flex-start" }}
+            onPress={() => {
+              const updated = [...(newShift.classes || [])];
+              updated.push({
+                startTime: newShift.startTime,
+                endTime: newShift.endTime,
+              });
+              onChange("classes", updated);
+            }}
+          >
+            <Text style={{ color: "#4A90E2", fontWeight: "bold" }}>
+              ＋授業時間を追加
+            </Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.modalButtons}>
           <TouchableOpacity

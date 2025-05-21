@@ -115,6 +115,11 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: "#ddd",
     position: "relative",
+    backgroundColor: "#fff",
+    overflow: "hidden",
+    flexDirection: "row", // 追加: GanttChartGridのグリッド線と完全一致させる
+    borderBottomWidth: 1, // 追加: 行の下線
+    borderBottomColor: "#eee", // 追加: 行の下線色
   },
   emptyInfoCell: {
     height: 65,
@@ -126,6 +131,8 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: "#ddd",
     overflow: "hidden",
+    backgroundColor: "#fff",
+    flexDirection: "row", // 追加
   },
   ganttBgRow: {
     position: "absolute",

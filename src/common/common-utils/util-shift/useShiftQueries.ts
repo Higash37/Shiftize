@@ -18,6 +18,8 @@ export const useShifts = () => {
 
       const shiftsData = querySnapshot.docs.map((doc) => {
         const data = doc.data();
+        // デバッグ用: classesの内容を出力
+        console.log("shift data:", data);
         return {
           id: doc.id,
           userId: data.userId || "",
@@ -39,6 +41,7 @@ export const useShifts = () => {
             type: data.type || "staff",
             subject: data.subject,
           })),
+          classes: Array.isArray(data.classes) ? data.classes : [],
         } as ShiftItem;
       });
 
@@ -75,6 +78,8 @@ export const useShifts = () => {
 
         const shiftsData = querySnapshot.docs.map((doc) => {
           const data = doc.data();
+          // デバッグ用: classesの内容を出力
+          console.log("shift data:", data);
           return {
             id: doc.id,
             userId: data.userId || "",
@@ -93,10 +98,9 @@ export const useShifts = () => {
               startTime: change.startTime,
               endTime: change.endTime,
               date: data.date,
-
               subject: data.subject,
             })),
-            classes: data.classes || [],
+            classes: Array.isArray(data.classes) ? data.classes : [],
           } as ShiftItem;
         });
 

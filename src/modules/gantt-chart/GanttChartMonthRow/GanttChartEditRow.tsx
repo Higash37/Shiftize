@@ -6,9 +6,10 @@ import {
   GanttChartInfo,
   EmptyCell,
 } from "../gantt-chart-common/components";
+import { ShiftItem } from "@/common/common-models/ModelIndex";
 
 interface GanttChartEditRowProps {
-  row: { date: string; groups: any[][] };
+  row: { date: string; groups: ShiftItem[][] };
   dateColumnWidth: number;
   ganttColumnWidth: number;
   infoColumnWidth: number;
@@ -16,8 +17,8 @@ interface GanttChartEditRowProps {
   halfHourLines: string[];
   isClassTime: (time: string) => boolean;
   getStatusConfig: (status: string) => any;
-  handleShiftPress: (shift: any) => void;
-  handleDeleteShift: (shift: any) => void;
+  handleShiftPress: (shift: ShiftItem) => void;
+  handleDeleteShift: (shift: ShiftItem) => void;
   styles: any;
   handleEmptyCellClick: (date: string, position: number) => void;
 }
@@ -99,6 +100,7 @@ export const GanttChartEditRow: React.FC<GanttChartEditRowProps> = ({
         <EmptyCell
           date={row.date}
           width={ganttColumnWidth}
+          cellWidth={cellWidth} // 追加
           halfHourLines={halfHourLines}
           isClassTime={isClassTime}
           styles={styles}

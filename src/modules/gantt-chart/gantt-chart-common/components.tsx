@@ -97,6 +97,44 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           />
         ))}
       </View>
+      {/* 授業時間バー（クラスバー）を先に描画し、zIndexでシフトバーより上に */}
+      {shifts.map((shift, index) => {
+        const classes = shift.classes ?? [];
+        if (classes.length === 0) return null;
+        return classes.map((classTime, cidx) => {
+          const startPos = timeToPosition(classTime.startTime);
+          const endPos = timeToPosition(classTime.endTime);
+          const startCell = Math.floor(startPos * 2);
+          const endCell = Math.ceil(endPos * 2);
+          const cellSpan = Math.max(endCell - startCell, 2);
+          const totalShifts = shifts.length;
+          const cellHeight = 65;
+          let singleBarHeight;
+          let barVerticalOffset;
+          if (totalShifts === 1) {
+            singleBarHeight = cellHeight;
+            barVerticalOffset = 0;
+          } else {
+            singleBarHeight = Math.floor(cellHeight / Math.min(totalShifts, 3));
+            barVerticalOffset = index * singleBarHeight;
+          }
+          return (
+            <View
+              key={shift.id + "-class-" + cidx}
+              style={[
+                styles.classBar,
+                {
+                  left: startCell * cellWidth,
+                  width: cellSpan * cellWidth,
+                  height: singleBarHeight,
+                  top: barVerticalOffset,
+                },
+              ]}
+            />
+          );
+        });
+      })}
+      {/* シフトバー */}
       {shifts.map((shift, index) => {
         const statusConfig = getStatusConfig(shift.status);
         const startPos = timeToPosition(shift.startTime);
@@ -156,6 +194,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           </TouchableOpacity>
         );
       })}
+      {/* --- 授業時間バー（classTime）を追加 --- */}
     </View>
   );
 };
@@ -269,6 +308,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
 export type EmptyCellProps = {
   date: string;
   width: number;
+  cellWidth: number; // 追加: 各セルの幅
   halfHourLines: string[];
   isClassTime: (time: string) => boolean;
   styles: any;
@@ -277,6 +317,7 @@ export type EmptyCellProps = {
 export const EmptyCell: React.FC<EmptyCellProps> = ({
   date,
   width,
+  cellWidth, // 追加
   halfHourLines,
   isClassTime,
   styles,
@@ -303,7 +344,7 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
               styles.ganttBgCell,
               isClassTime(t) && styles.classTimeCell,
               {
-                width: width / halfHourLines.length,
+                width: cellWidth, // 修正: cellWidthを使用
                 borderRightWidth: i % 2 === 0 ? 0.5 : 1,
               },
             ]}
@@ -313,3 +354,20 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
     </View>
   );
 };
+
+// --- スタイル追加 ---
+// styles.classBar を追加（灰色、角丸、重なり優先）
+const styles = StyleSheet.create({
+  // ...既存のstyle定義...
+  classBar: {
+    position: "absolute",
+    backgroundColor: "#b0b0b0",
+    borderRadius: 6,
+    opacity: 0.85,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 2,
+    zIndex: 3,
+  },
+  // ...既存のstyle定義の後ろに追加...
+});

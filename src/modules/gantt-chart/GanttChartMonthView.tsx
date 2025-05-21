@@ -103,13 +103,22 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newShiftData, setNewShiftData] = useState({
+  const [newShiftData, setNewShiftData] = useState<{
+    date: string;
+    startTime: string;
+    endTime: string;
+    userId: string;
+    nickname: string;
+    status: ShiftStatus;
+    classes: ClassTimeSlot[];
+  }>({
     date: "",
     startTime: "09:00",
     endTime: "11:00",
     userId: "",
     nickname: "",
-    status: "pending" as ShiftStatus,
+    status: "pending",
+    classes: [], // 授業時間の初期値
   });
   const [selectedUserId, setSelectedUserId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -159,7 +168,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   });
   // 授業時間帯のセル判定
   function isClassTime(time: string) {
-    // 授業時間の表示を無効化（灰色の縦線を表示しない）
+    // Viewモードでは縦線を一切表示しない
     return false;
   }
 
@@ -235,6 +244,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       userId: shift.userId,
       nickname: shift.nickname,
       status: shift.status,
+      classes: shift.classes || [], // 授業時間も編集可能に
     });
     setShowEditModal(true);
   };
@@ -264,6 +274,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       userId: "",
       nickname: "",
       status: "pending",
+      classes: [], // 授業時間の初期値
     });
     setShowAddModal(true);
   };
@@ -305,6 +316,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         userId: "",
         nickname: "",
         status: "pending",
+        classes: [], // 授業時間の初期値
       });
       setShowEditModal(false);
       setShowAddModal(false);
@@ -325,6 +337,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       userId: shift.userId,
       nickname: shift.nickname,
       status: shift.status,
+      classes: shift.classes || [], // 授業時間も編集可能に
     });
     setShowEditModal(true);
   };
@@ -352,6 +365,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       userId: "",
       nickname: "",
       status: "pending",
+      classes: [], // 授業時間の初期値
     });
     setShowAddModal(true);
   };
@@ -475,6 +489,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
                 <EmptyCell
                   date={date}
                   width={ganttColumnWidth}
+                  cellWidth={cellWidth}
                   halfHourLines={halfHourLines}
                   isClassTime={isClassTime}
                   styles={styles}

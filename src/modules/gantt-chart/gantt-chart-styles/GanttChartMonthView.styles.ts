@@ -327,6 +327,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
+  classBar: {
+    position: "absolute",
+    backgroundColor: "#b0b0b0",
+    borderRadius: 6,
+    opacity: 0.85,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 2,
+    zIndex: 3,
+  },
 });
 
 export default styles;
