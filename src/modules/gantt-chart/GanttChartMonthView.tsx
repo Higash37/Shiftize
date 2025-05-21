@@ -39,6 +39,18 @@ import { useAuth } from "@/services/auth/useAuth";
 import { ShiftStatusConfig } from "./gantt-chart-types/GanttChartTypes";
 import styles from "./gantt-chart-styles/GanttChartMonthView.styles";
 import { GanttChartMonthViewProps } from "./gantt-chart-types/GanttChartProps";
+import {
+  generateTimeOptions,
+  groupShiftsByOverlap,
+} from "./gantt-chart-common/utils";
+import {
+  DateCell,
+  GanttChartGrid,
+  GanttChartInfo,
+  EmptyCell,
+} from "./gantt-chart-common/components";
+import { EditShiftModalView } from "./view-modals/EditShiftModalView";
+import { AddShiftModalView } from "./view-modals/AddShiftModalView";
 
 // シフトステータスの設定
 const DEFAULT_SHIFT_STATUS_CONFIG = [
@@ -73,26 +85,6 @@ const DEFAULT_SHIFT_STATUS_CONFIG = [
     canEdit: false,
   },
 ];
-
-// シフトの重なりをグループ化
-function groupShiftsByOverlap(shifts: ShiftItem[]) {
-  if (shifts.length === 0) return [];
-
-  // 1人1行表示のために、各シフトを別々のグループとして返す
-  return shifts
-    .sort((a, b) => a.startTime.localeCompare(b.startTime))
-    .map((shift) => [shift]);
-}
-
-// 30分ごとの時間選択リストを生成
-function generateTimeOptions() {
-  const options = [];
-  for (let hour = 9; hour <= 22; hour++) {
-    options.push(`${hour.toString().padStart(2, "0")}:00`);
-    options.push(`${hour.toString().padStart(2, "0")}:30`);
-  }
-  return options;
-}
 
 export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   shifts,
@@ -314,216 +306,21 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     }
   };
 
-  // --- ガントチャート本体 ---
-  type GanttChartGridProps = {
-    shifts: ShiftItem[];
-    timeLabels: string[];
-    halfHourLines: string[];
-    isClassTime: (time: string) => boolean;
-    getStatusConfig: (status: string) => ShiftStatusConfig;
-    onShiftPress?: (shift: ShiftItem) => void;
-  };
-  const GanttChartGrid: React.FC<GanttChartGridProps> = ({
-    shifts,
-    timeLabels,
-    halfHourLines,
-    isClassTime,
-    getStatusConfig,
-    onShiftPress,
-  }) => {
-    // 日付を取得するためにシフトの一つを使用
-    const date = shifts.length > 0 ? shifts[0].date : "";
-
-    return (
-      <View style={[styles.ganttCell, { width: ganttColumnWidth }]}>
-        {" "}
-        {/* クリック可能な背景レイヤー */}
-        <TouchableOpacity
-          style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
-          onPress={() => handleOpenAddModal(date)}
-          activeOpacity={0.7}
-        />
-        {/* 背景グリッド */}
-        <View style={styles.ganttBgRow}>
-          {halfHourLines.map((t: string, i: number) => (
-            <View
-              key={t}
-              style={[
-                styles.ganttBgCell,
-                isClassTime(t) && styles.classTimeCell,
-                {
-                  width: cellWidth,
-                  borderRightWidth: i % 2 === 0 ? 0.5 : 1,
-                },
-              ]}
-            />
-          ))}
-        </View>
-        {/* シフト */}
-        {shifts.map((shift: ShiftItem) => {
-          const statusConfig = getStatusConfig(shift.status);
-          const startPos = timeToPosition(shift.startTime);
-          const endPos = timeToPosition(shift.endTime);
-
-          // セルに合わせて開始と終了位置を調整
-          // 厳密に開始時間に合わせる
-          const startCell = Math.floor(startPos * 2);
-          // 終了時間は必ず次のセルまでとする
-          const endCell = Math.ceil(endPos * 2);
-          // 最低幅を確保（少なくとも2セル分）
-          const cellSpan = Math.max(endCell - startCell, 2);
-          return (
-            <TouchableOpacity
-              key={shift.id}
-              style={[
-                styles.shiftBar,
-                {
-                  left: startCell * cellWidth,
-                  width: cellSpan * cellWidth,
-                  backgroundColor: statusConfig.color,
-                  opacity: shift.status === "deleted" ? 0.5 : 1,
-                  zIndex: 2, // シフトを背景レイヤーの上に表示
-                },
-              ]}
-              onPress={() => onShiftPress?.(shift)}
-            >
-              <View
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  justifyContent: "center",
-                  alignItems: "center", // 中央揃え
-                  paddingHorizontal: 8, // 水平パディングを増やす
-                  flexDirection: "column", // 縦並びに変更
-                }}
-              >
-                <Text style={styles.shiftBarText} numberOfLines={1}>
-                  {shift.nickname}
-                </Text>
-                <Text style={styles.shiftTimeText} numberOfLines={1}>
-                  {shift.startTime}～{shift.endTime}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    );
-  };
-
-  // --- 情報表示 ---
-  type GanttChartInfoProps = {
-    shifts: ShiftItem[];
-    getStatusConfig: (status: string) => ShiftStatusConfig;
-  };
-
-  const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
-    shifts,
-    getStatusConfig,
-  }) => (
-    <View
-      style={[
-        styles.infoCell,
-        {
-          width: infoColumnWidth,
-        },
-      ]}
-    >
-      <CustomScrollView
-        style={{ flex: 1, width: "100%" }}
-        contentContainerStyle={{ paddingVertical: 0 }}
-      >
-        {shifts.map((shift: ShiftItem) => {
-          const statusConfig = getStatusConfig(shift.status);
-          return (
-            <View
-              key={shift.id}
-              style={[
-                styles.infoContent,
-                {
-                  borderWidth: 0.5,
-                  borderColor: statusConfig.color,
-                  backgroundColor: "#f8fafd",
-                  width: infoColumnWidth - 4,
-                },
-              ]}
-            >
-              <Text
-                style={styles.infoText}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {shift.nickname}
-              </Text>
-              <Text
-                style={styles.infoTimeText}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {shift.startTime}～{shift.endTime}
-              </Text>
-              <Text
-                style={styles.statusText}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {statusConfig.label}
-              </Text>
-            </View>
-          );
-        })}
-      </CustomScrollView>
-    </View>
-  );
-
-  // --- 日付表示 ---
-  type DateCellProps = {
-    date: string;
-  };
-
-  const DateCell: React.FC<DateCellProps> = ({ date }) => {
-    const formattedDate = new Date(date);
-    const dayOfWeek = format(formattedDate, "E", { locale: ja });
-    const dayOfMonth = format(formattedDate, "d");
-
-    const isWeekend = dayOfWeek === "土" || dayOfWeek === "日";
-    const textColor = isWeekend
-      ? dayOfWeek === "土"
-        ? "#0000FF"
-        : "#FF0000"
-      : "#000000";
-
-    return (
-      <View style={[styles.dateCell, { width: dateColumnWidth }]}>
-        <Text style={[styles.dateDayText, { color: textColor }]}>
-          {dayOfMonth}
-        </Text>
-        <Text style={[styles.dateWeekText, { color: textColor }]}>
-          {dayOfWeek}
-        </Text>
-      </View>
-    );
-  };
-
-  // シフト追加モーダルを開く関数
-  const handleOpenAddModal = (dateString: string) => {
+  // --- シフトバー・グリッド全体押下時のモーダル表示 ---
+  const handleShiftPress = (shift: ShiftItem) => {
+    setEditingShift(shift);
     setNewShiftData({
-      ...newShiftData,
-      date: dateString,
+      date: shift.date,
+      startTime: shift.startTime,
+      endTime: shift.endTime,
+      userId: shift.userId,
+      nickname: shift.nickname,
+      status: shift.status,
     });
-    setShowAddModal(true);
+    setShowEditModal(true);
   };
 
-  // シフト追加ボタン
-  const AddShiftButton = ({ date }: { date: string }) => (
-    <TouchableOpacity
-      style={styles.addShiftButton}
-      onPress={() => handleOpenAddModal(date)}
-    >
-      <Ionicons name="add-circle" size={24} color="#4A90E2" />
-    </TouchableOpacity>
-  );
-
+  // --- 本体 ---
   return (
     <View style={styles.container}>
       {/* 月選択 */}
@@ -598,280 +395,73 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             // シフトがある日
             return matchingRows.map(([date, group], idx) => (
               <View key={date + String(idx)} style={styles.shiftRow}>
-                <DateCell date={date} />
+                <DateCell
+                  date={date}
+                  dateColumnWidth={dateColumnWidth}
+                  styles={styles}
+                />
                 <GanttChartGrid
                   shifts={group}
-                  timeLabels={hourLabels}
+                  cellWidth={cellWidth}
+                  ganttColumnWidth={ganttColumnWidth}
                   halfHourLines={halfHourLines}
                   isClassTime={isClassTime}
                   getStatusConfig={getStatusConfig}
-                  onShiftPress={onShiftPress}
+                  onShiftPress={handleShiftPress}
+                  styles={styles}
                 />
                 <GanttChartInfo
                   shifts={group}
                   getStatusConfig={getStatusConfig}
+                  onShiftPress={handleShiftPress}
+                  onDelete={() => {}}
+                  infoColumnWidth={infoColumnWidth}
+                  styles={styles}
                 />
-                <AddShiftButton date={date} />
               </View>
             ));
           } else {
             // シフトがない日 - グリッド線を表示
             return (
               <View key={date} style={styles.shiftRow}>
-                <DateCell date={date} />
-                <TouchableOpacity
-                  style={[styles.emptyCell, { width: ganttColumnWidth }]}
-                  onPress={() => handleOpenAddModal(date)}
-                >
-                  <View style={styles.ganttBgRow}>
-                    {halfHourLines.map((t, i) => (
-                      <View
-                        key={t}
-                        style={[
-                          styles.ganttBgCell,
-                          isClassTime(t) && styles.classTimeCell,
-                          {
-                            width: cellWidth,
-                            borderRightWidth: i % 2 === 0 ? 0.5 : 1,
-                          },
-                        ]}
-                      />
-                    ))}
-                  </View>
-                </TouchableOpacity>
+                <DateCell
+                  date={date}
+                  dateColumnWidth={dateColumnWidth}
+                  styles={styles}
+                />
+                <EmptyCell
+                  date={date}
+                  width={ganttColumnWidth}
+                  halfHourLines={halfHourLines}
+                  isClassTime={isClassTime}
+                  styles={styles}
+                  handleEmptyCellClick={() => setShowAddModal(true)}
+                />
                 <View
                   style={[styles.emptyInfoCell, { width: infoColumnWidth }]}
                 />
-                <AddShiftButton date={date} />
               </View>
             );
           }
         })}
       </CustomScrollView>{" "}
       {/* シフト編集モーダル */}
-      <Modal
+      <EditShiftModalView
         visible={showEditModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowEditModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>シフト編集</Text>
-            <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>ユーザー</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={newShiftData.userId}
-                  onValueChange={(itemValue) =>
-                    setNewShiftData({ ...newShiftData, userId: itemValue })
-                  }
-                  style={styles.picker}
-                >
-                  <Picker.Item label="ユーザーを選択" value="" />
-                  {users.map((user) => (
-                    <Picker.Item key={user} label={user} value={user} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-
-            <View style={styles.timeInputContainer}>
-              <View style={styles.timeInputGroup}>
-                <Text style={styles.timeInputLabel}>開始時間</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={newShiftData.startTime}
-                    onValueChange={(itemValue) =>
-                      setNewShiftData({ ...newShiftData, startTime: itemValue })
-                    }
-                    style={styles.picker}
-                  >
-                    {timeOptions.map((time) => (
-                      <Picker.Item key={time} label={time} value={time} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-
-              <Text style={styles.timeInputSeparator}>～</Text>
-
-              <View style={styles.timeInputGroup}>
-                <Text style={styles.timeInputLabel}>終了時間</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={newShiftData.endTime}
-                    onValueChange={(itemValue) =>
-                      setNewShiftData({ ...newShiftData, endTime: itemValue })
-                    }
-                    style={styles.picker}
-                  >
-                    {timeOptions.map((time) => (
-                      <Picker.Item key={time} label={time} value={time} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>ステータス</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={newShiftData.status}
-                  onValueChange={(itemValue) =>
-                    setNewShiftData({ ...newShiftData, status: itemValue })
-                  }
-                  style={styles.picker}
-                >
-                  {statusConfigs.map((config) => (
-                    <Picker.Item
-                      key={config.status}
-                      label={config.label}
-                      value={config.status}
-                    />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setShowEditModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>キャンセル</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={handleSaveShift}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.saveButtonText}>保存</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        newShiftData={newShiftData}
+        users={users}
+        timeOptions={timeOptions}
+        statusConfigs={statusConfigs}
+        isLoading={isLoading}
+        styles={styles}
+        onChange={(field, value) =>
+          setNewShiftData({ ...newShiftData, [field]: value })
+        }
+        onClose={() => setShowEditModal(false)}
+        onSave={handleSaveShift}
+      />
       {/* シフト追加モーダル */}
-      <Modal
-        visible={showAddModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowAddModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>シフト追加</Text>
-            <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>ユーザー</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={newShiftData.userId}
-                  onValueChange={(itemValue) =>
-                    setNewShiftData({ ...newShiftData, userId: itemValue })
-                  }
-                  style={styles.picker}
-                >
-                  <Picker.Item label="ユーザーを選択" value="" />
-                  {users.map((user) => (
-                    <Picker.Item key={user} label={user} value={user} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-
-            <View style={styles.timeInputContainer}>
-              <View style={styles.timeInputGroup}>
-                <Text style={styles.timeInputLabel}>開始時間</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={newShiftData.startTime}
-                    onValueChange={(itemValue) =>
-                      setNewShiftData({ ...newShiftData, startTime: itemValue })
-                    }
-                    style={styles.picker}
-                  >
-                    {timeOptions.map((time) => (
-                      <Picker.Item key={time} label={time} value={time} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-
-              <Text style={styles.timeInputSeparator}>～</Text>
-
-              <View style={styles.timeInputGroup}>
-                <Text style={styles.timeInputLabel}>終了時間</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={newShiftData.endTime}
-                    onValueChange={(itemValue) =>
-                      setNewShiftData({ ...newShiftData, endTime: itemValue })
-                    }
-                    style={styles.picker}
-                  >
-                    {timeOptions.map((time) => (
-                      <Picker.Item key={time} label={time} value={time} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>ステータス</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={newShiftData.status}
-                  onValueChange={(itemValue) =>
-                    setNewShiftData({ ...newShiftData, status: itemValue })
-                  }
-                  style={styles.picker}
-                >
-                  {statusConfigs.map((config) => (
-                    <Picker.Item
-                      key={config.status}
-                      label={config.label}
-                      value={config.status}
-                    />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setShowAddModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>キャンセル</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={handleSaveShift}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.saveButtonText}>追加</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* ここにあったModalのJSXを削除（AddShiftModalViewで置き換え済み） */}
     </View>
   );
 };
