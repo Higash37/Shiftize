@@ -11,7 +11,7 @@ import { Picker } from "@react-native-picker/picker";
 interface AddShiftModalViewProps {
   visible: boolean;
   newShiftData: any;
-  users: string[];
+  users: { uid: string; nickname: string }[];
   timeOptions: string[];
   statusConfigs: any[];
   isLoading: boolean;
@@ -49,12 +49,20 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={newShiftData.userId}
-              onValueChange={(itemValue) => onChange("userId", itemValue)}
+              onValueChange={(itemValue) => {
+                const user = users.find((u) => u.uid === itemValue);
+                onChange("userId", itemValue);
+                onChange("nickname", user ? user.nickname : "");
+              }}
               style={styles.picker}
             >
               <Picker.Item label="ユーザーを選択" value="" />
               {users.map((user) => (
-                <Picker.Item key={user} label={user} value={user} />
+                <Picker.Item
+                  key={user.uid}
+                  label={user.nickname}
+                  value={user.uid}
+                />
               ))}
             </Picker>
           </View>
@@ -94,7 +102,8 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
           </View>
         </View>
 
-        <View style={styles.formGroup}>
+        {/* ステータス選択はマスター画面では非表示にする */}
+        {/* <View style={styles.formGroup}>
           <Text style={styles.formLabel}>ステータス</Text>
           <View style={styles.pickerContainer}>
             <Picker
@@ -111,7 +120,7 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
               ))}
             </Picker>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>授業時間（任意・複数可）</Text>

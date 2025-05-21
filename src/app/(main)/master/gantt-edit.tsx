@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Stack } from "expo-router";
-import { GanttChartMonthEdit } from "@/modules/gantt-chart/GanttChartMonthEdit";
+import { GanttChartMonthView } from "@/modules/gantt-chart/GanttChartMonthView";
 import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 import { useUsers } from "@/modules/user-management/user-hooks/useUserList";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
@@ -30,24 +30,30 @@ export default function GanttEditScreen() {
     await fetchShiftsByMonth(year, month);
   };
 
-  const handleShiftUpdate = async (updatedShift: ShiftItem) => {
-    try {
-      // Firestoreの更新
-      const shiftRef = doc(db, "shifts", updatedShift.id);
-      await updateDoc(shiftRef, {
-        startTime: updatedShift.startTime,
-        endTime: updatedShift.endTime,
-        updatedAt: new Date(),
-      });
-    } catch (error) {
-      console.error("Error updating shift:", error);
-    }
+  // 一括承認や編集後のリロード用: 引数なしで月のシフト再取得
+  const handleShiftUpdate = async () => {
+    await fetchShiftsByMonth(currentYearMonth.year, currentYearMonth.month);
   };
 
   const handleShiftPress = (shift: ShiftItem) => {
     // シフトの詳細表示や追加の編集機能を実装する場合はここに追加
     console.log("Shift pressed:", shift);
   };
+
+  // 指定された年月の日付リストを生成する関数
+  const generateDaysForMonth = (year: number, month: number) => {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const date = new Date(year, month, i + 1);
+      return date.toISOString().split("T")[0];
+    });
+  };
+
+  // 現在の年月に基づいて日付リストを生成
+  const days = generateDaysForMonth(
+    currentYearMonth.year,
+    currentYearMonth.month
+  );
 
   if (shiftsLoading || usersLoading) {
     return <View style={styles.container} />;
@@ -64,13 +70,21 @@ export default function GanttEditScreen() {
           title: "シフト編集",
           headerShown: true,
         }}
-      />{" "}
-      <GanttChartMonthEdit
+      />
+      <GanttChartMonthView
         shifts={shifts}
+        days={days}
+        users={users.map((user) => ({
+          uid: user.uid,
+          nickname: user.nickname,
+        }))}
+        selectedDate={
+          new Date(currentYearMonth.year, currentYearMonth.month, 1)
+        }
         onShiftPress={handleShiftPress}
         onShiftUpdate={handleShiftUpdate}
         onMonthChange={handleMonthChange}
-        classTimes={[]} /* 授業時間帯を空に設定して灰色の縦線を表示しない */
+        classTimes={[]}
       />
     </View>
   );

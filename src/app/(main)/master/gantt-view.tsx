@@ -41,21 +41,9 @@ export default function GanttViewScreen() {
     await fetchShiftsByMonth(year, month);
   };
 
-  // シフト更新ハンドラを実装
-  const handleShiftUpdate = async (updatedShift: ShiftItem) => {
-    try {
-      // Firestoreの更新
-      const shiftRef = doc(db, "shifts", updatedShift.id);
-      await updateDoc(shiftRef, {
-        startTime: updatedShift.startTime,
-        endTime: updatedShift.endTime,
-        updatedAt: new Date(),
-      });
-      Alert.alert("更新完了", "シフトを更新しました");
-    } catch (error) {
-      console.error("Error updating shift:", error);
-      Alert.alert("エラー", "シフトの更新に失敗しました");
-    }
+  // シフト更新ハンドラ（リロード用、引数なし）
+  const handleShiftUpdate = async () => {
+    await fetchShiftsByMonth(currentYearMonth.year, currentYearMonth.month);
   };
 
   // シフト選択ハンドラ
@@ -75,11 +63,17 @@ export default function GanttViewScreen() {
       <GanttChartMonthView
         shifts={shifts}
         days={days}
-        users={users.map((user: ExtendedUser) => user.nickname)}
+        users={users.map((user: ExtendedUser) => ({
+          uid: user.uid,
+          nickname: user.nickname,
+        }))}
         onShiftPress={handleShiftPress}
         onShiftUpdate={handleShiftUpdate}
         onMonthChange={handleMonthChange}
-        classTimes={[]} /* 授業時間帯を空に設定して灰色の縦線を表示しない */
+        classTimes={[]}
+        selectedDate={
+          new Date(currentYearMonth.year, currentYearMonth.month, 1)
+        }
       />
     </View>
   );

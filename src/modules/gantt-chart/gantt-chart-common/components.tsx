@@ -237,66 +237,78 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
       >
         {shifts.map((shift) => {
           const statusConfig = getStatusConfig(shift.status);
-          const isEditable = canEditStatus(shift.status);
           return (
-            <View
+            <TouchableOpacity
               key={shift.id}
+              activeOpacity={onShiftPress ? 0.7 : 1}
+              onPress={() => onShiftPress?.(shift)}
+              onLongPress={() => {
+                // 削除済みシフトのみ長押しで完全削除ダイアログ
+                if (shift.status === "deleted") {
+                  onDelete(shift);
+                }
+              }}
               style={[
                 styles.infoContent,
                 {
-                  borderWidth: 0.5,
                   borderColor: statusConfig.color,
-                  backgroundColor: isEditable ? "#f8fafd" : "#f3f3f3",
-                  width: infoColumnWidth - 4,
+                  // 下線を消して全周枠だけに
+                  borderBottomWidth: undefined,
+                  borderBottomColor: undefined,
+                  // 他の枠線設定はstylesで一元化
                 },
               ]}
             >
-              <View style={styles.infoHeader}>
+              {/* 1行目: 名前＋時間 */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  minHeight: 28,
+                }}
+              >
                 <Text
-                  style={styles.infoText}
+                  style={[
+                    styles.infoText,
+                    { fontSize: 15, fontWeight: "bold", flexShrink: 1 },
+                  ]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
                   {shift.nickname}
                 </Text>
-                {isEditable && (
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => onDelete(shift)}
-                  >
-                    <Ionicons name="trash-outline" size={14} color="#FF4444" />
-                  </TouchableOpacity>
-                )}
+                <Text
+                  style={[
+                    styles.infoTimeText,
+                    {
+                      fontSize: 15,
+                      fontWeight: "bold",
+                      marginLeft: 30,
+                      textAlignVertical: "center",
+                      textAlign: "left",
+                      alignSelf: "center",
+                      minWidth: 80,
+                    },
+                  ]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {shift.startTime}～{shift.endTime}
+                </Text>
               </View>
-              <TouchableOpacity
-                style={styles.timeButton}
-                onPress={() => onShiftPress?.(shift)}
-                disabled={!isEditable}
-              >
-                <View style={styles.infoTimeContainer}>
-                  <Text
-                    style={[
-                      styles.infoTimeText,
-                      !isEditable && styles.infoTimeTextDisabled,
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {shift.startTime}～{shift.endTime}
-                  </Text>
-                  {isEditable && (
-                    <Ionicons name="pencil-outline" size={12} color="#4A90E2" />
-                  )}
-                </View>
-              </TouchableOpacity>
+              {/* 2行目: ステータス */}
               <Text
-                style={styles.statusText}
+                style={[
+                  styles.statusText,
+                  { fontSize: 13, fontWeight: "bold" },
+                ]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
                 {statusConfig.label}
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </CustomScrollView>

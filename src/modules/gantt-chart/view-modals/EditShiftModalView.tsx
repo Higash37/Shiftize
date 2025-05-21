@@ -11,7 +11,7 @@ import { Picker } from "@react-native-picker/picker";
 interface EditShiftModalViewProps {
   visible: boolean;
   newShiftData: any;
-  users: string[];
+  users: { uid: string; nickname: string }[];
   timeOptions: string[];
   statusConfigs: any[];
   isLoading: boolean;
@@ -19,6 +19,7 @@ interface EditShiftModalViewProps {
   onChange: (field: string, value: any) => void;
   onClose: () => void;
   onSave: () => void;
+  onDelete: (shift: any) => void;
 }
 
 export const EditShiftModalView: React.FC<EditShiftModalViewProps> = ({
@@ -32,6 +33,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = ({
   onChange,
   onClose,
   onSave,
+  onDelete,
 }) => (
   <Modal
     visible={visible}
@@ -39,8 +41,16 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = ({
     animationType="fade"
     onRequestClose={onClose}
   >
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
+    <TouchableOpacity
+      activeOpacity={1}
+      style={styles.modalOverlay}
+      onPress={onClose}
+    >
+      <TouchableOpacity
+        activeOpacity={1}
+        style={styles.modalContent}
+        onPress={(e) => e.stopPropagation()}
+      >
         <Text style={styles.modalTitle}>シフト編集</Text>
         <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
 
@@ -49,12 +59,20 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = ({
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={newShiftData.userId}
-              onValueChange={(itemValue) => onChange("userId", itemValue)}
+              onValueChange={(itemValue) => {
+                const user = users.find((u) => u.uid === itemValue);
+                onChange("userId", itemValue);
+                onChange("nickname", user ? user.nickname : "");
+              }}
               style={styles.picker}
             >
               <Picker.Item label="ユーザーを選択" value="" />
               {users.map((user) => (
-                <Picker.Item key={user} label={user} value={user} />
+                <Picker.Item
+                  key={user.uid}
+                  label={user.nickname}
+                  value={user.uid}
+                />
               ))}
             </Picker>
           </View>
@@ -194,10 +212,14 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = ({
 
         <View style={styles.modalButtons}>
           <TouchableOpacity
-            style={[styles.modalButton, styles.cancelButton]}
-            onPress={onClose}
+            style={[
+              styles.modalButton,
+              { backgroundColor: "#FF4444", marginRight: 8 },
+            ]}
+            onPress={() => onDelete(newShiftData)}
+            disabled={isLoading}
           >
-            <Text style={styles.cancelButtonText}>キャンセル</Text>
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>削除</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -208,11 +230,11 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = ({
             {isLoading ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text style={styles.saveButtonText}>保存</Text>
+              <Text style={styles.saveButtonText}>更新</Text>
             )}
           </TouchableOpacity>
         </View>
-      </View>
-    </View>
+      </TouchableOpacity>
+    </TouchableOpacity>
   </Modal>
 );

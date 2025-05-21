@@ -90,6 +90,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   shifts,
   days,
   users,
+  selectedDate,
   onShiftPress,
   onShiftUpdate,
   onMonthChange,
@@ -98,7 +99,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
     DEFAULT_SHIFT_STATUS_CONFIG
   );
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
   const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -117,7 +117,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     endTime: "11:00",
     userId: "",
     nickname: "",
-    status: "pending",
+    status: "approved",
     classes: [], // 授業時間の初期値
   });
   const [selectedUserId, setSelectedUserId] = useState("");
@@ -205,30 +205,20 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   // 前月に移動する関数
   const handlePrevMonth = () => {
     const newDate = subMonths(selectedDate, 1);
-    setSelectedDate(newDate);
-
-    // 親コンポーネントに月の変更を通知
     if (onMonthChange) {
       onMonthChange(newDate.getFullYear(), newDate.getMonth());
     }
   };
-
   // 翌月に移動する関数
   const handleNextMonth = () => {
     const newDate = addMonths(selectedDate, 1);
-    setSelectedDate(newDate);
-
-    // 親コンポーネントに月の変更を通知
     if (onMonthChange) {
       onMonthChange(newDate.getFullYear(), newDate.getMonth());
     }
   };
   // DatePickerModalで日付が選択されたときの処理
   const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
     setShowYearMonthPicker(false);
-
-    // 親コンポーネントに月の変更を通知
     if (onMonthChange) {
       onMonthChange(date.getFullYear(), date.getMonth());
     }
@@ -250,19 +240,44 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   };
 
   // シフト削除
-  const handleDeleteShift = async (shift: ShiftItem) => {
-    const confirmed = window.confirm("このシフトを削除してもよろしいですか？");
-    if (!confirmed) return;
-
-    setIsLoading(true);
-    try {
-      // Firestoreからシフトを削除
-      await deleteDoc(doc(db, "shifts", shift.id));
-      setIsLoading(false);
-    } catch (error) {
-      console.error("シフト削除エラー:", error);
-      setIsLoading(false);
-    }
+  const handleDeleteShift = async (shift: { id: string; status: string }) => {
+    // React Native用の確認ダイアログ
+    Alert.alert(
+      shift.status === "deleted"
+        ? "完全に削除しますか？（元に戻せません）"
+        : "このシフトを削除しますか？",
+      shift.status === "deleted"
+        ? "この操作は元に戻せません。よろしいですか？"
+        : "このシフトは「削除済み」状態になります。",
+      [
+        { text: "キャンセル", style: "cancel" },
+        {
+          text: "削除",
+          style: "destructive",
+          onPress: async () => {
+            setIsLoading(true);
+            try {
+              if (shift.status === "deleted") {
+                // 完全削除
+                await deleteDoc(doc(db, "shifts", shift.id));
+              } else {
+                // ステータスをdeletedに
+                await updateDoc(doc(db, "shifts", shift.id), {
+                  status: "deleted",
+                  updatedAt: serverTimestamp(),
+                });
+              }
+              if (onShiftUpdate) await onShiftUpdate();
+            } catch (error) {
+              console.error("シフト削除エラー:", error);
+            } finally {
+              setIsLoading(false);
+              setShowEditModal(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   // シフト追加
@@ -273,7 +288,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       endTime: "11:00",
       userId: "",
       nickname: "",
-      status: "pending",
+      status: "approved",
       classes: [], // 授業時間の初期値
     });
     setShowAddModal(true);
@@ -300,9 +315,10 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         });
         setEditingShift(null);
       } else {
-        // 新規追加の場合
+        // 新規追加の場合（statusは常にapprovedで保存）
         await addDoc(collection(db, "shifts"), {
           ...newShiftData,
+          status: "approved",
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           userId: user?.uid, // 現在のユーザーIDをセット
@@ -315,7 +331,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         endTime: "11:00",
         userId: "",
         nickname: "",
-        status: "pending",
+        status: "approved",
         classes: [], // 授業時間の初期値
       });
       setShowEditModal(false);
@@ -329,13 +345,14 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
 
   // --- シフトバー・グリッド全体押下時のモーダル表示 ---
   const handleShiftPress = (shift: ShiftItem) => {
+    const user = users.find((u) => u.uid === shift.userId);
     setEditingShift(shift);
     setNewShiftData({
       date: shift.date,
       startTime: shift.startTime,
       endTime: shift.endTime,
       userId: shift.userId,
-      nickname: shift.nickname,
+      nickname: user ? user.nickname : "",
       status: shift.status,
       classes: shift.classes || [], // 授業時間も編集可能に
     });
@@ -373,7 +390,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   // --- 本体 ---
   return (
     <View style={styles.container}>
-      {/* 月選択 */}
+      {/* 月選択バー（カレンダー切り替え行） */}
       <View style={styles.monthSelector}>
         <View style={styles.monthNavigator}>
           <TouchableOpacity
@@ -382,7 +399,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           >
             <Text style={styles.monthNavButtonText}>＜</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.monthButton}
             onPress={() => {
@@ -393,7 +409,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
               {format(selectedDate, "yyyy年M月")}
             </Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.monthNavButton}
             onPress={handleNextMonth}
@@ -401,16 +416,119 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             <Text style={styles.monthNavButtonText}>＞</Text>
           </TouchableOpacity>
         </View>
-
-        {/* DatePickerModalを使用した年月選択 */}
-        <DatePickerModal
-          isVisible={showYearMonthPicker}
-          initialDate={selectedDate}
-          onClose={() => setShowYearMonthPicker(false)}
-          onSelect={handleDateSelect}
-        />
+        <View style={styles.addShiftButtonRow}>
+          <TouchableOpacity
+            style={styles.addShiftButton}
+            onPress={handleAddShift}
+          >
+            <Ionicons name="add" size={20} color="#4A90E2" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => {
+              /* TODO: 更新処理 */
+            }}
+          >
+            <Text style={styles.headerButtonText}>更新</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={async () => {
+              // 一括承認処理（その月の全シフトを承認済みに）
+              if (shifts.length === 0) {
+                Alert.alert("シフトがありません");
+                return;
+              }
+              setIsLoading(true);
+              try {
+                for (const shift of shifts) {
+                  await updateDoc(doc(db, "shifts", shift.id), {
+                    status: "approved",
+                    updatedAt: serverTimestamp(),
+                  });
+                }
+                Alert.alert(
+                  "一括承認完了",
+                  `${shifts.length}件のシフトを承認しました`
+                );
+                if (onShiftUpdate) {
+                  // 引数なしでリロード用に呼び出し（fetchShiftsByMonth等を親でラップして渡す想定）
+                  await onShiftUpdate();
+                }
+              } catch (error) {
+                Alert.alert("エラー", "一括承認に失敗しました");
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+          >
+            <Text style={styles.headerButtonText}>一括承認</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      {/* ヘッダー */}
+      {/* ヘッダー上部：右上にボタン配置 */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          width: "100%",
+          paddingRight: 16,
+          marginTop: 2,
+        }}
+      >
+        {/* 右上ボタン群（＋・更新・一括承認） */}
+        <View style={styles.addShiftButtonRow}>
+          <TouchableOpacity
+            style={styles.addShiftButton}
+            onPress={handleAddShift}
+          >
+            <Ionicons name="add" size={20} color="#4A90E2" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => {
+              /* TODO: 更新処理 */
+            }}
+          >
+            <Text style={styles.headerButtonText}>更新</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={async () => {
+              // 一括承認処理（その月の全シフトを承認済みに）
+              if (shifts.length === 0) {
+                Alert.alert("シフトがありません");
+                return;
+              }
+              setIsLoading(true);
+              try {
+                for (const shift of shifts) {
+                  await updateDoc(doc(db, "shifts", shift.id), {
+                    status: "approved",
+                    updatedAt: serverTimestamp(),
+                  });
+                }
+                Alert.alert(
+                  "一括承認完了",
+                  `${shifts.length}件のシフトを承認しました`
+                );
+                if (onShiftUpdate) {
+                  // 引数なしでリロード用に呼び出し（fetchShiftsByMonth等を親でラップして渡す想定）
+                  await onShiftUpdate();
+                }
+              } catch (error) {
+                Alert.alert("エラー", "一括承認に失敗しました");
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+          >
+            <Text style={styles.headerButtonText}>一括承認</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      {/* カレンダーヘッダー本体 */}
       <View style={styles.headerRow}>
         <View style={[styles.headerDateCell, { width: dateColumnWidth }]}>
           {/* 「日付」ラベル削除 */}
@@ -432,8 +550,20 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             );
           })}
         </View>
-        <View style={[styles.headerInfoCell, { width: infoColumnWidth }]}>
-          <Text style={styles.headerText}>情報</Text>
+        <View
+          style={[
+            styles.headerInfoCell,
+            {
+              width: infoColumnWidth,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center", // 中央揃え
+            },
+          ]}
+        >
+          <Text style={[styles.headerText, { flex: 1, textAlign: "center" }]}>
+            情報
+          </Text>
         </View>
       </View>
       {/* 本体 */}
@@ -517,6 +647,15 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         }
         onClose={() => setShowEditModal(false)}
         onSave={handleSaveShift}
+        onDelete={() => {
+          // 編集中のshiftのIDとstatusを必ず渡す
+          if (editingShift) {
+            handleDeleteShift({
+              id: editingShift.id,
+              status: editingShift.status,
+            });
+          }
+        }}
       />
       {/* シフト追加モーダル */}
       <AddShiftModalView

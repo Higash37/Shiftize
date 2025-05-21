@@ -5,11 +5,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  addShiftButton: {
+  addShiftButtonRow: {
+    // +ボタンは非表示にするが、行自体は表示
     position: "absolute",
     right: 10,
     top: 10,
     zIndex: 100,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  addShiftButton: {
+    display: "none", // +ボタンのみ非表示
     backgroundColor: "rgba(255, 255, 255, 0.8)",
     borderRadius: 15,
     padding: 3,
@@ -31,10 +38,16 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "#fff",
-    width: 280,
-    borderRadius: 10,
-    padding: 16,
-    elevation: 5,
+    width: 320,
+    borderRadius: 14,
+    padding: 24,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
   modalTitle: {
     fontSize: 16,
@@ -83,10 +96,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 5,
     marginBottom: 8,
+    backgroundColor: "transparent",
   },
   modalButtons: {
     flexDirection: "row",
@@ -117,6 +128,28 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ddd",
     elevation: 2,
     height: 40,
+    alignItems: "center",
+  },
+  headerRightButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 12,
+    gap: 8,
+  },
+  headerButton: {
+    backgroundColor: "#4A90E2",
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginLeft: 4,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 13,
   },
   headerDateCell: {
     padding: 8,
@@ -263,9 +296,13 @@ const styles = StyleSheet.create({
   infoContent: {
     marginBottom: 0,
     padding: 3,
-    borderRadius: 3,
+    borderRadius: 10,
     marginHorizontal: 0,
     marginTop: 1,
+    borderWidth: 1.2, // 外枠をしっかり
+    borderColor: "#4CAF50", // ステータス色を使う場合はJS側で上書き
+    backgroundColor: "#f8fafd",
+    // 下線は消す（borderBottomWidth, borderBottomColorはJS側で消す）
   },
   infoText: {
     fontSize: 12,
