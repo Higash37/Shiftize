@@ -48,6 +48,7 @@ export type GanttChartGridProps = {
   isClassTime: (time: string) => boolean;
   getStatusConfig: (status: string) => ShiftStatusConfig;
   onShiftPress?: (shift: ShiftItem) => void;
+  onBackgroundPress?: (x: number) => void;
   styles: any;
 };
 export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
@@ -58,6 +59,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   isClassTime,
   getStatusConfig,
   onShiftPress,
+  onBackgroundPress,
   styles,
 }) => {
   // 時間位置の計算
@@ -72,8 +74,11 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
       {/* グリッド全体をタップ可能にする（View/編集共通） */}
       <TouchableOpacity
         style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
-        onPress={() => {
-          if (shifts.length > 0 && onShiftPress) onShiftPress(shifts[0]);
+        onPress={(e) => {
+          if (onBackgroundPress) {
+            const x = e.nativeEvent.locationX;
+            onBackgroundPress(x);
+          }
         }}
         activeOpacity={0.7}
       />

@@ -69,6 +69,11 @@ export const GanttChartEditRow: React.FC<GanttChartEditRowProps> = ({
               isClassTime={isClassTime}
               getStatusConfig={getStatusConfig}
               onShiftPress={handleShiftPress}
+              onBackgroundPress={(x) => {
+                const position =
+                  (x / ganttColumnWidth) * ((halfHourLines.length - 1) / 2);
+                handleEmptyCellClick(row.date, position);
+              }}
               styles={styles}
             />
             <GanttChartInfo

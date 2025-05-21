@@ -675,6 +675,17 @@ export const GanttChartMonthEdit: React.FC<GanttChartMonthEditProps> = ({
         }}
         onClose={() => setActionModalVisible(false)}
       />
+      <AddShiftModal
+        visible={showAddShiftModal}
+        newShift={newShift}
+        users={users}
+        loading={loading}
+        onChange={(field, value) =>
+          setNewShift((prev) => ({ ...prev, [field]: value }))
+        }
+        onClose={() => setShowAddShiftModal(false)}
+        onAdd={handleAddShift}
+      />
     </View>
   );
 };

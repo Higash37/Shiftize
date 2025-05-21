@@ -444,6 +444,13 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
                   isClassTime={isClassTime}
                   getStatusConfig={getStatusConfig}
                   onShiftPress={handleShiftPress}
+                  onBackgroundPress={(x) => {
+                    // シフトバーの上以外を押した場合のみ新規追加
+                    // x座標から30分単位のpositionを算出
+                    const position =
+                      (x / ganttColumnWidth) * ((halfHourLines.length - 1) / 2);
+                    handleEmptyCellClick(date, position);
+                  }}
                   styles={styles}
                 />
                 <GanttChartInfo
