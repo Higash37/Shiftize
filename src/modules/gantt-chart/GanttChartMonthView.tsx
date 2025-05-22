@@ -156,9 +156,14 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     );
   };
 
+  // 表示対象のシフト（deleted, purgedは除外）
+  const visibleShifts = shifts.filter(
+    (s) => s.status !== "deleted" && s.status !== "purged"
+  );
+
   // 日付ごとにシフトをグループ化
   const rows: [string, ShiftItem[]][] = days.flatMap((date) => {
-    const dayShifts = shifts.filter((s) => s.date === date);
+    const dayShifts = visibleShifts.filter((s) => s.date === date);
     if (dayShifts.length === 0) return [[date, []]];
     const groups = groupShiftsByOverlap(dayShifts);
     // 空のグループを除外
@@ -241,7 +246,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
 
   // シフト削除
   const handleDeleteShift = async (shift: { id: string; status: string }) => {
-    // React Native用の確認ダイアログ
     Alert.alert(
       shift.status === "deleted"
         ? "完全に削除しますか？（元に戻せません）"
@@ -258,10 +262,8 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             setIsLoading(true);
             try {
               if (shift.status === "deleted") {
-                // 完全削除
                 await deleteDoc(doc(db, "shifts", shift.id));
               } else {
-                // ステータスをdeletedに
                 await updateDoc(doc(db, "shifts", shift.id), {
                   status: "deleted",
                   updatedAt: serverTimestamp(),
@@ -432,16 +434,16 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             <Text style={styles.headerButtonText}>更新</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.headerButton}
+            style={[styles.headerButton, { backgroundColor: "#1976D2" }]}
             onPress={async () => {
-              // 一括承認処理（その月の全シフトを承認済みに）
-              if (shifts.length === 0) {
+              // 一括承認処理（visibleShiftsのみ承認）
+              if (visibleShifts.length === 0) {
                 Alert.alert("シフトがありません");
                 return;
               }
               setIsLoading(true);
               try {
-                for (const shift of shifts) {
+                for (const shift of visibleShifts) {
                   await updateDoc(doc(db, "shifts", shift.id), {
                     status: "approved",
                     updatedAt: serverTimestamp(),
@@ -449,12 +451,9 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
                 }
                 Alert.alert(
                   "一括承認完了",
-                  `${shifts.length}件のシフトを承認しました`
+                  `${visibleShifts.length}件のシフトを承認しました`
                 );
-                if (onShiftUpdate) {
-                  // 引数なしでリロード用に呼び出し（fetchShiftsByMonth等を親でラップして渡す想定）
-                  await onShiftUpdate();
-                }
+                if (onShiftUpdate) await onShiftUpdate();
               } catch (error) {
                 Alert.alert("エラー", "一括承認に失敗しました");
               } finally {
@@ -462,7 +461,60 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
               }
             }}
           >
-            <Text style={styles.headerButtonText}>一括承認</Text>
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>一括承認</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.headerButton, { backgroundColor: "#F44336" }]}
+            onPress={async () => {
+              // 完全削除処理（status: 'deleted' のシフトを "purged" に）
+              const deletedShifts = shifts.filter(
+                (s) => s.status === "deleted"
+              );
+              if (deletedShifts.length === 0) {
+                Alert.alert("削除済みシフトがありません");
+                return;
+              }
+              Alert.alert(
+                "削除済みシフトの非表示",
+                `削除済みシフト${deletedShifts.length}件を画面から消します。本当にいいですか？`,
+                [
+                  { text: "いいえ", style: "cancel" },
+                  {
+                    text: "はい",
+                    style: "destructive",
+                    onPress: async () => {
+                      setIsLoading(true);
+                      try {
+                        for (const shift of deletedShifts) {
+                          await updateDoc(doc(db, "shifts", shift.id), {
+                            status: "purged",
+                            updatedAt: serverTimestamp(),
+                          });
+                        }
+                        Alert.alert(
+                          "非表示完了",
+                          `${deletedShifts.length}件の削除済みシフトを画面から消しました`
+                        );
+                        if (onShiftUpdate) {
+                          await onShiftUpdate(); // 自動リロード
+                        } else if (
+                          typeof window !== "undefined" &&
+                          window.location
+                        ) {
+                          window.location.reload(); // Fallback: 強制リロード
+                        }
+                      } catch (error) {
+                        Alert.alert("エラー", "非表示に失敗しました");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    },
+                  },
+                ]
+              );
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>完全削除</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -494,16 +546,16 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             <Text style={styles.headerButtonText}>更新</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.headerButton}
+            style={[styles.headerButton, { backgroundColor: "#1976D2" }]}
             onPress={async () => {
-              // 一括承認処理（その月の全シフトを承認済みに）
-              if (shifts.length === 0) {
+              // 一括承認処理（visibleShiftsのみ承認）
+              if (visibleShifts.length === 0) {
                 Alert.alert("シフトがありません");
                 return;
               }
               setIsLoading(true);
               try {
-                for (const shift of shifts) {
+                for (const shift of visibleShifts) {
                   await updateDoc(doc(db, "shifts", shift.id), {
                     status: "approved",
                     updatedAt: serverTimestamp(),
@@ -511,12 +563,9 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
                 }
                 Alert.alert(
                   "一括承認完了",
-                  `${shifts.length}件のシフトを承認しました`
+                  `${visibleShifts.length}件のシフトを承認しました`
                 );
-                if (onShiftUpdate) {
-                  // 引数なしでリロード用に呼び出し（fetchShiftsByMonth等を親でラップして渡す想定）
-                  await onShiftUpdate();
-                }
+                if (onShiftUpdate) await onShiftUpdate();
               } catch (error) {
                 Alert.alert("エラー", "一括承認に失敗しました");
               } finally {
@@ -524,7 +573,60 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
               }
             }}
           >
-            <Text style={styles.headerButtonText}>一括承認</Text>
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>一括承認</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.headerButton, { backgroundColor: "#F44336" }]}
+            onPress={async () => {
+              // 完全削除処理（status: 'deleted' のシフトを "purged" に）
+              const deletedShifts = shifts.filter(
+                (s) => s.status === "deleted"
+              );
+              if (deletedShifts.length === 0) {
+                Alert.alert("削除済みシフトがありません");
+                return;
+              }
+              Alert.alert(
+                "削除済みシフトの非表示",
+                `削除済みシフト${deletedShifts.length}件を画面から消します。本当にいいですか？`,
+                [
+                  { text: "いいえ", style: "cancel" },
+                  {
+                    text: "はい",
+                    style: "destructive",
+                    onPress: async () => {
+                      setIsLoading(true);
+                      try {
+                        for (const shift of deletedShifts) {
+                          await updateDoc(doc(db, "shifts", shift.id), {
+                            status: "purged",
+                            updatedAt: serverTimestamp(),
+                          });
+                        }
+                        Alert.alert(
+                          "非表示完了",
+                          `${deletedShifts.length}件の削除済みシフトを画面から消しました`
+                        );
+                        if (onShiftUpdate) {
+                          await onShiftUpdate(); // 自動リロード
+                        } else if (
+                          typeof window !== "undefined" &&
+                          window.location
+                        ) {
+                          window.location.reload(); // Fallback: 強制リロード
+                        }
+                      } catch (error) {
+                        Alert.alert("エラー", "非表示に失敗しました");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    },
+                  },
+                ]
+              );
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>完全削除</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -12,7 +12,8 @@ export type ShiftStatus =
   | "rejected" // 却下
   | "deletion_requested" // 削除申請中
   | "deleted" // 削除済み
-  | "completed"; // 完了
+  | "completed" // 完了
+  | "purged"; // 完全非表示
 
 /**
  * シフトステータスの設定情報
