@@ -7,6 +7,7 @@ import { useUsers } from "@/modules/user-management/user-hooks/useUserList";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
+import { MasterHeader } from "@/common/common-ui/ui-layout";
 
 export default function GanttEditScreen() {
   const {
@@ -65,10 +66,11 @@ export default function GanttEditScreen() {
 
   return (
     <View style={styles.container}>
+      <MasterHeader title="シフト編集" />
       <Stack.Screen
         options={{
           title: "シフト編集",
-          headerShown: true,
+          headerShown: false,
         }}
       />
       <GanttChartMonthView

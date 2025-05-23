@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@/services/auth/useAuth";
+import { AntDesign } from "@expo/vector-icons";
 import styles from "../gantt-chart-styles/GanttChartMonthView.styles";
 
 interface MonthSelectorBarProps {
@@ -14,54 +16,58 @@ interface MonthSelectorBarProps {
   isLoading: boolean;
 }
 
-export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = ({
-  selectedDate,
-  onPrevMonth,
-  onNextMonth,
-  onShowYearMonthPicker,
-  onReload,
-  onBatchApprove,
-  onBatchDelete,
-  isLoading,
-}) => (
-  <View style={styles.monthSelector}>
-    <View style={styles.monthNavigator}>
-      <TouchableOpacity style={styles.monthNavButton} onPress={onPrevMonth}>
-        <Text style={styles.monthNavButtonText}>＜</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.monthButton}
-        onPress={onShowYearMonthPicker}
-      >
-        <Text style={styles.monthText}>
-          {selectedDate.getFullYear()}年{selectedDate.getMonth() + 1}月
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.monthNavButton} onPress={onNextMonth}>
-        <Text style={styles.monthNavButtonText}>＞</Text>
-      </TouchableOpacity>
+export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
+  const { signOut } = useAuth();
+  const {
+    selectedDate,
+    onPrevMonth,
+    onNextMonth,
+    onShowYearMonthPicker,
+    onReload,
+    onBatchApprove,
+    onBatchDelete,
+    isLoading,
+  } = props;
+  return (
+    <View style={styles.monthSelector}>
+      <View style={styles.monthNavigator}>
+        <TouchableOpacity style={styles.monthNavButton} onPress={onPrevMonth}>
+          <Text style={styles.monthNavButtonText}>＜</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.monthButton}
+          onPress={onShowYearMonthPicker}
+        >
+          <Text style={styles.monthText}>
+            {selectedDate.getFullYear()}年{selectedDate.getMonth() + 1}月
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.monthNavButton} onPress={onNextMonth}>
+          <Text style={styles.monthNavButtonText}>＞</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.addShiftButtonRow}>
+        <TouchableOpacity style={styles.addShiftButton} onPress={onReload}>
+          <Ionicons name="add" size={20} color="#4A90E2" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.headerButton} onPress={onReload}>
+          <Text style={styles.headerButtonText}>更新</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.headerButton, { backgroundColor: "#1976D2" }]}
+          onPress={onBatchApprove}
+          disabled={isLoading}
+        >
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>一括承認</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.headerButton, { backgroundColor: "#F44336" }]}
+          onPress={onBatchDelete}
+          disabled={isLoading}
+        >
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>完全削除</Text>
+        </TouchableOpacity>
+      </View>
     </View>
-    <View style={styles.addShiftButtonRow}>
-      <TouchableOpacity style={styles.addShiftButton} onPress={onReload}>
-        <Ionicons name="add" size={20} color="#4A90E2" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.headerButton} onPress={onReload}>
-        <Text style={styles.headerButtonText}>更新</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.headerButton, { backgroundColor: "#1976D2" }]}
-        onPress={onBatchApprove}
-        disabled={isLoading}
-      >
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>一括承認</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.headerButton, { backgroundColor: "#F44336" }]}
-        onPress={onBatchDelete}
-        disabled={isLoading}
-      >
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>完全削除</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-);
+  );
+};

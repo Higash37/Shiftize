@@ -8,6 +8,7 @@ import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import type { ExtendedUser } from "@/modules/user-management/user-types/components";
+import { MasterHeader } from "@/common/common-ui/ui-layout";
 
 export default function GanttViewScreen() {
   const { shifts, fetchShiftsByMonth } = useShifts();
@@ -54,10 +55,11 @@ export default function GanttViewScreen() {
 
   return (
     <View style={styles.container}>
+      <MasterHeader title="シフト確認" />
       <Stack.Screen
         options={{
           title: "シフト確認",
-          headerShown: true,
+          headerShown: false,
         }}
       />
       <GanttChartMonthView
