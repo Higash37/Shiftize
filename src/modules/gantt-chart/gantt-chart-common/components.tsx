@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  GestureResponderEvent,
+} from "react-native";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
@@ -320,25 +326,26 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
 export type EmptyCellProps = {
   date: string;
   width: number;
-  cellWidth: number; // 追加: 各セルの幅
+  cellWidth: number; // 各セルの幅
   halfHourLines: string[];
   isClassTime: (time: string) => boolean;
-  styles: any;
+  styles: Record<string, any>; // より厳密な型
   handleEmptyCellClick: (date: string, position: number) => void;
 };
 export const EmptyCell: React.FC<EmptyCellProps> = ({
   date,
   width,
-  cellWidth, // 追加
+  cellWidth,
   halfHourLines,
   isClassTime,
   styles,
   handleEmptyCellClick,
 }) => {
   // タップ位置から30分単位のセル位置を算出
-  const handlePress = (event: any) => {
+  const handlePress = (event: GestureResponderEvent) => {
     const x = event.nativeEvent.locationX;
-    const position = ((x / width) * (halfHourLines.length - 1)) / 2; // 1時間=2セル
+    // GanttChartGridと同じ計算式に統一
+    const position = (x / width) * ((halfHourLines.length - 1) / 2);
     handleEmptyCellClick(date, position);
   };
   return (
@@ -356,7 +363,7 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
               styles.ganttBgCell,
               isClassTime(t) && styles.classTimeCell,
               {
-                width: cellWidth, // 修正: cellWidthを使用
+                width: cellWidth,
                 borderRightWidth: i % 2 === 0 ? 0.5 : 1,
               },
             ]}

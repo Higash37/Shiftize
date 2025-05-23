@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -43,6 +43,8 @@ import { GanttChartMonthViewProps } from "./gantt-chart-types/GanttChartProps";
 import {
   generateTimeOptions,
   groupShiftsByOverlap,
+  positionToTime,
+  timeToPosition,
 } from "./gantt-chart-common/utils";
 import {
   DateCell,
@@ -54,6 +56,8 @@ import { EditShiftModalView } from "./view-modals/EditShiftModalView";
 import { AddShiftModalView } from "./view-modals/AddShiftModalView";
 import { MonthSelectorBar } from "./gantt-chart-common/MonthSelectorBar";
 import { GanttHeader } from "./gantt-chart-common/GanttHeader";
+import { GanttChartBody } from "./gantt-chart-common/GanttChartBody";
+import { useGanttShiftActions } from "./gantt-chart-common/useGanttShiftActions";
 
 // シフトステータスの設定
 const DEFAULT_SHIFT_STATUS_CONFIG = [
@@ -126,6 +130,10 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const [selectedUserId, setSelectedUserId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
+  const { saveShift, deleteShift } = useGanttShiftActions({
+    user,
+    onShiftUpdate,
+  });
 
   // 時間選択オプションを生成
   const timeOptions = generateTimeOptions();
@@ -193,21 +201,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     return `${hour}:${min}`;
   });
 
-  // 時間位置の計算ヘルパー関数
-  function timeToPosition(time: string): number {
-    const [hours, minutes] = time.split(":").map(Number);
-    return hours - 9 + minutes / 60;
-  }
-
-  // 位置を時間に変換する関数
-  function positionToTime(position: number): string {
-    const hours = Math.floor(position) + 9;
-    const minutes = Math.floor((position % 1) * 60);
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}`;
-  }
-
   // 時間セル計算
   const cellWidth = ganttColumnWidth / (hourLabels.length - 1) / 2;
   // 前月に移動する関数
@@ -233,7 +226,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   };
 
   // シフト編集
-  const handleEditShift = (shift: ShiftItem) => {
+  const handleEditShift = useCallback((shift: ShiftItem) => {
     setEditingShift(shift);
     setNewShiftData({
       date: shift.date,
@@ -242,65 +235,29 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       userId: shift.userId,
       nickname: shift.nickname,
       status: shift.status,
-      classes: shift.classes || [], // 授業時間も編集可能に
+      classes: shift.classes || [],
     });
     setShowEditModal(true);
-  };
+  }, []);
 
   // シフト削除
-  const handleDeleteShift = async (shift: { id: string; status: string }) => {
-    Alert.alert(
-      shift.status === "deleted"
-        ? "完全に削除しますか？（元に戻せません）"
-        : "このシフトを削除しますか？",
-      shift.status === "deleted"
-        ? "この操作は元に戻せません。よろしいですか？"
-        : "このシフトは「削除済み」状態になります。",
-      [
-        { text: "キャンセル", style: "cancel" },
-        {
-          text: "削除",
-          style: "destructive",
-          onPress: async () => {
-            setIsLoading(true);
-            try {
-              if (shift.status === "deleted") {
-                await deleteDoc(doc(db, "shifts", shift.id));
-              } else {
-                await updateDoc(doc(db, "shifts", shift.id), {
-                  status: "deleted",
-                  updatedAt: serverTimestamp(),
-                });
-              }
-              if (onShiftUpdate) await onShiftUpdate();
-            } catch (error) {
-              console.error("シフト削除エラー:", error);
-            } finally {
-              setIsLoading(false);
-              setShowEditModal(false);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  // シフト追加
-  const handleAddShift = () => {
-    setNewShiftData({
-      date: format(selectedDate, "yyyy-MM-dd"),
-      startTime: "09:00",
-      endTime: "11:00",
-      userId: "",
-      nickname: "",
-      status: "approved",
-      classes: [], // 授業時間の初期値
-    });
-    setShowAddModal(true);
-  };
+  const handleDeleteShift = useCallback(
+    async (shift: { id: string; status: string }) => {
+      setIsLoading(true);
+      try {
+        await deleteShift(shift);
+      } catch (error) {
+        console.error("シフト削除エラー:", error);
+      } finally {
+        setIsLoading(false);
+        setShowEditModal(false);
+      }
+    },
+    [deleteShift]
+  );
 
   // シフト保存
-  const handleSaveShift = async () => {
+  const handleSaveShift = useCallback(async () => {
     if (
       !newShiftData.date ||
       !newShiftData.startTime ||
@@ -309,27 +266,10 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       Alert.alert("エラー", "日付と時間を正しく入力してください。");
       return;
     }
-
     setIsLoading(true);
     try {
-      if (editingShift) {
-        // 編集の場合
-        await updateDoc(doc(db, "shifts", editingShift.id), {
-          ...newShiftData,
-          updatedAt: serverTimestamp(),
-        });
-        setEditingShift(null);
-      } else {
-        // 新規追加の場合（statusは常にapprovedで保存）
-        await addDoc(collection(db, "shifts"), {
-          ...newShiftData,
-          status: "approved",
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          userId: user?.uid, // 現在のユーザーIDをセット
-        });
-      }
-
+      await saveShift(editingShift, newShiftData);
+      setEditingShift(null);
       setNewShiftData({
         date: "",
         startTime: "09:00",
@@ -337,60 +277,78 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         userId: "",
         nickname: "",
         status: "approved",
-        classes: [], // 授業時間の初期値
+        classes: [],
       });
       setShowEditModal(false);
       setShowAddModal(false);
-      setIsLoading(false);
     } catch (error) {
       console.error("シフト保存エラー:", error);
+    } finally {
       setIsLoading(false);
     }
-  };
+  }, [editingShift, newShiftData, saveShift]);
 
   // --- シフトバー・グリッド全体押下時のモーダル表示 ---
-  const handleShiftPress = (shift: ShiftItem) => {
-    const user = users.find((u) => u.uid === shift.userId);
-    setEditingShift(shift);
-    setNewShiftData({
-      date: shift.date,
-      startTime: shift.startTime,
-      endTime: shift.endTime,
-      userId: shift.userId,
-      nickname: user ? user.nickname : "",
-      status: shift.status,
-      classes: shift.classes || [], // 授業時間も編集可能に
-    });
-    setShowEditModal(true);
-  };
+  const handleShiftPress = useCallback(
+    (shift: ShiftItem) => {
+      const userObj = users.find((u) => u.uid === shift.userId);
+      setEditingShift(shift);
+      setNewShiftData({
+        date: shift.date,
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+        userId: shift.userId,
+        nickname: userObj ? userObj.nickname : "",
+        status: shift.status,
+        classes: shift.classes || [],
+      });
+      setShowEditModal(true);
+    },
+    [users]
+  );
 
   // 空白セルをクリックした時の処理
-  const handleEmptyCellClick = (date: string, position: number) => {
-    // クリック位置から開始時間を計算
-    const startTime = positionToTime(position);
-    // 終了時間は1時間後（22:00を超えない）
-    const startHour = parseInt(startTime.split(":")[0]);
-    const startMinute = parseInt(startTime.split(":")[1]);
-    let endHour = startHour + 1;
-    let endMinute = startMinute;
-    if (endHour > 22) {
-      endHour = 22;
-      endMinute = 0;
-    }
-    const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute
-      .toString()
-      .padStart(2, "0")}`;
+  const handleEmptyCellClick = useCallback(
+    (date: string, position: number) => {
+      const startTime = positionToTime(position);
+      const startHour = parseInt(startTime.split(":")[0]);
+      const startMinute = parseInt(startTime.split(":")[1]);
+      let endHour = startHour + 1;
+      let endMinute = startMinute;
+      if (endHour > 22) {
+        endHour = 22;
+        endMinute = 0;
+      }
+      const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute
+        .toString()
+        .padStart(2, "0")}`;
+      setNewShiftData({
+        date,
+        startTime,
+        endTime,
+        userId: "",
+        nickname: "",
+        status: "pending",
+        classes: [],
+      });
+      setShowAddModal(true);
+    },
+    [positionToTime]
+  );
+
+  // シフト追加
+  const handleAddShift = useCallback(() => {
     setNewShiftData({
-      date,
-      startTime,
-      endTime,
+      date: format(selectedDate, "yyyy-MM-dd"),
+      startTime: "09:00",
+      endTime: "11:00",
       userId: "",
       nickname: "",
-      status: "pending",
-      classes: [], // 授業時間の初期値
+      status: "approved",
+      classes: [],
     });
     setShowAddModal(true);
-  };
+  }, [selectedDate]);
 
   // --- 本体 ---
   return (
@@ -510,72 +468,20 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         infoColumnWidth={infoColumnWidth}
       />
       {/* 本体 */}
-      <CustomScrollView style={styles.content}>
-        {days.map((date) => {
-          const matchingRows = rows.filter(([rowDate]) => rowDate === date);
-
-          if (matchingRows.length > 0) {
-            // シフトがある日
-            return matchingRows.map(([date, group], idx) => (
-              <View key={date + String(idx)} style={styles.shiftRow}>
-                <DateCell
-                  date={date}
-                  dateColumnWidth={dateColumnWidth}
-                  styles={styles}
-                />
-                <GanttChartGrid
-                  shifts={group}
-                  cellWidth={cellWidth}
-                  ganttColumnWidth={ganttColumnWidth}
-                  halfHourLines={halfHourLines}
-                  isClassTime={isClassTime}
-                  getStatusConfig={getStatusConfig}
-                  onShiftPress={handleShiftPress}
-                  onBackgroundPress={(x) => {
-                    // シフトバーの上以外を押した場合のみ新規追加
-                    // x座標から30分単位のpositionを算出
-                    const position =
-                      (x / ganttColumnWidth) * ((halfHourLines.length - 1) / 2);
-                    handleEmptyCellClick(date, position);
-                  }}
-                  styles={styles}
-                />
-                <GanttChartInfo
-                  shifts={group}
-                  getStatusConfig={getStatusConfig}
-                  onShiftPress={handleShiftPress}
-                  onDelete={() => {}}
-                  infoColumnWidth={infoColumnWidth}
-                  styles={styles}
-                />
-              </View>
-            ));
-          } else {
-            // シフトがない日 - グリッド線を表示
-            return (
-              <View key={date} style={styles.shiftRow}>
-                <DateCell
-                  date={date}
-                  dateColumnWidth={dateColumnWidth}
-                  styles={styles}
-                />
-                <EmptyCell
-                  date={date}
-                  width={ganttColumnWidth}
-                  cellWidth={cellWidth}
-                  halfHourLines={halfHourLines}
-                  isClassTime={isClassTime}
-                  styles={styles}
-                  handleEmptyCellClick={handleEmptyCellClick}
-                />
-                <View
-                  style={[styles.emptyInfoCell, { width: infoColumnWidth }]}
-                />
-              </View>
-            );
-          }
-        })}
-      </CustomScrollView>{" "}
+      <GanttChartBody
+        days={days}
+        rows={rows}
+        dateColumnWidth={dateColumnWidth}
+        ganttColumnWidth={ganttColumnWidth}
+        infoColumnWidth={infoColumnWidth}
+        cellWidth={cellWidth}
+        halfHourLines={halfHourLines}
+        isClassTime={isClassTime}
+        getStatusConfig={getStatusConfig}
+        handleShiftPress={handleShiftPress}
+        handleEmptyCellClick={handleEmptyCellClick}
+        styles={styles}
+      />
       {/* シフト編集モーダル */}
       <EditShiftModalView
         visible={showEditModal}

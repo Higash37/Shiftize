@@ -39,8 +39,16 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
     animationType="fade"
     onRequestClose={onClose}
   >
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
+    <TouchableOpacity
+      activeOpacity={1}
+      style={styles.modalOverlay}
+      onPress={onClose}
+    >
+      <TouchableOpacity
+        activeOpacity={1}
+        style={styles.modalContent}
+        onPress={(e) => e.stopPropagation()}
+      >
         <Text style={styles.modalTitle}>シフト追加</Text>
         <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
 
@@ -221,7 +229,7 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
             )}
           </TouchableOpacity>
         </View>
-      </View>
-    </View>
+      </TouchableOpacity>
+    </TouchableOpacity>
   </Modal>
 );
