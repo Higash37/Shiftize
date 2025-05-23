@@ -138,18 +138,21 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     backgroundColor: "#4A90E2",
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginLeft: 4,
-    height: 30,
+    borderRadius: 8, // 角丸を少し大きく
+    paddingHorizontal: 20, // 横幅を大きく
+    paddingVertical: 10, // 縦幅も大きく
+    marginLeft: 8, // 間隔も広げる
+    height: 44, // ボタン自体の高さも大きく
+    minWidth: 80, // 最小幅を確保
     justifyContent: "center",
     alignItems: "center",
+    elevation: 2,
   },
   headerButtonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 13,
+    fontSize: 18, // 文字サイズも大きく
+    letterSpacing: 0.5,
   },
   headerDateCell: {
     padding: 8,

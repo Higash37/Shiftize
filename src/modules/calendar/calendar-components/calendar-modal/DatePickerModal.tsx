@@ -4,12 +4,12 @@ import {
   Text,
   TouchableOpacity,
   Modal,
-  ScrollView,
   StyleSheet,
   SafeAreaView,
 } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
+import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 
 interface DatePickerModalProps {
   isVisible: boolean;
@@ -37,7 +37,7 @@ const YearPicker = ({
   return (
     <View style={styles.modalContent}>
       <Text style={styles.modalTitle}>年を選択</Text>
-      <ScrollView style={styles.pickerContainer}>
+      <CustomScrollView style={styles.pickerContainer}>
         {years.map((year) => (
           <TouchableOpacity
             key={year}
@@ -57,7 +57,7 @@ const YearPicker = ({
             </Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </CustomScrollView>
       <View style={styles.modalButtons}>
         <TouchableOpacity style={styles.modalButton} onPress={onCancel}>
           <Text style={styles.modalButtonText}>キャンセル</Text>

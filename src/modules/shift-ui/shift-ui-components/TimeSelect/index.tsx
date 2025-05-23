@@ -10,6 +10,7 @@ import {
 import { styles } from "./styles";
 import { TimeSelectProps } from "./types";
 import { generateTimeOptions } from "../../shift-ui-utils/ui-utils";
+import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 
 /**
  * TimeSelect - 時間選択コンポーネント
@@ -95,9 +96,10 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
             <View style={styles.modalContent}>
               <Pressable>
                 <View style={styles.optionsContainer}>
-                  <ScrollView
+                  <CustomScrollView
                     style={styles.scrollContainer}
-                    showsVerticalScrollIndicator={true}
+                    showsVerticalScrollIndicator={false}
+                    showsHorizontalScrollIndicator={false}
                   >
                     {timeOptions.map((time) => (
                       <TouchableOpacity
@@ -118,7 +120,7 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
                         </Text>
                       </TouchableOpacity>
                     ))}
-                  </ScrollView>
+                  </CustomScrollView>
                 </View>
               </Pressable>
             </View>
@@ -138,9 +140,10 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
             <View style={styles.modalContent}>
               <Pressable>
                 <View style={styles.optionsContainer}>
-                  <ScrollView
+                  <CustomScrollView
                     style={styles.scrollContainer}
-                    showsVerticalScrollIndicator={true}
+                    showsVerticalScrollIndicator={false}
+                    showsHorizontalScrollIndicator={false}
                   >
                     {timeOptions.map((time) => (
                       <TouchableOpacity
@@ -161,7 +164,7 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
                         </Text>
                       </TouchableOpacity>
                     ))}
-                  </ScrollView>
+                  </CustomScrollView>
                 </View>
               </Pressable>
             </View>
@@ -195,9 +198,10 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
           <View style={styles.modalContent}>
             <Pressable>
               <View style={styles.optionsContainer}>
-                <ScrollView
+                <CustomScrollView
                   style={styles.scrollContainer}
-                  showsVerticalScrollIndicator={true}
+                  showsVerticalScrollIndicator={false}
+                  showsHorizontalScrollIndicator={false}
                 >
                   {timeOptions.map((time) => (
                     <TouchableOpacity
@@ -218,7 +222,7 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
                       </Text>
                     </TouchableOpacity>
                   ))}
-                </ScrollView>
+                </CustomScrollView>
               </View>
             </Pressable>
           </View>

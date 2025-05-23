@@ -1,11 +1,5 @@
 import React, { useState, useMemo, memo } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { format } from "date-fns";
@@ -19,6 +13,7 @@ import { ShiftListProps } from "../calendar-types/shift/ShiftList.types";
 import { ShiftItemProps } from "../calendar-types/shift/ShiftList.types";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 import { ShiftDetailsAdapter } from "./ShiftListAdapter";
+import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 
 /**
  * 個別のシフトアイテムコンポーネント
@@ -93,7 +88,7 @@ export const ShiftList: React.FC<ShiftListProps> = ({
   }
 
   return (
-    <ScrollView style={styles.shiftList}>
+    <CustomScrollView style={styles.shiftList}>
       {filteredShifts.map((shift) => (
         <ShiftItem
           key={shift.id}
@@ -102,7 +97,7 @@ export const ShiftList: React.FC<ShiftListProps> = ({
           onToggle={() => toggleShiftDetails(shift.id)}
         />
       ))}
-    </ScrollView>
+    </CustomScrollView>
   );
 };
 

@@ -58,6 +58,7 @@ import { MonthSelectorBar } from "./gantt-chart-common/MonthSelectorBar";
 import { GanttHeader } from "./gantt-chart-common/GanttHeader";
 import { GanttChartBody } from "./gantt-chart-common/GanttChartBody";
 import { useGanttShiftActions } from "./gantt-chart-common/useGanttShiftActions";
+import { ConfirmBatchModalView } from "./view-modals/ConfirmBatchModalView";
 
 // シフトステータスの設定
 const DEFAULT_SHIFT_STATUS_CONFIG = [
@@ -129,6 +130,10 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   });
   const [selectedUserId, setSelectedUserId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [batchModal, setBatchModal] = useState<{
+    visible: boolean;
+    type: "approve" | "delete" | null;
+  }>({ visible: false, type: null });
   const { user } = useAuth();
   const { saveShift, deleteShift } = useGanttShiftActions({
     user,
@@ -371,117 +376,107 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             } catch (e) {}
           }
         }}
-        onBatchApprove={async () => {
-          if (visibleShifts.length === 0) {
-            Alert.alert("シフトがありません");
-            return;
-          }
-          Alert.alert(
-            "一括承認",
-            `${visibleShifts.length}件のシフトを一括で承認します。本当によろしいですか？`,
-            [
-              { text: "いいえ", style: "cancel" },
-              {
-                text: "はい",
-                style: "destructive",
-                onPress: async () => {
-                  setIsLoading(true);
-                  try {
-                    for (const shift of visibleShifts) {
-                      await updateDoc(doc(db, "shifts", shift.id), {
-                        status: "approved",
-                        updatedAt: serverTimestamp(),
-                      });
-                    }
-                  } catch (error) {
-                    Alert.alert("エラー", "一括承認に失敗しました");
-                    setIsLoading(false);
-                    return;
-                  }
-                  setIsLoading(false);
-                  if (typeof window !== "undefined" && window.location) {
-                    window.location.reload();
-                  } else if (Platform.OS !== "web") {
-                    try {
-                      const { AppRegistry } = require("react-native");
-                      if (AppRegistry && AppRegistry.reload) {
-                        AppRegistry.reload();
-                      }
-                    } catch (e) {}
-                  }
-                },
-              },
-            ]
-          );
-        }}
-        onBatchDelete={async () => {
-          const deletedShifts = shifts.filter((s) => s.status === "deleted");
-          if (deletedShifts.length === 0) {
-            Alert.alert("削除済みシフトがありません");
-            return;
-          }
-          Alert.alert(
-            "削除済みシフトの非表示",
-            `削除済みシフト${deletedShifts.length}件を画面から消します。本当にいいですか？`,
-            [
-              { text: "いいえ", style: "cancel" },
-              {
-                text: "はい",
-                style: "destructive",
-                onPress: async () => {
-                  setIsLoading(true);
-                  try {
-                    for (const shift of deletedShifts) {
-                      await updateDoc(doc(db, "shifts", shift.id), {
-                        status: "purged",
-                        updatedAt: serverTimestamp(),
-                      });
-                    }
-                  } catch (error) {
-                    Alert.alert("エラー", "非表示に失敗しました");
-                    setIsLoading(false);
-                    return;
-                  }
-                  setIsLoading(false);
-                  if (typeof window !== "undefined" && window.location) {
-                    window.location.reload();
-                  } else if (Platform.OS !== "web") {
-                    try {
-                      const { AppRegistry } = require("react-native");
-                      if (AppRegistry && AppRegistry.reload) {
-                        AppRegistry.reload();
-                      }
-                    } catch (e) {}
-                  }
-                },
-              },
-            ]
-          );
-        }}
+        onBatchApprove={() => setBatchModal({ visible: true, type: "approve" })}
+        onBatchDelete={() => setBatchModal({ visible: true, type: "delete" })}
         isLoading={isLoading}
       />
-      {/* ヘッダー部分 */}
-      <GanttHeader
-        hourLabels={hourLabels}
-        dateColumnWidth={dateColumnWidth}
-        ganttColumnWidth={ganttColumnWidth}
-        infoColumnWidth={infoColumnWidth}
-      />
-      {/* 本体 */}
-      <GanttChartBody
-        days={days}
-        rows={rows}
-        dateColumnWidth={dateColumnWidth}
-        ganttColumnWidth={ganttColumnWidth}
-        infoColumnWidth={infoColumnWidth}
-        cellWidth={cellWidth}
-        halfHourLines={halfHourLines}
-        isClassTime={isClassTime}
-        getStatusConfig={getStatusConfig}
-        handleShiftPress={handleShiftPress}
-        handleEmptyCellClick={handleEmptyCellClick}
+      {/* --- バッチ確認モーダル --- */}
+      <ConfirmBatchModalView
+        visible={batchModal.visible}
+        title={
+          batchModal.type === "approve"
+            ? "一括承認"
+            : batchModal.type === "delete"
+            ? "完全削除"
+            : ""
+        }
+        description={
+          batchModal.type === "approve"
+            ? (() => {
+                const targets = shifts.filter((s) => s.status === "pending");
+                return `${targets.length}件の未承認シフトを一括で承認します。本当によろしいですか？`;
+              })()
+            : batchModal.type === "delete"
+            ? (() => {
+                const targets = shifts.filter((s) => s.status === "deleted");
+                return `${targets.length}件の削除済みシフトを画面から消します。本当によろしいですか？`;
+              })()
+            : ""
+        }
+        isLoading={isLoading}
         styles={styles}
+        onCancel={() => setBatchModal({ visible: false, type: null })}
+        onConfirm={async () => {
+          setIsLoading(true);
+          if (batchModal.type === "approve") {
+            const targets = shifts.filter((s) => s.status === "pending");
+            try {
+              for (const shift of targets) {
+                await updateDoc(doc(db, "shifts", shift.id), {
+                  status: "approved",
+                  updatedAt: serverTimestamp(),
+                });
+              }
+            } catch (error) {
+              setIsLoading(false);
+              setBatchModal({ visible: false, type: null });
+              return;
+            }
+          } else if (batchModal.type === "delete") {
+            const targets = shifts.filter((s) => s.status === "deleted");
+            try {
+              for (const shift of targets) {
+                await updateDoc(doc(db, "shifts", shift.id), {
+                  status: "purged",
+                  updatedAt: serverTimestamp(),
+                });
+              }
+            } catch (error) {
+              setIsLoading(false);
+              setBatchModal({ visible: false, type: null });
+              return;
+            }
+          }
+          setIsLoading(false);
+          setBatchModal({ visible: false, type: null });
+          if (typeof window !== "undefined" && window.location) {
+            window.location.reload();
+          } else if (Platform.OS !== "web") {
+            try {
+              const { AppRegistry } = require("react-native");
+              if (AppRegistry && AppRegistry.reload) {
+                AppRegistry.reload();
+              }
+            } catch (e) {}
+          }
+        }}
       />
+      {/* 横スクロール全体をCustomScrollViewでラップ */}
+      <CustomScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View>
+          <GanttHeader
+            hourLabels={hourLabels}
+            dateColumnWidth={dateColumnWidth}
+            ganttColumnWidth={ganttColumnWidth}
+            infoColumnWidth={infoColumnWidth}
+          />
+          {/* 本体 */}
+          <GanttChartBody
+            days={days}
+            rows={rows}
+            dateColumnWidth={dateColumnWidth}
+            ganttColumnWidth={ganttColumnWidth}
+            infoColumnWidth={infoColumnWidth}
+            cellWidth={cellWidth}
+            halfHourLines={halfHourLines}
+            isClassTime={isClassTime}
+            getStatusConfig={getStatusConfig}
+            handleShiftPress={handleShiftPress}
+            handleEmptyCellClick={handleEmptyCellClick}
+            styles={styles}
+          />
+        </View>
+      </CustomScrollView>
       {/* シフト編集モーダル */}
       <EditShiftModalView
         visible={showEditModal}
@@ -521,6 +516,25 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         onClose={() => setShowAddModal(false)}
         onSave={handleSaveShift}
       />
+      {/* 画面全体ローディングオーバーレイ */}
+      {isLoading && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.25)",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+          pointerEvents="auto"
+        >
+          <ActivityIndicator size="large" color="#1976D2" />
+        </View>
+      )}
     </View>
   );
 };

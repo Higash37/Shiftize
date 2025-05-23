@@ -59,9 +59,24 @@ export function useGanttShiftActions({
   // シフト削除
   const deleteShift = useCallback(
     async (shift: { id: string; status: string }) => {
+      // ステータスに応じて仕様通りに分岐
       if (shift.status === "deleted") {
+        // 物理削除
         await deleteDoc(doc(db, "shifts", shift.id));
-      } else {
+      } else if (shift.status === "pending" || shift.status === "rejected") {
+        // 直接削除
+        await updateDoc(doc(db, "shifts", shift.id), {
+          status: "deleted",
+          updatedAt: serverTimestamp(),
+        });
+      } else if (shift.status === "approved") {
+        // 削除申請
+        await updateDoc(doc(db, "shifts", shift.id), {
+          status: "deletion_requested",
+          updatedAt: serverTimestamp(),
+        });
+      } else if (shift.status === "deletion_requested") {
+        // マスターによる承認で完全削除
         await updateDoc(doc(db, "shifts", shift.id), {
           status: "deleted",
           updatedAt: serverTimestamp(),
