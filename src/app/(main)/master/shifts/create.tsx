@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
-  ScrollView,
   Text,
   TouchableOpacity,
   ActivityIndicator,
@@ -33,7 +32,8 @@ import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
 import type { ExtendedUser } from "@/modules/user-management/user-types/components";
-import { Header } from "@/common/common-ui/ui-layout";
+import { MasterHeader } from "@/common/common-ui/ui-layout";
+import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getUserData, type UserData } from "@/services/firebase/firebase";
@@ -340,8 +340,8 @@ export default function MasterShiftCreateScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title={isEditMode ? "シフト編集" : "シフト追加"} showBackButton />
-      <ScrollView style={styles.scrollView}>
+      <MasterHeader title={isEditMode ? "シフト編集" : "シフト追加"} />
+      <CustomScrollView style={styles.scrollView}>
         {errorMessage ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{errorMessage}</Text>
@@ -360,7 +360,11 @@ export default function MasterShiftCreateScreen() {
             />
           </View>
           <View style={styles.userListContainer}>
-            {filteredUsers.length > 0 ? (
+            {searchQuery.trim() === "" ? (
+              <Text style={styles.noResultsText}>
+                ユーザー名で検索してください
+              </Text>
+            ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
                 <TouchableOpacity
                   key={user.uid}
@@ -409,93 +413,130 @@ export default function MasterShiftCreateScreen() {
           </View>
         </View>
 
+        {/* スタッフ時間セクション */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>スタッフ時間</Text>
+          <TimeSelect
+            startTime={shiftData.startTime}
+            endTime={shiftData.endTime}
+            onStartTimeChange={(time: string) =>
+              setShiftData((prev) => ({ ...prev, startTime: time }))
+            }
+            onEndTimeChange={(time: string) =>
+              setShiftData((prev) => ({ ...prev, endTime: time }))
+            }
+          />
+        </View>
+
         {/* 日付選択セクション */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>日付</Text>
+          <Text style={styles.sectionTitle}>日付選択</Text>
           <TouchableOpacity
             style={styles.datePickerButton}
             onPress={handleOpenCalendar}
           >
-            {shiftData.dates.length > 0 ? (
-              <Text style={styles.dateText}>
-                {shiftData.dates.length > 1
-                  ? `${shiftData.dates.length}日選択済み`
-                  : format(new Date(shiftData.dates[0]), "yyyy年MM月dd日", {
-                      locale: ja,
-                    })}
-              </Text>
-            ) : (
-              <Text style={styles.placeholderText}>日付を選択</Text>
-            )}
-            <AntDesign name="calendar" size={24} color={colors.primary} />
+            <Text style={styles.dateText}>
+              {shiftData.dates.length > 0
+                ? `${shiftData.dates.length}日選択中`
+                : "日付を選択"}
+            </Text>
           </TouchableOpacity>
+          {shiftData.dates.length > 0 && (
+            <View style={styles.selectedDatesContainer}>
+              {shiftData.dates.sort().map((date) => (
+                <View key={date} style={styles.selectedDateCard}>
+                  <Text style={styles.selectedDateText}>{`${format(
+                    new Date(date),
+                    "yyyy年M月d日(E)",
+                    {
+                      locale: ja,
+                    }
+                  )}`}</Text>
+                  <TouchableOpacity
+                    style={styles.removeDateButton}
+                    onPress={() =>
+                      setShiftData((prev) => ({
+                        ...prev,
+                        dates: prev.dates.filter((d) => d !== date),
+                      }))
+                    }
+                  >
+                    <Text style={styles.removeDateText}>削除</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
-        {/* 時間選択セクション */}
+        {/* 授業時間セクション */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>時間</Text>
-          <View style={styles.timeContainer}>
-            <View style={styles.timeField}>
-              <Text style={styles.timeLabel}>開始時間</Text>{" "}
-              <TimeSelect
-                value={shiftData.startTime}
-                onChange={(time: string) =>
-                  setShiftData({ ...shiftData, startTime: time })
+          <Text style={styles.sectionTitle}>授業時間</Text>
+          <TouchableOpacity
+            style={styles.toggleButton}
+            onPress={() =>
+              setShiftData((prev) => ({ ...prev, hasClass: !prev.hasClass }))
+            }
+          >
+            <Text style={styles.toggleButtonText}>
+              {shiftData.hasClass ? "授業あり" : "授業なし"}
+            </Text>
+          </TouchableOpacity>
+          {shiftData.hasClass && (
+            <View style={styles.classesContainer}>
+              {shiftData.classes.map((classTime, index) => (
+                <View key={index} style={styles.classTimeContainer}>
+                  <TimeSelect
+                    startTime={classTime.startTime}
+                    endTime={classTime.endTime}
+                    onStartTimeChange={(time: string) => {
+                      setShiftData((prev) => ({
+                        ...prev,
+                        classes: prev.classes.map((c, i) =>
+                          i === index ? { ...c, startTime: time } : c
+                        ),
+                      }));
+                    }}
+                    onEndTimeChange={(time: string) => {
+                      setShiftData((prev) => ({
+                        ...prev,
+                        classes: prev.classes.map((c, i) =>
+                          i === index ? { ...c, endTime: time } : c
+                        ),
+                      }));
+                    }}
+                  />
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() =>
+                      setShiftData((prev) => ({
+                        ...prev,
+                        classes: prev.classes.filter((_, i) => i !== index),
+                      }))
+                    }
+                  >
+                    <AntDesign
+                      name="close"
+                      size={20}
+                      color={colors.text.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() =>
+                  setShiftData((prev) => ({
+                    ...prev,
+                    classes: [...prev.classes, { startTime: "", endTime: "" }],
+                  }))
                 }
-              />
-            </View>
-            <View style={styles.separator}>
-              <Text style={styles.separatorText}>〜</Text>
-            </View>
-            <View style={styles.timeField}>
-              <Text style={styles.timeLabel}>終了時間</Text>{" "}
-              <TimeSelect
-                value={shiftData.endTime}
-                onChange={(time: string) =>
-                  setShiftData({ ...shiftData, endTime: time })
-                }
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* シフトタイプセクション */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>シフトタイプ</Text>
-          <View style={styles.shiftTypeContainer}>
-            <TouchableOpacity
-              style={[
-                styles.shiftTypeButton,
-                !shiftData.hasClass && styles.activeShiftTypeButton,
-              ]}
-              onPress={() => setShiftData({ ...shiftData, hasClass: false })}
-            >
-              <Text
-                style={[
-                  styles.shiftTypeText,
-                  !shiftData.hasClass && styles.activeShiftTypeText,
-                ]}
               >
-                スタッフ
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.shiftTypeButton,
-                shiftData.hasClass && styles.activeShiftTypeButton,
-              ]}
-              onPress={() => setShiftData({ ...shiftData, hasClass: true })}
-            >
-              <Text
-                style={[
-                  styles.shiftTypeText,
-                  shiftData.hasClass && styles.activeShiftTypeText,
-                ]}
-              >
-                授業
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <AntDesign name="pluscircle" size={22} color="#fff" />
+                <Text style={styles.addButtonText}>授業を追加</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* ボタン */}
@@ -514,7 +555,7 @@ export default function MasterShiftCreateScreen() {
             <Text style={styles.deleteButtonText}>シフトを削除</Text>
           </TouchableOpacity>
         )}
-      </ScrollView>
+      </CustomScrollView>
 
       <CalendarModal
         visible={showCalendar}
@@ -551,6 +592,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    maxWidth: "70%",
+    width: "100%",
+    alignSelf: "center",
+    alignItems: "center",
+    alignContent: "center",
+    marginHorizontal: "auto",
   },
   loadingContainer: {
     flex: 1,
@@ -560,6 +607,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     padding: 16,
+    width: "100%",
   },
   errorContainer: {
     backgroundColor: "rgba(255, 0, 0, 0.1)",
@@ -720,5 +768,78 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
     width: "100%",
+  },
+  selectedDatesContainer: {
+    marginTop: 10,
+  },
+  selectedDateCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#e0f7fa",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  selectedDateText: {
+    fontSize: 14,
+    color: colors.text.primary,
+  },
+  removeDateButton: {
+    padding: 5,
+    borderRadius: 5,
+    backgroundColor: "rgba(255, 0, 0, 0.1)",
+  },
+  removeDateText: {
+    color: "red",
+    fontWeight: "bold",
+  },
+  toggleButton: {
+    backgroundColor: "#f0f0f0",
+    padding: 12,
+    borderRadius: 5,
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  toggleButtonText: {
+    fontSize: 16,
+    color: colors.text.primary,
+  },
+  classesContainer: {
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: "#f9f9f9",
+  },
+  classTimeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  addButton: {
+    flexDirection: "row",
+    backgroundColor: "#43a047", // 濃い緑色
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
+    alignSelf: "flex-start",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  addButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+    marginLeft: 6,
+    letterSpacing: 1,
+  },
+  removeButton: {
+    marginLeft: 10,
   },
 });
