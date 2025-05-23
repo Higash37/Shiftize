@@ -13,13 +13,15 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "locale": "ja"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "locale": "ja"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -30,6 +32,9 @@
     "experiments": {
       "tsconfigPaths": true,
       "rootDir": "src"
+    },
+    "locales": {
+      "ja": "./locales/ja.json"
     }
   }
 }

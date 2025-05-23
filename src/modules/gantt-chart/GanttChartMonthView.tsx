@@ -10,6 +10,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import {
   Shift,
@@ -51,6 +52,8 @@ import {
 } from "./gantt-chart-common/components";
 import { EditShiftModalView } from "./view-modals/EditShiftModalView";
 import { AddShiftModalView } from "./view-modals/AddShiftModalView";
+import { MonthSelectorBar } from "./gantt-chart-common/MonthSelectorBar";
+import { GanttHeader } from "./gantt-chart-common/GanttHeader";
 
 // シフトステータスの設定
 const DEFAULT_SHIFT_STATUS_CONFIG = [
@@ -392,282 +395,120 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   // --- 本体 ---
   return (
     <View style={styles.container}>
-      {/* 月選択バー（カレンダー切り替え行） */}
-      <View style={styles.monthSelector}>
-        <View style={styles.monthNavigator}>
-          <TouchableOpacity
-            style={styles.monthNavButton}
-            onPress={handlePrevMonth}
-          >
-            <Text style={styles.monthNavButtonText}>＜</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.monthButton}
-            onPress={() => {
-              setShowYearMonthPicker(true);
-            }}
-          >
-            <Text style={styles.monthText}>
-              {format(selectedDate, "yyyy年M月")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.monthNavButton}
-            onPress={handleNextMonth}
-          >
-            <Text style={styles.monthNavButtonText}>＞</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.addShiftButtonRow}>
-          <TouchableOpacity
-            style={styles.addShiftButton}
-            onPress={handleAddShift}
-          >
-            <Ionicons name="add" size={20} color="#4A90E2" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => {
-              /* TODO: 更新処理 */
-            }}
-          >
-            <Text style={styles.headerButtonText}>更新</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.headerButton, { backgroundColor: "#1976D2" }]}
-            onPress={async () => {
-              // 一括承認処理（visibleShiftsのみ承認）
-              if (visibleShifts.length === 0) {
-                Alert.alert("シフトがありません");
-                return;
+      {/* 月選択バー＋右上ボタン群 */}
+      <MonthSelectorBar
+        selectedDate={selectedDate}
+        onPrevMonth={handlePrevMonth}
+        onNextMonth={handleNextMonth}
+        onShowYearMonthPicker={() => setShowYearMonthPicker(true)}
+        onReload={() => {
+          if (typeof window !== "undefined" && window.location) {
+            window.location.reload();
+          } else if (Platform.OS !== "web") {
+            try {
+              const { AppRegistry } = require("react-native");
+              if (AppRegistry && AppRegistry.reload) {
+                AppRegistry.reload();
               }
-              setIsLoading(true);
-              try {
-                for (const shift of visibleShifts) {
-                  await updateDoc(doc(db, "shifts", shift.id), {
-                    status: "approved",
-                    updatedAt: serverTimestamp(),
-                  });
-                }
-                Alert.alert(
-                  "一括承認完了",
-                  `${visibleShifts.length}件のシフトを承認しました`
-                );
-                if (onShiftUpdate) await onShiftUpdate();
-              } catch (error) {
-                Alert.alert("エラー", "一括承認に失敗しました");
-              } finally {
-                setIsLoading(false);
-              }
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold" }}>一括承認</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.headerButton, { backgroundColor: "#F44336" }]}
-            onPress={async () => {
-              // 完全削除処理（status: 'deleted' のシフトを "purged" に）
-              const deletedShifts = shifts.filter(
-                (s) => s.status === "deleted"
-              );
-              if (deletedShifts.length === 0) {
-                Alert.alert("削除済みシフトがありません");
-                return;
-              }
-              Alert.alert(
-                "削除済みシフトの非表示",
-                `削除済みシフト${deletedShifts.length}件を画面から消します。本当にいいですか？`,
-                [
-                  { text: "いいえ", style: "cancel" },
-                  {
-                    text: "はい",
-                    style: "destructive",
-                    onPress: async () => {
-                      setIsLoading(true);
-                      try {
-                        for (const shift of deletedShifts) {
-                          await updateDoc(doc(db, "shifts", shift.id), {
-                            status: "purged",
-                            updatedAt: serverTimestamp(),
-                          });
-                        }
-                        Alert.alert(
-                          "非表示完了",
-                          `${deletedShifts.length}件の削除済みシフトを画面から消しました`
-                        );
-                        if (onShiftUpdate) {
-                          await onShiftUpdate(); // 自動リロード
-                        } else if (
-                          typeof window !== "undefined" &&
-                          window.location
-                        ) {
-                          window.location.reload(); // Fallback: 強制リロード
-                        }
-                      } catch (error) {
-                        Alert.alert("エラー", "非表示に失敗しました");
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    },
-                  },
-                ]
-              );
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold" }}>完全削除</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      {/* ヘッダー上部：右上にボタン配置 */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          alignItems: "center",
-          width: "100%",
-          paddingRight: 16,
-          marginTop: 2,
+            } catch (e) {}
+          }
         }}
-      >
-        {/* 右上ボタン群（＋・更新・一括承認） */}
-        <View style={styles.addShiftButtonRow}>
-          <TouchableOpacity
-            style={styles.addShiftButton}
-            onPress={handleAddShift}
-          >
-            <Ionicons name="add" size={20} color="#4A90E2" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => {
-              /* TODO: 更新処理 */
-            }}
-          >
-            <Text style={styles.headerButtonText}>更新</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.headerButton, { backgroundColor: "#1976D2" }]}
-            onPress={async () => {
-              // 一括承認処理（visibleShiftsのみ承認）
-              if (visibleShifts.length === 0) {
-                Alert.alert("シフトがありません");
-                return;
-              }
-              setIsLoading(true);
-              try {
-                for (const shift of visibleShifts) {
-                  await updateDoc(doc(db, "shifts", shift.id), {
-                    status: "approved",
-                    updatedAt: serverTimestamp(),
-                  });
-                }
-                Alert.alert(
-                  "一括承認完了",
-                  `${visibleShifts.length}件のシフトを承認しました`
-                );
-                if (onShiftUpdate) await onShiftUpdate();
-              } catch (error) {
-                Alert.alert("エラー", "一括承認に失敗しました");
-              } finally {
-                setIsLoading(false);
-              }
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold" }}>一括承認</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.headerButton, { backgroundColor: "#F44336" }]}
-            onPress={async () => {
-              // 完全削除処理（status: 'deleted' のシフトを "purged" に）
-              const deletedShifts = shifts.filter(
-                (s) => s.status === "deleted"
-              );
-              if (deletedShifts.length === 0) {
-                Alert.alert("削除済みシフトがありません");
-                return;
-              }
-              Alert.alert(
-                "削除済みシフトの非表示",
-                `削除済みシフト${deletedShifts.length}件を画面から消します。本当にいいですか？`,
-                [
-                  { text: "いいえ", style: "cancel" },
-                  {
-                    text: "はい",
-                    style: "destructive",
-                    onPress: async () => {
-                      setIsLoading(true);
-                      try {
-                        for (const shift of deletedShifts) {
-                          await updateDoc(doc(db, "shifts", shift.id), {
-                            status: "purged",
-                            updatedAt: serverTimestamp(),
-                          });
-                        }
-                        Alert.alert(
-                          "非表示完了",
-                          `${deletedShifts.length}件の削除済みシフトを画面から消しました`
-                        );
-                        if (onShiftUpdate) {
-                          await onShiftUpdate(); // 自動リロード
-                        } else if (
-                          typeof window !== "undefined" &&
-                          window.location
-                        ) {
-                          window.location.reload(); // Fallback: 強制リロード
-                        }
-                      } catch (error) {
-                        Alert.alert("エラー", "非表示に失敗しました");
-                      } finally {
-                        setIsLoading(false);
+        onBatchApprove={async () => {
+          if (visibleShifts.length === 0) {
+            Alert.alert("シフトがありません");
+            return;
+          }
+          Alert.alert(
+            "一括承認",
+            `${visibleShifts.length}件のシフトを一括で承認します。本当によろしいですか？`,
+            [
+              { text: "いいえ", style: "cancel" },
+              {
+                text: "はい",
+                style: "destructive",
+                onPress: async () => {
+                  setIsLoading(true);
+                  try {
+                    for (const shift of visibleShifts) {
+                      await updateDoc(doc(db, "shifts", shift.id), {
+                        status: "approved",
+                        updatedAt: serverTimestamp(),
+                      });
+                    }
+                  } catch (error) {
+                    Alert.alert("エラー", "一括承認に失敗しました");
+                    setIsLoading(false);
+                    return;
+                  }
+                  setIsLoading(false);
+                  if (typeof window !== "undefined" && window.location) {
+                    window.location.reload();
+                  } else if (Platform.OS !== "web") {
+                    try {
+                      const { AppRegistry } = require("react-native");
+                      if (AppRegistry && AppRegistry.reload) {
+                        AppRegistry.reload();
                       }
-                    },
-                  },
-                ]
-              );
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold" }}>完全削除</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      {/* カレンダーヘッダー本体 */}
-      <View style={styles.headerRow}>
-        <View style={[styles.headerDateCell, { width: dateColumnWidth }]}>
-          {/* 「日付」ラベル削除 */}
-        </View>
-        <View style={[styles.headerGanttCell, { width: ganttColumnWidth }]}>
-          {hourLabels.map((t, i) => {
-            const isLast = i === hourLabels.length - 1;
-            return (
-              <View
-                key={t}
-                style={{
-                  position: "absolute",
-                  left: i * cellWidth * 2 - 44 - (isLast ? -1.7 : 0),
-                  width: cellWidth * 2,
-                }}
-              >
-                <Text style={styles.timeLabel}>{t}</Text>
-              </View>
-            );
-          })}
-        </View>
-        <View
-          style={[
-            styles.headerInfoCell,
-            {
-              width: infoColumnWidth,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center", // 中央揃え
-            },
-          ]}
-        >
-          <Text style={[styles.headerText, { flex: 1, textAlign: "center" }]}>
-            情報
-          </Text>
-        </View>
-      </View>
+                    } catch (e) {}
+                  }
+                },
+              },
+            ]
+          );
+        }}
+        onBatchDelete={async () => {
+          const deletedShifts = shifts.filter((s) => s.status === "deleted");
+          if (deletedShifts.length === 0) {
+            Alert.alert("削除済みシフトがありません");
+            return;
+          }
+          Alert.alert(
+            "削除済みシフトの非表示",
+            `削除済みシフト${deletedShifts.length}件を画面から消します。本当にいいですか？`,
+            [
+              { text: "いいえ", style: "cancel" },
+              {
+                text: "はい",
+                style: "destructive",
+                onPress: async () => {
+                  setIsLoading(true);
+                  try {
+                    for (const shift of deletedShifts) {
+                      await updateDoc(doc(db, "shifts", shift.id), {
+                        status: "purged",
+                        updatedAt: serverTimestamp(),
+                      });
+                    }
+                  } catch (error) {
+                    Alert.alert("エラー", "非表示に失敗しました");
+                    setIsLoading(false);
+                    return;
+                  }
+                  setIsLoading(false);
+                  if (typeof window !== "undefined" && window.location) {
+                    window.location.reload();
+                  } else if (Platform.OS !== "web") {
+                    try {
+                      const { AppRegistry } = require("react-native");
+                      if (AppRegistry && AppRegistry.reload) {
+                        AppRegistry.reload();
+                      }
+                    } catch (e) {}
+                  }
+                },
+              },
+            ]
+          );
+        }}
+        isLoading={isLoading}
+      />
+      {/* ヘッダー部分 */}
+      <GanttHeader
+        hourLabels={hourLabels}
+        dateColumnWidth={dateColumnWidth}
+        ganttColumnWidth={ganttColumnWidth}
+        infoColumnWidth={infoColumnWidth}
+      />
       {/* 本体 */}
       <CustomScrollView style={styles.content}>
         {days.map((date) => {
