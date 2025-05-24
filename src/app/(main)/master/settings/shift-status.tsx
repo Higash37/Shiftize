@@ -58,7 +58,11 @@ export default function ShiftStatusSettingsScreen() {
           headerShown: true,
         }}
       />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        style={{ width: "70%", alignSelf: "center" }}
+        showsVerticalScrollIndicator={false}
+      >
         {statusConfigs.map((config) => (
           <View key={config.status} style={styles.statusItem}>
             <View style={styles.statusHeader}>
@@ -78,21 +82,21 @@ export default function ShiftStatusSettingsScreen() {
             </View>
           </View>
         ))}
-      </ScrollView>{" "}
-      <ColorPicker
-        visible={isColorPickerVisible}
-        onClose={() => setIsColorPickerVisible(false)}
-        onSelectColor={(color: string) => {
-          if (selectedStatus) {
-            handleColorChange(selectedStatus, color);
+        <ColorPicker
+          visible={isColorPickerVisible}
+          onClose={() => setIsColorPickerVisible(false)}
+          onSelectColor={(color: string) => {
+            if (selectedStatus) {
+              handleColorChange(selectedStatus, color);
+            }
+          }}
+          initialColor={
+            selectedStatus
+              ? statusConfigs.find((c) => c.status === selectedStatus)?.color
+              : undefined
           }
-        }}
-        initialColor={
-          selectedStatus
-            ? statusConfigs.find((c) => c.status === selectedStatus)?.color
-            : undefined
-        }
-      />
+        />
+      </ScrollView>
     </View>
   );
 }
@@ -100,17 +104,27 @@ export default function ShiftStatusSettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F2F2F7",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 32,
   },
-  scrollView: {
-    flex: 1,
-    padding: 16,
+  scrollContent: {
+    paddingBottom: 16,
+    width: "100%",
   },
   statusItem: {
     marginBottom: 16,
-    padding: 16,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 8,
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    // 枠線や影を消す
+    borderWidth: 0,
+    shadowColor: "transparent",
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
   },
   statusHeader: {
     flexDirection: "row",

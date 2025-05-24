@@ -65,7 +65,9 @@ export const DayComponent = memo<{
         style={[
           styles.dayText,
           dynamicStyles.dayText,
-          { color: dayColor },
+          isSelected
+            ? { color: "#fff", fontWeight: "bold" }
+            : { color: dayColor },
           isToday && styles.todayText,
         ]}
       >
