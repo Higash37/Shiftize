@@ -355,6 +355,15 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     setShowAddModal(true);
   }, [selectedDate]);
 
+  // ユーザーID→colorマップを作成
+  const userColorsMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    users.forEach((u) => {
+      if (u.uid && u.color) map[u.uid] = u.color;
+    });
+    return map;
+  }, [users]);
+
   // --- 本体 ---
   return (
     <View style={styles.container}>
@@ -481,6 +490,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             handleShiftPress={handleShiftPress}
             handleEmptyCellClick={handleEmptyCellClick}
             styles={styles}
+            userColorsMap={userColorsMap}
           />
         </View>
       </CustomScrollView>

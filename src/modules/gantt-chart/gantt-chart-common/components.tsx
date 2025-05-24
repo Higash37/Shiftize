@@ -56,6 +56,7 @@ export type GanttChartGridProps = {
   onShiftPress?: (shift: ShiftItem) => void;
   onBackgroundPress?: (x: number) => void;
   styles: any;
+  userColorsMap: Record<string, string>;
 };
 export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   shifts,
@@ -67,6 +68,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   onShiftPress,
   onBackgroundPress,
   styles,
+  userColorsMap,
 }) => {
   // 時間位置の計算
   function timeToPosition(time: string): number {
@@ -159,6 +161,8 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           singleBarHeight = Math.floor(cellHeight / Math.min(totalShifts, 3));
           barVerticalOffset = index * singleBarHeight;
         }
+        // ユーザー色を取得（なければステータス色）
+        const userColor = userColorsMap?.[shift.userId] || statusConfig.color;
         return (
           <TouchableOpacity
             key={shift.id}
@@ -169,7 +173,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                 width: cellSpan * cellWidth,
                 height: singleBarHeight,
                 top: barVerticalOffset,
-                backgroundColor: statusConfig.color,
+                backgroundColor: userColor,
                 opacity:
                   shift.status === "deleted" ||
                   shift.status === "deletion_requested"

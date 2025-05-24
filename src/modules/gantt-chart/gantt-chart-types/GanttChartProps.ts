@@ -13,7 +13,7 @@ export interface GanttChartMonthEditProps {
 export interface GanttChartMonthViewProps {
   shifts: ShiftItem[];
   days: string[];
-  users: { uid: string; nickname: string }[];
+  users: { uid: string; nickname: string; color?: string }[];
   selectedDate: Date;
   onShiftPress?: (shift: ShiftItem) => void;
   onShiftUpdate?: () => void;

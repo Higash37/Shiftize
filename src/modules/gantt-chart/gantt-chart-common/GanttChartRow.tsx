@@ -21,6 +21,7 @@ interface GanttChartRowProps {
   handleShiftPress: (shift: ShiftItem) => void;
   handleEmptyCellClick: (date: string, position: number) => void;
   styles: any;
+  userColorsMap: Record<string, string>;
 }
 
 export const GanttChartRow: React.FC<GanttChartRowProps> = ({
@@ -36,6 +37,7 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
   handleShiftPress,
   handleEmptyCellClick,
   styles,
+  userColorsMap,
 }) => {
   if (group && group.length > 0) {
     // シフトがある日
@@ -60,6 +62,7 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
             handleEmptyCellClick(date, position);
           }}
           styles={styles}
+          userColorsMap={userColorsMap}
         />
         <GanttChartInfo
           shifts={group}

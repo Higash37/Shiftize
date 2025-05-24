@@ -68,6 +68,7 @@ export default function GanttViewScreen() {
         users={users.map((user: ExtendedUser) => ({
           uid: user.uid,
           nickname: user.nickname,
+          color: user.color,
         }))}
         onShiftPress={handleShiftPress}
         onShiftUpdate={handleShiftUpdate}

@@ -79,6 +79,7 @@ export default function GanttEditScreen() {
         users={users.map((user) => ({
           uid: user.uid,
           nickname: user.nickname,
+          color: user.color,
         }))}
         selectedDate={
           new Date(currentYearMonth.year, currentYearMonth.month, 1)

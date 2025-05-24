@@ -16,6 +16,7 @@ interface GanttChartBodyProps {
   handleShiftPress: (shift: ShiftItem) => void;
   handleEmptyCellClick: (date: string, position: number) => void;
   styles: any;
+  userColorsMap: Record<string, string>;
 }
 
 interface RowData {
@@ -36,6 +37,7 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
   handleShiftPress,
   handleEmptyCellClick,
   styles,
+  userColorsMap,
 }) => {
   // 日付ごとにgroupを紐付け
   const data: RowData[] = useMemo(
@@ -65,6 +67,7 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
           handleShiftPress={handleShiftPress}
           handleEmptyCellClick={handleEmptyCellClick}
           styles={styles}
+          userColorsMap={userColorsMap}
         />
       )}
       initialNumToRender={20}
