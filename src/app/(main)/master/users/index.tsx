@@ -15,6 +15,7 @@ interface UserFormData {
   password?: string;
   nickname: string;
   role: "master" | "user";
+  color?: string; // 追加
 }
 
 interface UserWithPassword extends User {
@@ -42,7 +43,8 @@ export default function UsersScreen() {
         data.email,
         data.password,
         data.nickname,
-        data.role
+        data.role,
+        data.color // 追加
       );
 
       if (newUser) {
@@ -70,6 +72,7 @@ export default function UsersScreen() {
         nickname: data.nickname,
         role: data.role,
         ...(data.password ? { password: data.password } : {}),
+        color: data.color, // 追加
       });
 
       // パスワードが更新された場合、新しいパスワードを保存

@@ -34,6 +34,7 @@ export const UserService = {
           uid: doc.id,
           role: data.role || "user",
           nickname: data.nickname || "",
+          color: data.color, // 追加
           currentPassword: data.currentPassword,
         };
       });

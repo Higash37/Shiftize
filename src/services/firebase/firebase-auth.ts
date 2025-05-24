@@ -69,7 +69,11 @@ export const AuthService = {
   /**
    * 新しいユーザーを作成
    */
-  createUser: async (email: string, password: string): Promise<User> => {
+  createUser: async (
+    email: string,
+    password: string,
+    color?: string
+  ): Promise<User> => {
     try {
       console.log("Creating user with email:", email);
 
@@ -96,13 +100,14 @@ export const AuthService = {
 
       // 3. Firestoreにユーザー情報を保存
       const userRef = doc(db, "users", firebaseUser.uid);
-      const userData = {
+      const userData: any = {
         nickname: email.split("@")[0],
         role: email.startsWith("master@") ? "master" : "user",
         currentPassword: password,
         email: email,
         createdAt: new Date(),
       };
+      if (color) userData.color = color;
 
       await setDoc(userRef, userData).catch((error) => {
         console.error("Firestore save error:", error);
@@ -116,6 +121,7 @@ export const AuthService = {
         uid: firebaseUser.uid,
         nickname: email.split("@")[0],
         role: email.startsWith("master@") ? "master" : "user",
+        color: color,
       };
     } catch (error) {
       console.error("ユーザー作成エラー:", error);
@@ -132,6 +138,7 @@ export const AuthService = {
       nickname?: string;
       password?: string;
       role?: "master" | "user";
+      color?: string;
     }
   ): Promise<User | undefined> => {
     try {
@@ -144,6 +151,7 @@ export const AuthService = {
       }
       if (updates.role) updateData.role = updates.role;
       if (updates.password) updateData.currentPassword = updates.password;
+      if (updates.color) updateData.color = updates.color;
 
       await updateDoc(userRef, updateData);
 
@@ -187,6 +195,7 @@ export const AuthService = {
           uid: updatedDoc.id,
           role: data.role as "master" | "user",
           nickname: data.nickname || "",
+          color: data.color,
         };
       }
       return undefined;

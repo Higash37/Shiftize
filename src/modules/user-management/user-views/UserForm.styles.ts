@@ -53,4 +53,12 @@ export const styles = StyleSheet.create({
     fontSize: typography.fontSize.small,
     textAlign: "center",
   },
+  colorPreview: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "#888",
+    marginRight: 8,
+  },
 });

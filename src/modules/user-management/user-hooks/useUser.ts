@@ -48,7 +48,8 @@ export const useUser = () => {
     email: string,
     password: string,
     nickname: string,
-    role: "master" | "user"
+    role: "master" | "user",
+    color?: string
   ) => {
     try {
       setLoading(true);
@@ -76,7 +77,7 @@ export const useUser = () => {
           throw new Error("このニックネームは既に使用されています");
         }
       }
-      const newUser = await createUser(userEmail, password);
+      const newUser = await createUser(userEmail, password, color);
 
       await fetchUsers();
       return newUser;
@@ -102,6 +103,7 @@ export const useUser = () => {
       nickname?: string;
       password?: string;
       role?: "master" | "user";
+      color?: string;
     }
   ): Promise<User | undefined> => {
     try {

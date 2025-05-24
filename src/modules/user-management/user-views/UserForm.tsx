@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import ErrorMessage from "@/common/common-ui/ui-feedback/FeedbackError";
 import { checkMasterExists } from "@/services/firebase/firebase";
 import { styles } from "./UserForm.styles";
 import { UserFormProps } from "../user-types/components";
+import ColorPicker from "@/common/common-ui/ui-forms/FormColorPicker";
+import { PRESET_COLORS } from "@/common/common-ui/ui-forms/FormColorPicker/constants";
 
 /**
  * ユーザー情報入力フォームコンポーネント
@@ -28,6 +30,8 @@ export const UserForm: React.FC<UserFormProps> = ({
   );
   const [errorMessage, setError] = useState<string | null>(null);
   const [hasMaster, setHasMaster] = useState(false);
+  const [color, setColor] = useState(initialData?.color || PRESET_COLORS[0]);
+  const [colorPickerVisible, setColorPickerVisible] = useState(false);
 
   const isMasterEdit = mode === "edit" && initialData?.role === "master";
   // マスターユーザーの存在チェック
@@ -53,6 +57,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       setNickname(initialData.nickname ?? "");
       setRole(initialData.role);
       setPassword("");
+      setColor(initialData.color || PRESET_COLORS[0]);
     }
   }, [initialData]);
 
@@ -77,6 +82,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         password: password || undefined,
         nickname,
         role: isMasterEdit ? "master" : role,
+        color,
       });
 
       if (mode === "add") {
@@ -84,6 +90,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         setPassword("");
         setNickname("");
         setRole("user");
+        setColor(PRESET_COLORS[0]);
       }
     } catch (err: any) {
       setError(err.message || "エラーが発生しました");
@@ -104,6 +111,34 @@ export const UserForm: React.FC<UserFormProps> = ({
         onChangeText={setNickname}
         placeholder="山田 太郎"
         error={!nickname ? "ニックネームを入力してください" : undefined}
+      />
+      {/* 講師色選択ボタン */}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Text>色</Text>
+        <TouchableOpacity
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: color,
+            borderWidth: 2,
+            borderColor: "#888",
+          }}
+          onPress={() => setColorPickerVisible(true)}
+        />
+        <Button
+          title="色を選択"
+          onPress={() => setColorPickerVisible(true)}
+          variant="outline"
+          size="small"
+          style={{ marginLeft: 8 }}
+        />
+      </View>
+      <ColorPicker
+        visible={colorPickerVisible}
+        onClose={() => setColorPickerVisible(false)}
+        onSelectColor={(c) => setColor(c)}
+        initialColor={color}
       />
       <Input
         label={

@@ -103,4 +103,12 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingBottom: 0,
   },
+  colorMark: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 10,
+    borderWidth: 2,
+    borderColor: "#ccc",
+  },
 });

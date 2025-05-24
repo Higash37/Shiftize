@@ -31,12 +31,15 @@ export interface UserFormProps extends BaseUserProps {
     password?: string;
     nickname: string;
     role: "master" | "user";
+    color?: string;
   }) => Promise<void>;
   onCancel: () => void;
   error?: string | null;
   initialData?: User | null;
   mode?: "add" | "edit";
   currentPassword?: string;
+  color?: string;
+  onColorChange?: (color: string) => void;
 }
 
 /**

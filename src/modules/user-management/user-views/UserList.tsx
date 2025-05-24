@@ -80,7 +80,16 @@ export const UserList: React.FC<UserListProps> = ({
         </View>
       </View>
       <View style={styles.middleSection}>
-        <Text style={styles.userName}>{item.nickname || "名前なし"}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text style={styles.userName}>{item.nickname || "名前なし"}</Text>
+          {/* 名前の右横に色マークを表示。未設定時はグレー */}
+          <View
+            style={[
+              styles.colorMark,
+              { backgroundColor: item.color || "#ccc" },
+            ]}
+          />
+        </View>
         <Text style={styles.userRole}>
           {item.role === "master" ? "マスター" : "一般ユーザー"}
         </Text>
