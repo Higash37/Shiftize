@@ -380,6 +380,13 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         onBatchDelete={() => setBatchModal({ visible: true, type: "delete" })}
         isLoading={isLoading}
       />
+      {/* 年月ピッカーモーダル */}
+      <DatePickerModal
+        isVisible={showYearMonthPicker}
+        initialDate={selectedDate}
+        onClose={() => setShowYearMonthPicker(false)}
+        onSelect={handleDateSelect}
+      />
       {/* --- バッチ確認モーダル --- */}
       <ConfirmBatchModalView
         visible={batchModal.visible}
