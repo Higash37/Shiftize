@@ -13,6 +13,15 @@ export const styles = StyleSheet.create({
   roleButton: {
     flex: 1,
   },
+  masterRoleButton: {
+    backgroundColor: colors.secondary,
+    borderColor: colors.secondary, // 外枠も紫
+    borderWidth: 1,
+  },
+  masterRoleButtonText: {
+    color: colors.text.white,
+    fontWeight: "700",
+  },
   buttonContainer: {
     flexDirection: "row",
     gap: 8,

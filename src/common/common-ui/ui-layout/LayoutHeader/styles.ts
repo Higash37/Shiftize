@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    width: "100%", // ヘッダーを画面幅いっぱいに
   },
   leftContainer: {
     flexDirection: "row",

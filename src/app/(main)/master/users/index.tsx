@@ -122,35 +122,50 @@ export default function UsersScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <MasterHeader title="ユーザー管理" />
-      {selectedUser || isAddingUser ? (
-        <View style={styles.formContainer}>
-          <UserForm
-            onSubmit={selectedUser ? handleEditUser : handleAddUser}
-            onCancel={handleCancel}
-            initialData={selectedUser}
-            currentPassword={selectedUser?.currentPassword}
-            error={error}
+    <View style={styles.root}>
+      <View style={styles.headerWrapper}>
+        <MasterHeader title="ユーザー管理" />
+      </View>
+      <View style={styles.container}>
+        {selectedUser || isAddingUser ? (
+          <View style={styles.formContainer70}>
+            <UserForm
+              onSubmit={selectedUser ? handleEditUser : handleAddUser}
+              onCancel={handleCancel}
+              initialData={selectedUser}
+              currentPassword={selectedUser?.currentPassword}
+              error={error}
+              loading={loading}
+              mode={selectedUser ? "edit" : "add"}
+            />
+          </View>
+        ) : (
+          <UserList
+            userList={users}
             loading={loading}
-            mode={selectedUser ? "edit" : "add"}
+            onEdit={handleSelectUser}
+            onDelete={handleDeleteUser}
+            onAdd={handleStartAddUser}
+            userPasswords={userPasswords}
           />
-        </View>
-      ) : (
-        <UserList
-          userList={users}
-          loading={loading}
-          onEdit={handleSelectUser}
-          onDelete={handleDeleteUser}
-          onAdd={handleStartAddUser}
-          userPasswords={userPasswords}
-        />
-      )}
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  headerWrapper: {
+    width: "100%",
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    zIndex: 10,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -162,5 +177,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  formContainer70: {
+    backgroundColor: colors.background,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignSelf: "center",
+    maxWidth: 600,
+    minWidth: 260,
+    width: "70%",
   },
 });

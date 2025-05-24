@@ -27,6 +27,8 @@ export const UserList: React.FC<UserListProps> = ({
   userPasswords = {},
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const filteredUserList =
     userList?.filter((user) => {
@@ -46,14 +48,34 @@ export const UserList: React.FC<UserListProps> = ({
     );
   }
 
+  const handleDeletePress = (user: User) => {
+    setDeleteTarget(user);
+    setShowDeleteModal(true);
+  };
+  const handleDeleteConfirm = () => {
+    if (deleteTarget) {
+      onDelete(deleteTarget.uid);
+    }
+    setShowDeleteModal(false);
+    setDeleteTarget(null);
+  };
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setDeleteTarget(null);
+  };
+
   const renderItem = ({ item }: { item: User }) => (
-    <View style={styles.userCard}>
+    <TouchableOpacity
+      style={styles.userCard}
+      activeOpacity={0.8}
+      onPress={() => onEdit(item)}
+    >
       <View style={styles.leftSection}>
         <View style={styles.iconContainer}>
           <MaterialCommunityIcons
             name="account-circle"
             size={40}
-            color={colors.primary}
+            color={item.role === "master" ? colors.secondary : colors.primary}
           />
         </View>
       </View>
@@ -71,16 +93,10 @@ export const UserList: React.FC<UserListProps> = ({
           </View>
         )}
         <View style={styles.actions}>
-          <Button
-            title="編集"
-            onPress={() => onEdit(item)}
-            variant="outline"
-            size="small"
-            style={styles.actionButton}
-          />
+          {/* 編集ボタンは非表示に（カード全体タップで編集） */}
           <Button
             title="削除"
-            onPress={() => onDelete(item.uid)}
+            onPress={() => handleDeletePress(item)}
             variant="outline"
             size="small"
             style={{
@@ -90,7 +106,7 @@ export const UserList: React.FC<UserListProps> = ({
           />
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -114,6 +130,8 @@ export const UserList: React.FC<UserListProps> = ({
         renderItem={renderItem}
         keyExtractor={(user: User) => user.uid}
         contentContainerStyle={styles.list}
+        numColumns={2}
+        columnWrapperStyle={styles.columnWrapper}
         ListEmptyComponent={
           <View>
             <View>
@@ -126,6 +144,60 @@ export const UserList: React.FC<UserListProps> = ({
           </View>
         }
       />
+      {showDeleteModal && deleteTarget && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.3)",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              padding: 24,
+              borderRadius: 12,
+              minWidth: 260,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "bold",
+                marginBottom: 16,
+              }}
+            >
+              {deleteTarget.nickname}を削除しますか？
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                gap: 12,
+              }}
+            >
+              <Button
+                title="キャンセル"
+                onPress={handleDeleteCancel}
+                variant="outline"
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="はい"
+                onPress={handleDeleteConfirm}
+                variant="primary"
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 };

@@ -39,6 +39,10 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     gap: 16,
+    flex: 1,
+    minWidth: 0,
+    maxWidth: "98%", // 2列時に横幅を広げる
+    marginHorizontal: 2,
   },
   leftSection: {
     justifyContent: "center",
@@ -92,5 +96,11 @@ export const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginTop: 24,
     fontSize: typography.fontSize.medium,
+  },
+  columnWrapper: {
+    flex: 1,
+    gap: 12,
+    justifyContent: "space-between",
+    paddingBottom: 0,
   },
 });

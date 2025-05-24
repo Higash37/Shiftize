@@ -132,8 +132,11 @@ export const UserForm: React.FC<UserFormProps> = ({
           <Button
             title="マスター"
             onPress={() => setRole("master")}
-            variant={role === "master" ? "primary" : "outline"}
-            style={styles.roleButton}
+            variant={role === "master" ? "secondary" : "outline"}
+            style={[
+              styles.roleButton,
+              role === "master" && styles.masterRoleButton,
+            ]}
             disabled={hasMaster && role !== "master"}
           />
         </View>
