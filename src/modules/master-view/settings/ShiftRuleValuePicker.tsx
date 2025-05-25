@@ -51,15 +51,12 @@ export const ShiftRuleValuePicker: React.FC<ShiftRuleValuePickerProps> = ({
         >
           <View style={styles.row2col}>
             <View style={styles.calendarCol}>
-              {/* カレンダー部分（例: 2025年5月のタイトルとカレンダーUI） */}
               <Text style={styles.calendarTitle}>{title}</Text>
-              {/* カレンダーUIをここに配置（例: <Calendar ... />） */}
               <View style={styles.calendarPlaceholder}>
                 <Text style={{ color: "#888" }}>カレンダーUI</Text>
               </View>
             </View>
             <View style={styles.listCol}>
-              {/* リスト部分 */}
               <View style={styles.valueListScroll}>
                 {values.map((v) => (
                   <TouchableOpacity

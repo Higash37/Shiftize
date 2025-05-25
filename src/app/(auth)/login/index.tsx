@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/services/auth/useAuth";
-import { LoginForm } from "@/modules/login/loginView/LoginForm";
+import { LoginForm } from "@/modules/login-view/loginView/LoginForm";
 
 export default function Login() {
   const { signIn } = useAuth();

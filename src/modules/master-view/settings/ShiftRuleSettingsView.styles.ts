@@ -1,0 +1,66 @@
+import { StyleSheet } from "react-native";
+
+export const shiftRuleSettingsViewStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F2F2F7",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 32,
+  },
+  card: {
+    width: "70%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+    color: "#222",
+  },
+  listItemRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F2F2F7",
+  },
+  listText: { fontSize: 16, color: "#222" },
+  saveButton: {
+    backgroundColor: "#1976D2",
+    borderRadius: 8,
+    padding: 14,
+    alignItems: "center",
+    marginTop: 8,
+    width: "100%",
+    alignSelf: "center",
+  },
+  saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  valueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  valueTouchable: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: "#F2F2F7",
+    marginHorizontal: 4,
+  },
+  valueText: {
+    fontSize: 18,
+    color: "#1976D2",
+    fontWeight: "bold",
+    minWidth: 56,
+    textAlign: "center",
+  },
+});

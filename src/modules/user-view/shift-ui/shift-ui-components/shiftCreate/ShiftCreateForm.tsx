@@ -24,8 +24,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { AntDesign } from "@expo/vector-icons";
-import TimeSelect from "@/modules/shift-ui/shift-ui-components/TimeSelect";
-import CalendarModal from "@/modules/calendar/calendar-components/calendar-modal/CalendarModal";
+import TimeSelect from "@/modules/user-view/shift-ui/shift-ui-components/TimeSelect";
+import CalendarModal from "@/modules/child-components/calendar/calendar-components/calendar-modal/CalendarModal";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import type {
   Shift,
@@ -33,7 +33,7 @@ import type {
   ShiftType,
 } from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
-import type { ExtendedUser } from "@/modules/user-management/user-types/components";
+import type { ExtendedUser } from "@/modules/child-components/user-management/user-types/components";
 import { Header } from "@/common/common-ui/ui-layout";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";

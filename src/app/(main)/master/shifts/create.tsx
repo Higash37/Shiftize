@@ -26,19 +26,19 @@ import {
 import { db } from "@/services/firebase/firebase";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import TimeSelect from "@/modules/shift-ui/shift-ui-components/TimeSelect";
-import CalendarModal from "@/modules/calendar/calendar-components/calendar-modal/CalendarModal";
+import TimeSelect from "@/modules/user-view/shift-ui/shift-ui-components/TimeSelect";
+import CalendarModal from "@/modules/child-components/calendar/calendar-components/calendar-modal/CalendarModal";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
-import type { ExtendedUser } from "@/modules/user-management/user-types/components";
+import type { ExtendedUser } from "@/modules/child-components/user-management/user-types/components";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getUserData, type UserData } from "@/services/firebase/firebase";
 import { Picker } from "@react-native-picker/picker";
-import { useUsers } from "@/modules/user-management/user-hooks/useUserList";
+import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 
 interface ShiftData {
   startTime: string;
