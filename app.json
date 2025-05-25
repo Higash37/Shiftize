@@ -31,7 +31,22 @@
       "lang": "ja",
       "scope": "/",
       "themeColor": "#4A90E2",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff",
+      "display": "standalone",
+      "startUrl": "/",
+      "orientation": "portrait",
+      "icons": [
+        {
+          "src": "/assets/PWAIcon.png",
+          "sizes": "192x192",
+          "type": "image.png"
+        },
+        {
+          "src": "./assets/PWAImage512.png",
+          "sizes": "512x512",
+          "type": "image.png"
+        }
+      ]
     },
     "scheme": "shift-scheduler-app",
     "plugins": ["expo-router"],
