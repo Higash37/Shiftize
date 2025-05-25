@@ -1,18 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
+import { ShiftTimeSlotProps } from "./types";
+import { shiftTimeSlotStyles as styles } from "./styles";
 
-// レスポンシブデザイン用の定数
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
-
-interface TimeSlotProps {
-  type: "staff" | "class";
-  startTime: string;
-  endTime: string;
-}
-
-export const ShiftTimeSlot: React.FC<TimeSlotProps> = ({
+export const ShiftTimeSlot: React.FC<ShiftTimeSlotProps> = ({
   type,
   startTime,
   endTime,
@@ -36,25 +28,3 @@ export const ShiftTimeSlot: React.FC<TimeSlotProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  timeSlot: {
-    marginBottom: 8,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  timeSlotText: {
-    fontSize: IS_SMALL_DEVICE ? 12 : 14,
-    fontWeight: "500",
-  },
-  timeSlotType: {
-    width: 60,
-    fontSize: IS_SMALL_DEVICE ? 12 : 14,
-    fontWeight: "500",
-  },
-  timeSlotTime: {
-    fontSize: IS_SMALL_DEVICE ? 12 : 14,
-    fontWeight: "500",
-    color: colors.text.primary,
-  },
-});

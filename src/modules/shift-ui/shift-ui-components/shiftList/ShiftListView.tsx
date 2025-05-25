@@ -1,12 +1,10 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   View,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Text,
-  Dimensions,
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
@@ -16,15 +14,10 @@ import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
 import { useAuth } from "@/services/auth/useAuth";
 import { format } from "date-fns";
-import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 import { ShiftListItem } from "./ShiftListItem";
 import { ShiftDetailsView } from "../shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "../../shift-ui-utils/shift-time.utils";
-
-// レスポンシブデザイン用の定数
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
-const IS_TABLET = SCREEN_WIDTH > 768;
+import { shiftListViewStyles as styles } from "./styles";
 
 export const UserShiftList: React.FC = () => {
   const router = useRouter();
@@ -166,7 +159,7 @@ export const UserShiftList: React.FC = () => {
           // レスポンシブ対応のプロパティを追加
           responsiveSize={{
             container: { width: "100%" },
-            day: { fontSize: IS_SMALL_DEVICE ? 12 : 14 },
+            day: { fontSize: 13 },
           }}
         />
       </View>
@@ -219,53 +212,3 @@ export const UserShiftList: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  calendarContainer: {
-    marginTop: 0,
-    marginBottom: 8,
-    alignItems: "center",
-    width: "100%",
-  },
-  listContainer: {
-    flex: 1,
-    width: "100%",
-  },
-  listContentContainer: {
-    alignItems: "center",
-    paddingHorizontal: IS_SMALL_DEVICE ? 8 : 16,
-  },
-  noShiftContainer: {
-    padding: 16,
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    width: "100%",
-    maxWidth: IS_TABLET ? 600 : "95%",
-  },
-  noShiftText: {
-    fontSize: IS_SMALL_DEVICE ? 12 : 14,
-    color: colors.text.secondary,
-  },
-  addButton: {
-    position: "absolute",
-    right: 20,
-    bottom: 20,
-    width: IS_SMALL_DEVICE ? 48 : 56,
-    height: IS_SMALL_DEVICE ? 48 : 56,
-    borderRadius: IS_SMALL_DEVICE ? 24 : 28,
-    backgroundColor: colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    ...getPlatformShadow(4),
-  },
-});
