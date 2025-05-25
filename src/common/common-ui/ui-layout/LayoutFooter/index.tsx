@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity, Text, Dimensions } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import Toast from "react-native-toast-message";
 import {
@@ -13,6 +13,10 @@ import { styles } from "./styles";
 import { TabItem } from "../types";
 import { FooterProps } from "./types";
 
+// レスポンシブデザイン用の定数
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
+
 // 講師用フッターのタブ設定
 const TEACHER_TABS: TabItem[] = [
   {
@@ -22,7 +26,7 @@ const TEACHER_TABS: TabItem[] = [
     icon: (active: boolean) => (
       <MaterialIcons
         name="home"
-        size={24}
+        size={IS_SMALL_DEVICE ? 20 : 24}
         color={active ? colors.primary : colors.text.secondary}
       />
     ),
@@ -35,7 +39,7 @@ const TEACHER_TABS: TabItem[] = [
     icon: (active: boolean) => (
       <MaterialIcons
         name="assignment"
-        size={24}
+        size={IS_SMALL_DEVICE ? 20 : 24}
         color={active ? colors.primary : colors.text.secondary}
       />
     ),
@@ -47,7 +51,7 @@ const TEACHER_TABS: TabItem[] = [
     path: "/teacher/shifts/create",
     icon: (active: boolean) => (
       <View style={styles.addButtonContainer}>
-        <AntDesign name="plus" size={24} color="white" />
+        <AntDesign name="plus" size={IS_SMALL_DEVICE ? 20 : 24} color="white" />
       </View>
     ),
     isUnderDevelopment: false,
@@ -59,7 +63,7 @@ const TEACHER_TABS: TabItem[] = [
     icon: (active: boolean) => (
       <FontAwesome5
         name="calendar-alt"
-        size={24}
+        size={IS_SMALL_DEVICE ? 20 : 24}
         color={active ? colors.primary : colors.text.secondary}
       />
     ),
@@ -72,7 +76,7 @@ const TEACHER_TABS: TabItem[] = [
     icon: (active: boolean) => (
       <Ionicons
         name="information-circle"
-        size={24}
+        size={IS_SMALL_DEVICE ? 20 : 24}
         color={active ? colors.primary : colors.text.secondary}
       />
     ),

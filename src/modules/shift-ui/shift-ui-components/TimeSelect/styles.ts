@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { TimeSelectStyles } from "./types";
 import {
@@ -6,27 +6,41 @@ import {
   shiftUIStyles,
 } from "../../shift-ui-utils/ui-constants";
 
+// レスポンシブデザイン用の定数
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
+const IS_TABLET = SCREEN_WIDTH > 768;
+
 export const styles = StyleSheet.create<TimeSelectStyles>({
   ...shiftUIStyles,
   container: {
     ...shiftUIStyles.container,
     marginBottom: shiftUIConstants.spacing.md,
+    padding: IS_SMALL_DEVICE
+      ? shiftUIConstants.spacing.sm
+      : shiftUIConstants.spacing.md,
   },
   timeContainer: {
     flexDirection: "row",
-    gap: shiftUIConstants.spacing.md,
+    gap: IS_SMALL_DEVICE
+      ? shiftUIConstants.spacing.sm
+      : shiftUIConstants.spacing.md,
   },
   timeSelect: {
     flex: 1,
   },
   label: {
     ...shiftUIStyles.label,
+    fontSize: shiftUIConstants.fontSize.md,
   },
   button: {
     ...shiftUIStyles.input,
+    padding: IS_SMALL_DEVICE
+      ? shiftUIConstants.spacing.sm
+      : shiftUIConstants.spacing.md,
   },
   buttonText: {
-    fontSize: shiftUIConstants.fontSize.lg,
+    fontSize: shiftUIConstants.fontSize.md,
     color: colors.text.primary,
   },
   modalOverlay: {
@@ -36,20 +50,20 @@ export const styles = StyleSheet.create<TimeSelectStyles>({
     alignItems: "center",
   },
   modalContent: {
-    width: "80%",
-    maxHeight: "80%",
+    width: IS_SMALL_DEVICE ? "90%" : "80%",
+    maxHeight: IS_SMALL_DEVICE ? "90%" : "80%",
     backgroundColor: colors.background,
     borderRadius: 8,
-    padding: 16,
+    padding: IS_SMALL_DEVICE ? 12 : 16,
   },
   optionsContainer: {
-    maxHeight: 300,
+    maxHeight: IS_SMALL_DEVICE ? 250 : 300,
   },
   scrollContainer: {
-    maxHeight: 300,
+    maxHeight: IS_SMALL_DEVICE ? 250 : 300,
   },
   optionItem: {
-    padding: 12,
+    padding: IS_SMALL_DEVICE ? 10 : 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -57,7 +71,7 @@ export const styles = StyleSheet.create<TimeSelectStyles>({
     backgroundColor: colors.primary,
   },
   optionText: {
-    fontSize: 16,
+    fontSize: shiftUIConstants.fontSize.md,
     color: colors.text.primary,
   },
   selectedOptionText: {

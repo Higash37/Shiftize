@@ -15,6 +15,10 @@ export interface ShiftCalendarProps {
   onMonthChange?: (month: { dateString: string }) => void;
   markedDates?: Record<string, MarkedDate>;
   onMount?: () => void;
+  responsiveSize?: {
+    container?: any;
+    day?: any;
+  };
 }
 
 export interface DayComponentProps {

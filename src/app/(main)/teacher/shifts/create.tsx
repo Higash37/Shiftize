@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Animated,
   Alert,
+  Dimensions,
+  useWindowDimensions,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import {
@@ -40,6 +42,11 @@ import { Header } from "@/common/common-ui/ui-layout";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getUserData, type UserData } from "@/services/firebase/firebase";
+
+// レスポンシブデザイン用の定数
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
+const IS_TABLET = SCREEN_WIDTH > 768;
 
 interface ShiftData {
   startTime: string;
@@ -555,59 +562,59 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    padding: 16,
+    padding: IS_SMALL_DEVICE ? 12 : 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     fontWeight: "bold",
     color: colors.text.primary,
-    marginBottom: 16,
+    marginBottom: IS_SMALL_DEVICE ? 12 : 16,
   },
   dateButton: {
-    padding: 12,
+    padding: IS_SMALL_DEVICE ? 10 : 12,
     backgroundColor: colors.surface,
     borderRadius: 8,
   },
   dateButtonText: {
-    fontSize: 16,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     color: colors.text.primary,
   },
   toggleButton: {
-    padding: 12,
+    padding: IS_SMALL_DEVICE ? 10 : 12,
     backgroundColor: colors.surface,
     borderRadius: 8,
-    marginBottom: 16,
+    marginBottom: IS_SMALL_DEVICE ? 12 : 16,
   },
   toggleButtonText: {
-    fontSize: 16,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     color: colors.text.primary,
   },
   classesContainer: {
-    gap: 16,
+    gap: IS_SMALL_DEVICE ? 12 : 16,
   },
   classTimeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: IS_SMALL_DEVICE ? 8 : 16,
   },
   removeButton: {
-    padding: 8,
+    padding: IS_SMALL_DEVICE ? 6 : 8,
   },
   addButton: {
-    padding: 12,
+    padding: IS_SMALL_DEVICE ? 10 : 12,
     backgroundColor: colors.surface,
     borderRadius: 8,
     alignItems: "center",
   },
   addButtonText: {
-    fontSize: 16,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     color: colors.text.primary,
   },
   submitButton: {
-    margin: 16,
-    padding: 16,
+    margin: IS_SMALL_DEVICE ? 12 : 16,
+    padding: IS_SMALL_DEVICE ? 14 : 16,
     backgroundColor: colors.primary,
     borderRadius: 8,
     alignItems: "center",
@@ -616,36 +623,36 @@ const styles = StyleSheet.create({
     backgroundColor: colors.text.disabled,
   },
   submitButtonText: {
-    fontSize: 16,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     fontWeight: "bold",
     color: colors.text.white,
   },
   selectedDatesContainer: {
-    marginTop: 12,
-    gap: 8,
+    marginTop: IS_SMALL_DEVICE ? 10 : 12,
+    gap: IS_SMALL_DEVICE ? 6 : 8,
   },
   selectedDateCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    padding: IS_SMALL_DEVICE ? 12 : 16,
     backgroundColor: colors.surface,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
   },
   selectedDateText: {
-    fontSize: 16,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     color: colors.text.primary,
   },
   removeDateButton: {
     backgroundColor: colors.error + "20",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: IS_SMALL_DEVICE ? 10 : 12,
+    paddingVertical: IS_SMALL_DEVICE ? 4 : 6,
     borderRadius: 6,
   },
   removeDateText: {
-    fontSize: 14,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14,
     color: colors.error,
   },
   successMessage: {
@@ -654,27 +661,28 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: "#4CAF50",
-    padding: 16,
+    padding: IS_SMALL_DEVICE ? 12 : 16,
     alignItems: "center",
     justifyContent: "center",
     zIndex: 1000,
   },
   successText: {
     color: "white",
-    fontSize: 16,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     fontWeight: "bold",
   },
   deleteButton: {
     backgroundColor: colors.error,
-    padding: 16,
+    padding: IS_SMALL_DEVICE ? 14 : 16,
     borderRadius: 8,
     alignItems: "center",
-    marginTop: 16,
-    marginBottom: 32,
+    marginHorizontal: IS_SMALL_DEVICE ? 12 : 16,
+    marginTop: IS_SMALL_DEVICE ? 12 : 16,
+    marginBottom: IS_SMALL_DEVICE ? 24 : 32,
   },
   deleteButtonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     fontWeight: "bold",
   },
 });

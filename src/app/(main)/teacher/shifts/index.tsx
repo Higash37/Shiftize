@@ -8,6 +8,8 @@ import {
   Text,
   Dimensions,
   Animated,
+  useWindowDimensions,
+  Platform,
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
@@ -21,9 +23,10 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const CALENDAR_WIDTH = SCREEN_WIDTH * 0.35;
-const LIST_WIDTH = CALENDAR_WIDTH * 1.1;
+// レスポンシブデザイン用の定数
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
+const IS_TABLET = SCREEN_WIDTH > 768;
 
 interface TimeSlot {
   type: "staff" | "class";
@@ -136,14 +139,16 @@ export default function TeacherShiftsScreen() {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
 
-    // 現在のユーザーのシフトのみをフィルタリング
+    // 現在のユーザーのシフトのみをフィルタリング（削除済みを除外）
     return shifts
       .filter((shift) => {
         const shiftDate = new Date(shift.date);
         return (
           shiftDate >= firstDay &&
           shiftDate <= lastDay &&
-          shift.userId === user.uid
+          shift.userId === user.uid &&
+          shift.status !== "deleted" && // 削除済みシフトを除外
+          shift.status !== "purged" // 完全非表示シフトを除外
         );
       })
       .sort((a, b) => {
@@ -224,6 +229,11 @@ export default function TeacherShiftsScreen() {
           onDayPress={handleDayPress}
           onMonthChange={handleMonthChange}
           onMount={handleCalendarMount}
+          // レスポンシブ対応のプロパティを追加
+          responsiveSize={{
+            container: { width: "100%" },
+            day: { fontSize: IS_SMALL_DEVICE ? 12 : 14 },
+          }}
         />
       </View>
       {isCalendarMounted && displayMonth && (
@@ -255,37 +265,61 @@ export default function TeacherShiftsScreen() {
                     >
                       <AntDesign
                         name="user"
-                        size={20}
+                        size={IS_SMALL_DEVICE ? 16 : 20}
                         color={colors.primary}
                         style={styles.icon}
                       />
                       <View style={styles.textContainer}>
-                        <Text style={styles.shiftText}>
-                          {format(new Date(shift.date), "d日(E)", {
-                            locale: ja,
-                          })}
-                          {"  "}
+                        <View style={styles.shiftInfoContainer}>
+                          {/* 日付表示部分を固定幅に */}
+                          <View style={styles.dateContainer}>
+                            <Text style={styles.dateText}>
+                              {format(new Date(shift.date), "d日(E)", {
+                                locale: ja,
+                              })}
+                            </Text>
+                          </View>
+
+                          {/* ステータスラベルを固定幅に */}
+                          <View style={styles.statusContainer}>
+                            <Text
+                              style={[
+                                styles.staffLabel,
+                                {
+                                  backgroundColor:
+                                    colors.status[shift.status] + "20",
+                                  color: colors.status[shift.status],
+                                },
+                              ]}
+                            >
+                              {shift.status === "draft"
+                                ? "下書き"
+                                : shift.status === "approved"
+                                ? "承認済"
+                                : shift.status === "pending"
+                                ? "承認待ち"
+                                : shift.status === "rejected"
+                                ? "却下"
+                                : shift.status === "deletion_requested"
+                                ? "削除申請中"
+                                : shift.status === "deleted"
+                                ? "削除済"
+                                : shift.status === "completed"
+                                ? "完了"
+                                : ""}
+                            </Text>
+                          </View>
+
+                          {/* 時間表示 */}
                           <Text
                             style={[
-                              styles.staffLabel,
-                              {
-                                backgroundColor:
-                                  colors.status[shift.status] + "20",
-                                color: colors.status[shift.status],
-                              },
+                              styles.timeText,
+                              IS_SMALL_DEVICE && styles.smallTimeText,
                             ]}
                           >
-                            {shift.status === "draft"
-                              ? "下書き"
-                              : shift.status === "approved"
-                              ? "承認済"
-                              : shift.status === "pending"
-                              ? "承認待ち"
-                              : ""}
+                            {shift.startTime} ~ {shift.endTime}
                           </Text>
-                          {"  "}
-                          {shift.startTime} ~ {shift.endTime}
-                        </Text>
+                        </View>
                       </View>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -297,7 +331,7 @@ export default function TeacherShiftsScreen() {
                       <Text style={styles.detailsText}>詳細</Text>
                       <AntDesign
                         name={isSelected ? "down" : "right"}
-                        size={16}
+                        size={IS_SMALL_DEVICE ? 14 : 16}
                         color={colors.text.secondary}
                         style={styles.detailsIcon}
                       />
@@ -363,6 +397,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginBottom: 8,
     alignItems: "center",
+    width: "100%",
   },
   mainContent: {
     flex: 1,
@@ -370,21 +405,24 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
+    width: "100%",
   },
   listContentContainer: {
     alignItems: "center",
+    paddingHorizontal: IS_SMALL_DEVICE ? 8 : 16,
   },
   shiftItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 12,
+    padding: IS_SMALL_DEVICE ? 8 : 12,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
     borderRadius: 8,
     marginBottom: 8,
-    width: LIST_WIDTH,
+    width: "100%",
+    maxWidth: IS_TABLET ? 600 : "95%",
     ...getPlatformShadow(2),
   },
   shiftContent: {
@@ -398,10 +436,38 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: 8,
   },
-  shiftText: {
-    fontSize: 16,
+  shiftInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  dateContainer: {
+    width: IS_SMALL_DEVICE ? 65 : 85,
+    marginRight: 8,
+  },
+  dateText: {
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     fontWeight: "bold",
     color: colors.text.primary,
+    textAlign: "left",
+  },
+  statusContainer: {
+    width: IS_SMALL_DEVICE ? 80 : 90,
+    marginRight: 8,
+  },
+  timeText: {
+    fontSize: IS_SMALL_DEVICE ? 12 : 14,
+    color: colors.text.primary,
+    flex: 1,
+  },
+  shiftText: {
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
+    fontWeight: "bold",
+    color: colors.text.primary,
+    flexWrap: "wrap",
+  },
+  smallTimeText: {
+    fontSize: 12,
   },
   staffLabel: {
     color: colors.primary,
@@ -409,9 +475,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14,
+    textAlign: "center",
+    width: "100%", // 親のステータスコンテナに合わせて幅一杯に
+    overflow: "hidden",
   },
   statusLabel: {
-    fontSize: 14,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14,
     fontWeight: "500",
   },
   detailsButton: {
@@ -422,14 +492,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   detailsText: {
-    fontSize: 14,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14,
     color: colors.text.secondary,
   },
   detailsContainer: {
-    width: LIST_WIDTH,
+    width: "100%",
+    maxWidth: IS_TABLET ? 600 : "95%",
     backgroundColor: colors.surface,
     borderRadius: 8,
-    padding: 12,
+    padding: IS_SMALL_DEVICE ? 8 : 12,
     marginTop: -8,
     marginBottom: 8,
     alignSelf: "center",
@@ -451,16 +522,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   timeSlotText: {
-    fontSize: 14,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14,
     fontWeight: "500",
   },
   timeSlotType: {
     width: 60,
-    fontSize: 14,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14,
     fontWeight: "500",
   },
   timeSlotTime: {
-    fontSize: 14,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14,
     fontWeight: "500",
     color: colors.text.primary,
   },
@@ -471,9 +542,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     bottom: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: IS_SMALL_DEVICE ? 48 : 56,
+    height: IS_SMALL_DEVICE ? 48 : 56,
+    borderRadius: IS_SMALL_DEVICE ? 24 : 28,
     backgroundColor: colors.primary,
     justifyContent: "center",
     alignItems: "center",
@@ -484,14 +555,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.surface,
     borderRadius: 8,
-    width: LIST_WIDTH,
+    width: "100%",
+    maxWidth: IS_TABLET ? 600 : "95%",
   },
   noShiftText: {
-    fontSize: 14,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14,
     color: colors.text.secondary,
   },
   monthLabel: {
-    fontSize: 16,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
     fontWeight: "600",
     color: colors.text.primary,
     textAlign: "center",

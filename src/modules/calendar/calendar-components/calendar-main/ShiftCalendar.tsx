@@ -38,6 +38,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   onMonthChange,
   markedDates: propMarkedDates,
   onMount,
+  responsiveSize,
 }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date(currentMonth));
@@ -51,9 +52,10 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         width: isSmallScreen ? "90%" : calendarWidth, // 85%に縮小
         maxWidth: 480,
         marginHorizontal: "auto", // 中央揃え
+        ...(responsiveSize?.container || {}),
       },
     }),
-    [calendarWidth, isSmallScreen]
+    [calendarWidth, isSmallScreen, responsiveSize]
   );
 
   useEffect(() => {
@@ -166,6 +168,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
             state={state}
             marking={marking}
             onPress={(dateString) => onDayPress({ dateString })}
+            responsiveSize={responsiveSize?.day}
           />
         )}
       />

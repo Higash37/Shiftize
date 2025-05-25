@@ -14,7 +14,8 @@ export const DayComponent = memo<{
   state?: DayComponentProps["state"];
   marking?: DayComponentProps["marking"];
   onPress: (dateString: string) => void;
-}>(({ date, state, marking, onPress }) => {
+  responsiveSize?: any;
+}>(({ date, state, marking, onPress, responsiveSize }) => {
   // レスポンシブサイズの取得
   const { dayWidth, dayHeight, isSmallScreen } = useResponsiveCalendarSize(); // スタイルの動的生成
   const dynamicStyles = useMemo(() => {
@@ -28,11 +29,12 @@ export const DayComponent = memo<{
         borderRadius: Math.min(dayWidth, dayHeight) / 2,
       },
       dayText: {
-        fontSize: isSmallScreen ? 16 : 14, // フォントサイズをさらに小さく
+        fontSize: isSmallScreen ? 12 : 14, // フォントサイズをさらに小さく
         letterSpacing: -1.0, // 文字間隔を狭める
+        ...(responsiveSize?.day || {}),
       },
     };
-  }, [dayWidth, dayHeight, isSmallScreen]);
+  }, [dayWidth, dayHeight, isSmallScreen, responsiveSize]);
 
   // 選択中の日付かどうか
   const isSelected = marking?.selected;

@@ -1,16 +1,21 @@
 import { colors } from "@/common/common-theme/ThemeColors";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
+
+// レスポンシブデザイン用の定数
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
+const IS_TABLET = SCREEN_WIDTH > 768;
 
 /**
  * シフトUI用の共通スタイル定数
  */
 export const shiftUIConstants = {
   spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
+    xs: IS_SMALL_DEVICE ? 2 : 4,
+    sm: IS_SMALL_DEVICE ? 6 : 8,
+    md: IS_SMALL_DEVICE ? 12 : 16,
+    lg: IS_SMALL_DEVICE ? 20 : 24,
+    xl: IS_SMALL_DEVICE ? 28 : 32,
   },
   borderRadius: {
     sm: 4,
@@ -18,10 +23,10 @@ export const shiftUIConstants = {
     lg: 16,
   },
   fontSize: {
-    sm: 12,
-    md: 14,
-    lg: 16,
-    xl: 18,
+    sm: IS_SMALL_DEVICE ? 10 : 12,
+    md: IS_SMALL_DEVICE ? 12 : 14,
+    lg: IS_SMALL_DEVICE ? 14 : 16,
+    xl: IS_SMALL_DEVICE ? 16 : 18,
   },
 };
 
