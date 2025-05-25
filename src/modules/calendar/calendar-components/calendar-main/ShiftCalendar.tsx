@@ -135,6 +135,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
               setTempDate(new Date(date.timestamp));
               setShowDatePicker(true);
             }}
+            // responsiveSizeのheaderプロパティがあれば渡す
+            responsiveStyle={responsiveSize?.header}
           />
         )}
         theme={{

@@ -18,6 +18,7 @@ export interface ShiftCalendarProps {
   responsiveSize?: {
     container?: any;
     day?: any;
+    header?: any;
   };
 }
 

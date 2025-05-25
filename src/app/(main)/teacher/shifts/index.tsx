@@ -442,14 +442,13 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   dateContainer: {
-    width: IS_SMALL_DEVICE ? 65 : 85,
+    width: IS_SMALL_DEVICE ? 60 : 80,
     marginRight: 8,
   },
   dateText: {
     fontSize: IS_SMALL_DEVICE ? 14 : 16,
     fontWeight: "bold",
     color: colors.text.primary,
-    textAlign: "left",
   },
   statusContainer: {
     width: IS_SMALL_DEVICE ? 80 : 90,

@@ -13,6 +13,7 @@ import { useResponsiveCalendarSize } from "../../calendar-constants/constants";
 interface CalendarHeaderProps {
   date: Date;
   onYearMonthSelect: () => void;
+  responsiveStyle?: any;
 }
 
 /**
@@ -20,7 +21,7 @@ interface CalendarHeaderProps {
  * 年月表示と日付選択ボタンを含む
  */
 export const CalendarHeader = memo<CalendarHeaderProps>(
-  ({ date, onYearMonthSelect }) => {
+  ({ date, onYearMonthSelect, responsiveStyle }) => {
     const { isSmallScreen } = useResponsiveCalendarSize();
     const { width } = useWindowDimensions();
 
@@ -29,12 +30,15 @@ export const CalendarHeader = memo<CalendarHeaderProps>(
       () => ({
         monthText: {
           fontSize: isSmallScreen ? 14 : 16,
+          ...(responsiveStyle?.fontSize
+            ? { fontSize: responsiveStyle.fontSize }
+            : {}),
         },
         monthSelector: {
           padding: isSmallScreen ? 4 : 8,
         },
       }),
-      [isSmallScreen]
+      [isSmallScreen, responsiveStyle]
     ); // 日付が無効な場合のフォールバック値
     const validDate = isNaN(date.getTime()) ? new Date() : date;
     const year = validDate.getFullYear();
