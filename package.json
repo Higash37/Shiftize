@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export -p web",
-    "vercel-build": "expo export -p web"
+    "vercel-build": "expo export -p web --output-dir dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

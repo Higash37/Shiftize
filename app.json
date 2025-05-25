@@ -25,7 +25,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "output": "static",
+      "name": "シフトスケジューラー",
+      "shortName": "シフト管理",
+      "lang": "ja",
+      "scope": "/",
+      "themeColor": "#4A90E2",
+      "backgroundColor": "#ffffff"
     },
     "scheme": "shift-scheduler-app",
     "plugins": ["expo-router"],
