@@ -20,7 +20,7 @@
 
 ````typescript
 interface TimeSlot {
-  type: "staff" | "class";
+  type: "user" | "class";
   startTime: string;
   endTime: string;
 }

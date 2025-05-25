@@ -50,7 +50,7 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
               <View style={styles.statusContainer}>
                 <Text
                   style={[
-                    styles.staffLabel,
+                    styles.userLabel,
                     {
                       backgroundColor: colors.status[shift.status] + "20",
                       color: colors.status[shift.status],

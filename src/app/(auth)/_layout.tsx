@@ -14,7 +14,7 @@ export default function AuthLayout() {
         if (role === "master") {
           route = "/(main)/master/home";
         } else if (role === "user") {
-          route = "/(main)/teacher/home";
+          route = "/(main)/user/home";
         }
         if (route) {
           await router.replace(route);

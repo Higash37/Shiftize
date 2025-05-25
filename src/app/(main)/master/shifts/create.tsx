@@ -201,7 +201,7 @@ export default function MasterShiftCreateScreen() {
           date,
           startTime: shiftData.startTime,
           endTime: shiftData.endTime,
-          type: shiftData.hasClass ? "class" : "staff",
+          type: shiftData.hasClass ? "class" : "user",
           classes: shiftData.classes,
           status: selectedStatus, // マスターが選択したステータス
           createdAt: new Date(),
@@ -273,7 +273,7 @@ export default function MasterShiftCreateScreen() {
         date: shiftData.dates[0], // 編集では最初の日付のみ使用
         startTime: shiftData.startTime,
         endTime: shiftData.endTime,
-        type: shiftData.hasClass ? "class" : "staff",
+        type: shiftData.hasClass ? "class" : "user",
         classes: shiftData.classes,
         status: selectedStatus,
         updatedAt: new Date(),

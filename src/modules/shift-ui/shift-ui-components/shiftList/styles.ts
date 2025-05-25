@@ -59,7 +59,7 @@ export const shiftListItemStyles = StyleSheet.create({
   smallTimeText: {
     fontSize: 12,
   },
-  staffLabel: {
+  userLabel: {
     color: colors.primary,
     backgroundColor: colors.primary + "20",
     paddingHorizontal: 8,

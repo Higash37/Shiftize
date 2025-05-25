@@ -45,7 +45,7 @@ export default function UsersManagement() {
   const [newUser, setNewUser] = useState({
     nickname: "",
     password: "",
-    role: "staff",
+    role: "user",
   });
   const [selectedUser, setSelectedUser] = useState<UserManagement | null>(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -101,7 +101,7 @@ export default function UsersManagement() {
       });
 
       Alert.alert("成功", "ユーザーを追加しました");
-      setNewUser({ nickname: "", password: "", role: "staff" });
+      setNewUser({ nickname: "", password: "", role: "user" });
       setShowAddForm(false);
       fetchUsers();
     } catch (error) {
@@ -218,14 +218,14 @@ export default function UsersManagement() {
                 <TouchableOpacity
                   style={[
                     styles.roleButton,
-                    newUser.role === "staff" && styles.roleButtonActive,
+                    newUser.role === "user" && styles.roleButtonActive,
                   ]}
-                  onPress={() => setNewUser({ ...newUser, role: "staff" })}
+                  onPress={() => setNewUser({ ...newUser, role: "user" })}
                 >
                   <Text
                     style={[
                       styles.roleButtonText,
-                      newUser.role === "staff" && styles.roleButtonTextActive,
+                      newUser.role === "user" && styles.roleButtonTextActive,
                     ]}
                   >
                     スタッフ

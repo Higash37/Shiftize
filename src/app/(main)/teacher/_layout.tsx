@@ -7,7 +7,7 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import { Footer } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
 
-export default function TeacherLayout() {
+export default function userLayout() {
   const { user, loading, role } = useAuth();
   const router = useRouter();
   const segments = useSegments();
@@ -31,7 +31,7 @@ export default function TeacherLayout() {
     // 認証済みユーザーがauthグループにいる場合はメインページへリダイレクト
     const inAuthGroup = segments[0] === "(auth)";
     if (inAuthGroup) {
-      router.replace("/(main)/teacher/home");
+      router.replace("/(main)/user/home");
     }
   }, [user, loading, role, segments]);
 

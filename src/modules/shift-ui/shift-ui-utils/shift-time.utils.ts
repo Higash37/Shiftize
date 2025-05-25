@@ -1,5 +1,5 @@
 interface TimeSlot {
-  type: "staff" | "class";
+  type: "user" | "class";
   startTime: string;
   endTime: string;
 }
@@ -26,7 +26,7 @@ export const splitShiftIntoTimeSlots = (shift: any): TimeSlot[] => {
     // 授業開始前のスタッフ時間
     if (currentTime < classStart) {
       slots.push({
-        type: "staff",
+        type: "user",
         startTime: currentTime.toTimeString().slice(0, 5),
         endTime: classStart.toTimeString().slice(0, 5),
       });
@@ -45,7 +45,7 @@ export const splitShiftIntoTimeSlots = (shift: any): TimeSlot[] => {
   // 最後の授業後のスタッフ時間
   if (currentTime < endTime) {
     slots.push({
-      type: "staff",
+      type: "user",
       startTime: currentTime.toTimeString().slice(0, 5),
       endTime: endTime.toTimeString().slice(0, 5),
     });

@@ -18,11 +18,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
 
 // 講師用フッターのタブ設定
-const TEACHER_TABS: TabItem[] = [
+const user_TABS: TabItem[] = [
   {
     name: "home",
     label: "ホーム",
-    path: "/teacher/home",
+    path: "/user/home",
     icon: (active: boolean) => (
       <MaterialIcons
         name="home"
@@ -35,7 +35,7 @@ const TEACHER_TABS: TabItem[] = [
   {
     name: "tasks",
     label: "タスク",
-    path: "/teacher/tasks",
+    path: "/user/tasks",
     icon: (active: boolean) => (
       <MaterialIcons
         name="assignment"
@@ -48,7 +48,7 @@ const TEACHER_TABS: TabItem[] = [
   {
     name: "create",
     label: "シフト追加",
-    path: "/teacher/shifts/create",
+    path: "/user/shifts/create",
     icon: (active: boolean) => (
       <View style={styles.addButtonContainer}>
         <AntDesign name="plus" size={IS_SMALL_DEVICE ? 20 : 24} color="white" />
@@ -59,7 +59,7 @@ const TEACHER_TABS: TabItem[] = [
   {
     name: "shifts",
     label: "シフト",
-    path: "/teacher/shifts",
+    path: "/user/shifts",
     icon: (active: boolean) => (
       <FontAwesome5
         name="calendar-alt"
@@ -72,7 +72,7 @@ const TEACHER_TABS: TabItem[] = [
   {
     name: "info",
     label: "情報",
-    path: "/teacher/info",
+    path: "/user/info",
     icon: (active: boolean) => (
       <Ionicons
         name="information-circle"
@@ -108,7 +108,7 @@ export function Footer({}: FooterProps) {
 
   return (
     <View style={styles.footer}>
-      {TEACHER_TABS.map((tab) => {
+      {user_TABS.map((tab) => {
         const active = pathname === tab.path;
         return (
           <TouchableOpacity

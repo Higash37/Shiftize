@@ -47,7 +47,7 @@ export const ShiftService = {
           date: data.date || "",
           startTime: data.startTime || "",
           endTime: data.endTime || "",
-          type: data.type || "staff",
+          type: data.type || "user",
           subject: data.subject || "",
           isCompleted: data.isCompleted || false,
           status: data.status || "draft",

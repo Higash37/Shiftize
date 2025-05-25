@@ -84,7 +84,7 @@ export const DEFAULT_SHIFT_STATUS_CONFIG: ShiftStatusConfig[] = [
 /**
  * シフトの種類
  */
-export type ShiftType = "staff" | "class" | "deleted";
+export type ShiftType = "user" | "class" | "deleted";
 
 /**
  * 基本的なシフト情報
@@ -159,7 +159,7 @@ export interface RecurringSettings {
  */
 export interface ShiftData {
   id: string;
-  staffName: string;
+  userName: string;
   startTime: string;
   endTime: string;
   color?: string;

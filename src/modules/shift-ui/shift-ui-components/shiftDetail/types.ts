@@ -1,5 +1,5 @@
 export interface TimeSlot {
-  type: "staff" | "class";
+  type: "user" | "class";
   startTime: string;
   endTime: string;
 }
@@ -9,7 +9,7 @@ export interface ShiftDetailsViewProps {
 }
 
 export interface ShiftTimeSlotProps {
-  type: "staff" | "class";
+  type: "user" | "class";
   startTime: string;
   endTime: string;
 }

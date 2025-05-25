@@ -22,7 +22,7 @@ export default function MasterLayout() {
       return;
     } // ユーザーロールが不適切な場合はリダイレクト
     if (role !== "master") {
-      router.replace("/(main)/teacher/home");
+      router.replace("/(main)/user/home");
       return;
     }
 

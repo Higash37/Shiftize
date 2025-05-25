@@ -133,7 +133,7 @@ export const UserShiftList: React.FC = () => {
   };
   const handleShiftEdit = (shift: any) => {
     router.push({
-      pathname: "/(main)/teacher/shifts/create",
+      pathname: "/(main)/user/shifts/create",
       params: {
         mode: "edit",
         shiftId: shift.id,
@@ -205,7 +205,7 @@ export const UserShiftList: React.FC = () => {
 
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => router.push("/(main)/teacher/shifts/create")}
+        onPress={() => router.push("/(main)/user/shifts/create")}
       >
         <AntDesign name="plus" size={24} color="white" />
       </TouchableOpacity>

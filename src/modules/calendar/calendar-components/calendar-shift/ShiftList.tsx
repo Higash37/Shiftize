@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginLeft: 3, // 左余白をさらに小さく
   },
-  staffLabel: {
+  userLabel: {
     fontSize: 14,
     color: colors.text.secondary,
     marginLeft: 8,

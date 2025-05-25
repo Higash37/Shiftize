@@ -15,7 +15,7 @@ const adaptShift = (shift: Shift): ShiftItem => {
     date: shift.date,
     startTime: shift.startTime,
     endTime: shift.endTime,
-    type: shift.type || "staff",
+    type: shift.type || "user",
     subject: shift.subject,
     isCompleted: shift.isCompleted || false,
     status: shift.status,

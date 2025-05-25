@@ -35,7 +35,7 @@ function RootLayoutNav() {
       if (role === "master") {
         router.replace("/(main)/master/home");
       } else if (role === "user") {
-        router.replace("/(main)/teacher/home");
+        router.replace("/(main)/user/home");
       }
     }
   }, [user, role, loading, segments]);
