@@ -39,9 +39,6 @@
     "experiments": {
       "tsconfigPaths": true,
       "rootDir": "src"
-    },
-    "locales": {
-      "ja": "./locales/ja.json"
     }
   }
 }
