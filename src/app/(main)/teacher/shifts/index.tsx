@@ -1,6 +1,6 @@
 import React from "react";
-import { TeacherShiftList } from "../../../../modules/shift-ui/shift-ui-components/shiftList/ShiftListView";
+import { UserShiftList } from "../../../../modules/shift-ui/shift-ui-components/shiftList/ShiftListView";
 
-export default function TeacherShiftsScreen() {
-  return <TeacherShiftList />;
+export default function UserShiftsScreen() {
+  return <UserShiftList />;
 }

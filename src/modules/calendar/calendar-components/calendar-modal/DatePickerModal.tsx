@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -132,6 +132,12 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
   const [tempDate, setTempDate] = useState<Date>(initialDate);
   const [showYearPicker, setShowYearPicker] = useState(true);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
+  // initialDateが変わったら、またはisVisibleがtrueになったらtempDateを更新
+  useEffect(() => {
+    if (isVisible) {
+      setTempDate(initialDate);
+    }
+  }, [initialDate, isVisible]);
 
   // 年選択ハンドラ
   const handleYearSelect = (year: number) => {

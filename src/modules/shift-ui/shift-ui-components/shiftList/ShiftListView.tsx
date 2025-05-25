@@ -26,7 +26,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
 const IS_TABLET = SCREEN_WIDTH > 768;
 
-export const TeacherShiftList: React.FC = () => {
+export const UserShiftList: React.FC = () => {
   const router = useRouter();
   const navigation = useNavigation();
   const { shifts, loading: shiftsLoading, fetchShifts } = useShift();
@@ -138,10 +138,9 @@ export const TeacherShiftList: React.FC = () => {
       }, 100);
     }
   };
-
   const handleShiftEdit = (shift: any) => {
     router.push({
-      pathname: "/teacher/shifts/create",
+      pathname: "/(main)/teacher/shifts/create",
       params: {
         mode: "edit",
         shiftId: shift.id,

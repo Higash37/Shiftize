@@ -45,6 +45,11 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const { calendarWidth, isSmallScreen } = useResponsiveCalendarSize();
   const { width: windowWidth } = useWindowDimensions();
 
+  // currentMonthが変わったらtempDateも更新
+  useEffect(() => {
+    setTempDate(new Date(currentMonth));
+  }, [currentMonth]);
+
   // レスポンシブなスタイルを生成
   const responsiveStyles = useMemo(
     () => ({
@@ -132,7 +137,9 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           <CalendarHeader
             date={new Date(date.timestamp)}
             onYearMonthSelect={() => {
-              setTempDate(new Date(date.timestamp));
+              // 現在のカレンダーの月を正確に反映させる
+              const currentCalendarDate = new Date(date.timestamp);
+              setTempDate(currentCalendarDate);
               setShowDatePicker(true);
             }}
             // responsiveSizeのheaderプロパティがあれば渡す
