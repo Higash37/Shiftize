@@ -8,7 +8,7 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
-import { loginFormStyles as styles } from "./LoginForm.styles";
+import { loginFormStyles } from "./LoginForm.styles";
 import type { LoginFormProps } from "./LoginForm.types";
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
@@ -17,10 +17,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
+  const isWideScreen = width >= 768;
+
+  // フォーカスの状態を管理
+  const [usernameFocused, setUsernameFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const handleLogin = async () => {
     if (!username || !password) {
-      Alert.alert("エラー", "教師IDとパスワードを入力してください");
+      Alert.alert("エラー", "ニックネームとパスワードを入力してください");
       return;
     }
     if (onLogin) {
@@ -29,56 +34,75 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   };
 
   return (
-    <View style={styles.formWrapper}>
-      <View style={styles.formContainer}>
-        <Text style={styles.loginTitle}>ログイン</Text>
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>ニックネーム</Text>
+    <View
+      style={[
+        loginFormStyles.formWrapper,
+        isWideScreen && loginFormStyles.formWrapperWeb,
+      ]}
+    >
+      <View style={loginFormStyles.formContainer}>
+        <Text style={loginFormStyles.loginTitle}>ログイン</Text>
+        <View style={loginFormStyles.form}>
+          <View style={loginFormStyles.inputGroup}>
+            <Text style={loginFormStyles.label}>ニックネーム</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                loginFormStyles.input,
+                usernameFocused && { borderColor: "#1565C0", borderWidth: 2 },
+              ]}
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
+              onFocus={() => setUsernameFocused(true)}
+              onBlur={() => setUsernameFocused(false)}
             />
           </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>パスワード</Text>
+          <View style={loginFormStyles.inputGroup}>
+            <Text style={loginFormStyles.label}>パスワード</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                loginFormStyles.input,
+                passwordFocused && { borderColor: "#1565C0", borderWidth: 2 },
+              ]}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
             />
           </View>
           <TouchableOpacity
-            style={styles.rememberMe}
+            style={loginFormStyles.rememberMe}
             onPress={() => setRememberMe(!rememberMe)}
           >
             <View
-              style={[styles.checkbox, rememberMe && styles.checkboxChecked]}
+              style={[
+                loginFormStyles.checkbox,
+                rememberMe && loginFormStyles.checkboxChecked,
+              ]}
             >
-              {rememberMe && <Text style={styles.checkmark}>✓</Text>}
+              {rememberMe && <Text style={loginFormStyles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.rememberMeText}>ニックネームを保存する</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.loginButtonText}>
-              {loading ? "ログイン中..." : "ログイン"}
+            <Text style={loginFormStyles.rememberMeText}>
+              ニックネームを保存する
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>
-              パスワードを忘れた方はこちら
+          <TouchableOpacity
+            style={[
+              loginFormStyles.loginButton,
+              loading && loginFormStyles.loginButtonDisabled,
+            ]}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.75}
+          >
+            <Text style={loginFormStyles.loginButtonText}>
+              {loading ? "ログイン中..." : "ログイン"}
             </Text>
           </TouchableOpacity>
         </View>
       </View>
-      <Text style={styles.maintenanceText}>
+      <Text style={loginFormStyles.maintenanceText}>
         午前2:00～5:00の間、サーバーメンテナンスのためサービスの利用ができなくなる場合があります。
       </Text>
     </View>
