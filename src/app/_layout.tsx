@@ -3,7 +3,6 @@ import { Stack, Slot, useRouter, useSegments } from "expo-router";
 import { AuthProvider } from "@/services/auth/AuthContext";
 import { useAuth } from "@/services/auth/useAuth";
 import { StatusBar } from "expo-status-bar";
-import { createInitialMasterUser } from "@/services/firebase/firebase";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
@@ -14,12 +13,12 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
-  useEffect(() => {
-    // 初期マスターユーザーの作成
-    createInitialMasterUser().catch((error) => {
-      console.error("初期マスターユーザーの作成に失敗:", error);
-    });
-  }, []);
+  // useEffect(() => {
+  //   // 初期マスターユーザーの作成（本番運用では不要なので削除）
+  //   createInitialMasterUser().catch((error) => {
+  //     console.error("初期マスターユーザーの作成に失敗:", error);
+  //   });
+  // }, []);
 
   useEffect(() => {
     if (loading) return;
