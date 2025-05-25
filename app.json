@@ -25,7 +25,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro",
+      "manifest": "public/manifest.json",
       "name": "シフトスケジューラー",
       "shortName": "シフト管理",
       "lang": "ja",
@@ -34,19 +34,7 @@
       "backgroundColor": "#ffffff",
       "display": "standalone",
       "startUrl": "/",
-      "orientation": "portrait",
-      "icons": [
-        {
-          "src": "/assets/PWAIcon.png",
-          "sizes": "192x192",
-          "type": "image.png"
-        },
-        {
-          "src": "./assets/PWAImage512.png",
-          "sizes": "512x512",
-          "type": "image.png"
-        }
-      ]
+      "orientation": "portrait"
     },
     "scheme": "shift-scheduler-app",
     "plugins": ["expo-router"],
