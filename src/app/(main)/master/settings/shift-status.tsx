@@ -5,7 +5,7 @@ import {
 } from "@/common/common-models/ModelIndex";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
-import { ShiftStatusSettingsView } from "@/modules/master-view/settings/ShiftStatusSettingsView";
+import { ShiftStatusSettingsView } from "@/modules/master-view/settings/shiftStatusSettingsView/ShiftStatusSettingsView";
 
 export default function ShiftStatusSettingsScreen() {
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(

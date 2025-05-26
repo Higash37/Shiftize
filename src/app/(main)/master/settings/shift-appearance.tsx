@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Alert } from "react-native";
 import { db } from "@/services/firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { ShiftAppearanceSettingsView } from "@/modules/master-view/settings/ShiftAppearanceSettingsView";
-import type { ShiftAppSettings } from "@/modules/master-view/settings/ShiftAppearanceSettingsView.types";
+import { ShiftAppearanceSettingsView } from "@/modules/master-view/settings/shiftAppearanceSettingsView/ShiftAppearanceSettingsView";
+import type { ShiftAppSettings } from "@/modules/master-view/settings/shiftAppearanceSettingsView/ShiftAppearanceSettingsView.types";
 
 const DEFAULT_SETTINGS: ShiftAppSettings = {
   darkMode: false,

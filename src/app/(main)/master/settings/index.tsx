@@ -1,6 +1,6 @@
 import React from "react";
 import { useRouter } from "expo-router";
-import { SettingsIndexView } from "@/modules/master-view/settings/SettingsIndexView";
+import { SettingsIndexView } from "@/modules/master-view/settings/settingIndexView/SettingsIndexView";
 
 export default function MasterSettingsIndex() {
   const router = useRouter();
