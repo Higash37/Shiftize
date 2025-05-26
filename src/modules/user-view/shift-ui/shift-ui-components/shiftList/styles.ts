@@ -93,7 +93,10 @@ export const shiftListItemStyles = StyleSheet.create({
 export const shiftListViewStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff", // ←全面白背景に統一
+    backgroundColor: "#fff",
+    flexDirection: IS_TABLET ? "row" : "column", // タブレット以上で2カラム
+    alignItems: IS_TABLET ? "flex-start" : "stretch",
+    justifyContent: "flex-start",
   },
   loadingContainer: {
     flex: 1,
@@ -101,19 +104,25 @@ export const shiftListViewStyles = StyleSheet.create({
     alignItems: "center",
   },
   calendarContainer: {
-    // カレンダー背景枠をなくすため、背景色・border・radius等を削除
+    flex: IS_TABLET ? 1 : undefined,
+    minWidth: IS_TABLET ? 340 : undefined,
+    maxWidth: IS_TABLET ? 480 : undefined,
+    width: IS_TABLET ? undefined : "100%",
     marginTop: 0,
     marginBottom: theme.spacing.sm,
     alignItems: "center",
-    width: "100%",
-    backgroundColor: undefined, // 追加: 背景色を消す
-    borderRadius: undefined, // 追加: 角丸を消す
-    borderWidth: undefined, // 追加: 枠線を消す
-    borderColor: undefined, // 追加: 枠線色を消す
+    backgroundColor: undefined,
+    borderRadius: undefined,
+    borderWidth: undefined,
+    borderColor: undefined,
+    paddingRight: IS_TABLET ? 24 : 0, // カレンダーとリストの間に余白
   },
   listContainer: {
-    flex: 1,
-    width: "100%",
+    flex: IS_TABLET ? 1 : undefined,
+    width: IS_TABLET ? undefined : "100%",
+    minWidth: IS_TABLET ? 320 : undefined,
+    maxWidth: IS_TABLET ? 600 : undefined,
+    paddingLeft: IS_TABLET ? 24 : 0, // カレンダーとリストの間に余白
   },
   listContentContainer: {
     alignItems: "center",

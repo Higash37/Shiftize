@@ -134,14 +134,13 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         ]}
         renderHeader={(date: CalendarHeaderInfo) => (
           <CalendarHeader
-            date={new Date(date.timestamp)}
+            date={new Date(currentMonth)} // ←常にcurrentMonthを反映
             onYearMonthSelect={() => {
               // 現在のカレンダーの月を正確に反映させる
-              const currentCalendarDate = new Date(date.timestamp);
+              const currentCalendarDate = new Date(currentMonth);
               setTempDate(currentCalendarDate);
               setShowDatePicker(true);
             }}
-            // responsiveSizeのheaderプロパティがあれば渡す
             responsiveStyle={responsiveSize?.header}
           />
         )}
