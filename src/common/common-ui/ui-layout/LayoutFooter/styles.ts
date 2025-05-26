@@ -14,6 +14,7 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingBottom: Platform.OS === "ios" ? 20 : 0,
+    width: "100%", // 画面端まで伸ばす
   },
   tab: {
     flex: 1,

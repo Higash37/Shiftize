@@ -34,7 +34,14 @@
       "backgroundColor": "#ffffff",
       "display": "standalone",
       "startUrl": "/",
-      "orientation": "portrait"
+      "orientation": "portrait",
+      "meta": {
+        "apple": {
+          "mobileWebAppCapable": "yes",
+          "statusBarStyle": "default"
+        }
+      },
+      "appleTouchIcon": "./public/PWAIcon180x180.png"
     },
     "scheme": "shift-scheduler-app",
     "plugins": ["expo-router"],
