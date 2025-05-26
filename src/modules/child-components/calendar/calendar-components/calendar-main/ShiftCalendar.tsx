@@ -13,7 +13,6 @@ import {
 } from "../../calendar-types/common.types";
 import { DayComponent } from "../calendar-day/DayComponent";
 import { CalendarHeader } from "../calendar-header/CalendarHeader";
-import { ShiftList } from "../calendar-shift/ShiftList";
 import { DatePickerModal } from "../calendar-modal/DatePickerModal";
 import {
   useResponsiveCalendarSize,
@@ -158,6 +157,32 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           dotColor: colors.primary,
           selectedDotColor: colors.primary,
           monthTextColor: colors.text.primary,
+          // iOSカレンダー風：曜日ラベル色分け
+          textDayFontFamily:
+            "SF Pro Text, San Francisco, Helvetica Neue, Arial, sans-serif",
+          textMonthFontFamily:
+            "SF Pro Text, San Francisco, Helvetica Neue, Arial, sans-serif",
+          textDayHeaderFontFamily:
+            "SF Pro Text, San Francisco, Helvetica Neue, Arial, sans-serif",
+          textDayFontWeight: "500",
+          textMonthFontWeight: "600",
+          textDayHeaderFontWeight: "600",
+          textDayFontSize: 16,
+          textMonthFontSize: 18,
+          textDayHeaderFontSize: 14,
+          "stylesheet.calendar.header": {
+            dayHeader: {
+              color: colors.text.secondary,
+              fontFamily:
+                "SF Pro Text, San Francisco, Helvetica Neue, Arial, sans-serif",
+              fontWeight: "600",
+              fontSize: 14,
+              // iOSカレンダー風：曜日ごとに色分け
+              // Sunday: 赤, Saturday: 青, Weekday: グレー
+              // これは DayComponent 側で曜日判定して色を渡すのが理想だが、
+              // react-native-calendars の仕様上ここで全体色指定→DayComponentで個別色上書き
+            },
+          },
           "stylesheet.calendar.main": {
             week: {
               marginTop: 0,
@@ -165,9 +190,18 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
               flexDirection: "row",
               justifyContent: "space-around",
               borderWidth: 0,
+              borderLeftWidth: 0,
+              borderRightWidth: 0,
+              borderColor: "transparent",
             },
             dayContainer: {
               borderWidth: 0,
+              borderLeftWidth: 1, // 縦線のみ
+              borderRightWidth: 0,
+              borderBottomWidth: 0, // 横線は消す
+              borderColor: "#E5E5E5",
+              borderRadius: 0, // 角丸も消す
+              overflow: "visible",
             },
           },
         }}
@@ -182,9 +216,10 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         )}
       />
 
-      {selectedDate && (
+      {/* カレンダー下のその日情報表示を削除 */}
+      {/* {selectedDate && (
         <ShiftList shifts={shifts} selectedDate={selectedDate} />
-      )}
+      )} */}
 
       <DatePickerModal
         isVisible={showDatePicker}
@@ -199,20 +234,29 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    paddingVertical: 0,
-    backgroundColor: "transparent",
-    width: "100%",
+    paddingVertical: 8, // iOS風に余白を増やす
+    // backgroundColor: "#fff", // ←親で白背景なので不要
+    borderRadius: 16, // iOS風に角丸
+    borderWidth: 0,
+    elevation: 0,
+    shadowColor: "#00000010",
+    margin: 8, // iOS風に上下左右余白
   },
   containerFullWidth: {
     paddingHorizontal: 16, // 余白を増やして見切れないようにする
   },
   calendar: {
-    backgroundColor: "transparent",
-    borderRadius: 8,
-    marginHorizontal: "auto", // 中央揃え
+    // backgroundColor: "#fff", // ←親で白背景なので不要
+    borderRadius: 16,
+    marginHorizontal: "auto",
+    borderWidth: 0,
+    elevation: 0,
+    shadowColor: "transparent",
   },
   calendarShadow: {
-    ...getPlatformShadow(2),
-    marginBottom: 16, // 下の余白も少し増やす
+    // 影も完全に消す
+    shadowColor: "transparent",
+    elevation: 0,
+    marginBottom: 0,
   },
 });

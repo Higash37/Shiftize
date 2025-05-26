@@ -1,5 +1,7 @@
 import { StyleSheet } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { colors } from "@/common/common-theme/ThemeColors";
+import { theme } from "@/common/common-theme/ThemeDefinition";
+import { IS_TABLET, IS_SMALL_DEVICE } from "@/common/common-utils/util-style";
 
 export const userHomeViewStyles = StyleSheet.create({
   container: {
@@ -8,18 +10,30 @@ export const userHomeViewStyles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: "center",
+    width: IS_TABLET ? 480 : "90%",
+    backgroundColor: colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    ...theme.shadows.md,
+    padding: IS_TABLET ? theme.spacing.lg : theme.spacing.md,
     alignItems: "center",
-    padding: 20,
+    justifyContent: "center",
+    alignSelf: "center",
+    marginTop: IS_TABLET ? 40 : 20,
+    marginBottom: IS_TABLET ? 40 : 20,
+    minHeight: 320,
   },
   title: {
-    fontSize: 24,
+    fontSize: IS_TABLET ? 32 : theme.typography.fontSize.large,
     fontWeight: "bold",
     color: colors.text.primary,
-    marginBottom: 10,
+    marginBottom: theme.spacing.sm,
+    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: IS_TABLET ? 20 : theme.typography.fontSize.medium,
     color: colors.text.secondary,
+    marginBottom: theme.spacing.sm,
+    textAlign: "center",
+    fontWeight: "400",
   },
 });

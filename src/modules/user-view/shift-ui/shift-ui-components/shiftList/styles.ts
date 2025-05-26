@@ -1,26 +1,24 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
+import { theme } from "@/common/common-theme/ThemeDefinition";
+import { IS_TABLET, IS_SMALL_DEVICE } from "@/common/common-utils/util-style";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
-
-// レスポンシブデザイン用の定数
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
-const IS_TABLET = SCREEN_WIDTH > 768;
 
 export const shiftListItemStyles = StyleSheet.create({
   shiftItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: IS_SMALL_DEVICE ? 8 : 12,
+    padding: IS_SMALL_DEVICE ? theme.spacing.sm : theme.spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
-    borderRadius: 8,
-    marginBottom: 8,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.sm,
     width: "100%",
     maxWidth: IS_TABLET ? 600 : "95%",
-    ...getPlatformShadow(2),
+    marginLeft: "auto", // 追加: 左右中央寄せ
+    marginRight: "auto",
   },
   shiftContent: {
     flexDirection: "row",
@@ -85,14 +83,17 @@ export const shiftListItemStyles = StyleSheet.create({
     marginLeft: 4,
   },
   selectedShiftItem: {
-    backgroundColor: colors.selected,
+    backgroundColor: colors.surface, // 青ではなく通常の白背景に
+    // 必要ならborderやshadowも調整
+    borderColor: colors.primary, // 選択時は枠だけ青なども可
+    borderWidth: 2,
   },
 });
 
 export const shiftListViewStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: "#fff", // ←全面白背景に統一
   },
   loadingContainer: {
     flex: 1,
@@ -100,10 +101,15 @@ export const shiftListViewStyles = StyleSheet.create({
     alignItems: "center",
   },
   calendarContainer: {
+    // カレンダー背景枠をなくすため、背景色・border・radius等を削除
     marginTop: 0,
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
     alignItems: "center",
     width: "100%",
+    backgroundColor: undefined, // 追加: 背景色を消す
+    borderRadius: undefined, // 追加: 角丸を消す
+    borderWidth: undefined, // 追加: 枠線を消す
+    borderColor: undefined, // 追加: 枠線色を消す
   },
   listContainer: {
     flex: 1,
@@ -111,18 +117,27 @@ export const shiftListViewStyles = StyleSheet.create({
   },
   listContentContainer: {
     alignItems: "center",
-    paddingHorizontal: IS_SMALL_DEVICE ? 8 : 16,
+    justifyContent: "center",
+    flexDirection: "column",
+    paddingHorizontal: IS_SMALL_DEVICE ? theme.spacing.md : theme.spacing.lg, // 左右の余白を大きめに統一
+    width: "100%",
+    // boxSizingは削除（React Native非対応）
   },
   noShiftContainer: {
-    padding: 16,
+    padding: theme.spacing.md,
     alignItems: "center",
     backgroundColor: colors.surface,
-    borderRadius: 8,
+    borderRadius: theme.borderRadius.md,
     width: "100%",
     maxWidth: IS_TABLET ? 600 : "95%",
+    alignSelf: "center",
+    marginLeft: "auto",
+    marginRight: "auto",
   },
   noShiftText: {
-    fontSize: IS_SMALL_DEVICE ? 12 : 14,
+    fontSize: IS_SMALL_DEVICE
+      ? theme.typography.fontSize.small
+      : theme.typography.fontSize.medium,
     color: colors.text.secondary,
   },
   addButton: {

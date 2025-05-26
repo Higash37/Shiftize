@@ -9,6 +9,22 @@ import { useResponsiveCalendarSize } from "../../calendar-constants/constants";
  * カレンダーの日付コンポーネント
  * メモ化して不要な再レンダリングを防止
  */
+// iOSカレンダー風：曜日ごとに色分け
+function getIOSDayColor(
+  dateString?: string,
+  state?: string,
+  isSelected?: boolean
+) {
+  if (!dateString) return colors.text.primary;
+  const day = new Date(dateString).getDay();
+  if (isSelected) return "#fff";
+  if (state === "disabled") return "#C0C0C0";
+  if (state === "today") return colors.primary;
+  if (day === 0) return "#FF3B30"; // 日曜:赤
+  if (day === 6) return "#007AFF"; // 土曜:青
+  return "#222"; // 平日:濃いグレー
+}
+
 export const DayComponent = memo<{
   date?: DayComponentProps["date"];
   state?: DayComponentProps["state"];
@@ -42,8 +58,8 @@ export const DayComponent = memo<{
   const isToday = state === "today";
   // ドットマーカーの有無
   const hasMarker = marking?.marked;
-  // 日付の色を取得
-  const dayColor = getDayColor(date?.dateString, state, isSelected);
+  // 日付の色を取得（iOS風）
+  const dayColor = getIOSDayColor(date?.dateString, state, isSelected);
 
   return (
     <TouchableOpacity
@@ -51,26 +67,36 @@ export const DayComponent = memo<{
         styles.dayContainer,
         dynamicStyles.dayContainer,
         {
-          borderRightWidth: 1,
-          borderRightColor: "#E5E5E5",
-          borderBottomWidth: 1,
-          borderBottomColor: "#E5E5E5",
+          // 最左列（日曜）は縦線なし、それ以外は縦線
+          borderLeftWidth:
+            date && date.dateString && new Date(date.dateString).getDay() === 0
+              ? 0
+              : 1,
+          borderLeftColor: "#E5E5E5",
+          borderRightWidth: 0,
+          borderBottomWidth: 0,
+          borderRadius: 0,
+          backgroundColor: isSelected ? "#007AFF" : "transparent",
         },
       ]}
       onPress={() => date && onPress(date.dateString)}
-      activeOpacity={0.6}
+      activeOpacity={isSelected ? 0.8 : 0.6} // iOS風にやや弱め
     >
-      {isSelected && (
-        <View style={[styles.selectedDay, dynamicStyles.selectedDay]} />
-      )}
       <Text
         style={[
           styles.dayText,
           dynamicStyles.dayText,
-          isSelected
-            ? { color: "#fff", fontWeight: "bold" }
-            : { color: dayColor },
-          isToday && styles.todayText,
+          {
+            color: isSelected ? "#fff" : dayColor,
+            fontFamily:
+              "SF Pro Text, San Francisco, Helvetica Neue, Arial, sans-serif",
+            fontWeight: isToday ? "700" : "500",
+            fontSize: isToday ? 16 : 14,
+            backgroundColor: isToday && !isSelected ? "#F2F6FF" : "transparent", // 今日のセルを淡色でハイライト
+            borderRadius: 8,
+            paddingHorizontal: 2,
+            paddingVertical: 1,
+          },
         ]}
       >
         {date?.day}
@@ -86,32 +112,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "transparent",
     position: "relative",
-    paddingVertical: 0, // 縦方向のパディングを0に
-    paddingHorizontal: 0, // 横方向のパディングも0に
-  },
-  selectedDay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.selected,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    borderRadius: 0,
+    margin: 0, // 隙間を完全になくす
   },
   dayText: {
-    fontWeight: "normal", // 太字ではなく通常の太さに
-    color: "#333",
+    fontWeight: "500",
+    color: "#222",
     zIndex: 1,
-    margin: 0, // マージンを0に
+    margin: 0,
+    fontFamily: "SF Pro Text, San Francisco, Helvetica Neue, Arial, sans-serif",
   },
   todayText: {
-    color: "#2196F3",
-    fontWeight: "bold",
+    color: "#007AFF",
+    fontWeight: "700",
   },
   dot: {
-    width: 6, // サイズを少し大きく
+    width: 6,
     height: 6,
     borderRadius: 3,
-    marginTop: 2, // 少し下に
+    marginTop: 2,
     zIndex: 1,
+  },
+  selectedDay: {
+    // 旧selectedDayは不要
   },
 });
