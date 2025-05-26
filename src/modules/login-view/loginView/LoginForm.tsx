@@ -10,8 +10,11 @@ import {
 } from "react-native";
 import { loginFormStyles } from "./LoginForm.styles";
 import type { LoginFormProps } from "./LoginForm.types";
+import { YoutubeSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader";
+import { useAutoReloadOnLayoutBug } from "@/common/common-ui/ui-loading/useAutoReloadOnLayoutBug";
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
+  useAutoReloadOnLayoutBug();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -32,6 +35,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
       await onLogin(username, password, rememberMe);
     }
   };
+
+  if (loading) {
+    return <YoutubeSkeleton />;
+  }
 
   return (
     <View
