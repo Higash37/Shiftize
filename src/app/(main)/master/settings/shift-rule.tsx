@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Alert } from "react-native";
 import { db } from "@/services/firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { ShiftRuleSettingsView } from "@/modules/master-view/settings/ShiftRuleSettingsView";
-import type { ShiftRuleSettings } from "@/modules/master-view/settings/ShiftRuleSettingsView.types";
+import { ShiftRuleSettingsView } from "@/modules/master-view/settings/shiftRuleSettingsView/ShiftRuleSettingsView";
+import type { ShiftRuleSettings } from "@/modules/master-view/settings/shiftRuleSettingsView/ShiftRuleSettingsView.types";
 
 const DEFAULT_SETTINGS: ShiftRuleSettings = {
   maxWorkHours: 8,

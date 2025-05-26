@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Alert } from "react-native";
 import { db } from "@/services/firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { ShiftHolidaySettingsView } from "@/modules/master-view/settings/ShiftHolidaySettingsView";
-import type { ShiftHolidaySettings } from "@/modules/master-view/settings/ShiftHolidaySettingsView.types";
+import { ShiftHolidaySettingsView } from "@/modules/master-view/settings/shiftHolidaySettingView/ShiftHolidaySettingsView";
+import type { ShiftHolidaySettings } from "@/modules/master-view/settings/shiftHolidaySettingView/ShiftHolidaySettingsView.types";
 
 const DEFAULT_SETTINGS: ShiftHolidaySettings = {
   holidays: [],

@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { ShiftRuleValuePicker } from "./ShiftRuleValuePicker";
+import { ShiftRuleValuePicker } from "../ShiftRuleValuePicker";
 import { shiftRuleSettingsViewStyles as styles } from "./ShiftRuleSettingsView.styles";
 import type { ShiftRuleSettingsViewProps } from "./ShiftRuleSettingsView.types";
 
