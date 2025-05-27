@@ -29,29 +29,28 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
 
   return (
     <Animated.View style={[styles.container, { maxHeight: heightAnim }]}>
+      {" "}
       <View style={styles.header}>
         <Text style={styles.nickname}>{shift.nickname}</Text>
         <Text style={styles.date}>
           {format(new Date(shift.date), "M月d日(E)", { locale: ja })}
         </Text>
       </View>
-
       <View style={styles.timeSlots}>
         {shift.classes?.length ? (
           <>
             {/* 最初のスタッフ時間 */}
             <View style={styles.timeSlot}>
-              <Text style={styles.timeSlotLabel}>スタッフ</Text>
+              <Text style={styles.timeSlotLabel}>スタッフ</Text>{" "}
               <Text style={styles.timeText}>
-                {format(parseTimeString(shift.date, shift.startTime), "HH:mm")}{" "}
-                ~{" "}
+                {format(parseTimeString(shift.date, shift.startTime), "HH:mm")}
+                {" ~ "}
                 {format(
                   parseTimeString(shift.date, shift.classes[0].startTime),
                   "HH:mm"
                 )}
               </Text>
             </View>
-
             {/* 授業時間とその間のスタッフ時間 */}
             {shift.classes.map(
               (
@@ -62,13 +61,13 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
                   <View style={[styles.timeSlot, styles.classTimeSlot]}>
                     <Text style={[styles.timeSlotLabel, styles.classLabel]}>
                       授業
-                    </Text>
+                    </Text>{" "}
                     <Text style={[styles.timeText, styles.classTime]}>
                       {format(
                         parseTimeString(shift.date, classTime.startTime),
                         "HH:mm"
-                      )}{" "}
-                      ~{" "}
+                      )}
+                      {" ~ "}
                       {format(
                         parseTimeString(shift.date, classTime.endTime),
                         "HH:mm"
@@ -78,13 +77,13 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
 
                   {shift.classes?.[index + 1] && (
                     <View style={styles.timeSlot}>
-                      <Text style={styles.timeSlotLabel}>スタッフ</Text>
+                      <Text style={styles.timeSlotLabel}>スタッフ</Text>{" "}
                       <Text style={styles.timeText}>
                         {format(
                           parseTimeString(shift.date, classTime.endTime),
                           "HH:mm"
-                        )}{" "}
-                        ~{" "}
+                        )}
+                        {" ~ "}
                         {format(
                           parseTimeString(
                             shift.date,
@@ -98,10 +97,9 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
                 </React.Fragment>
               )
             )}
-
             {/* 最後のスタッフ時間 */}
             <View style={styles.timeSlot}>
-              <Text style={styles.timeSlotLabel}>スタッフ</Text>
+              <Text style={styles.timeSlotLabel}>スタッフ</Text>{" "}
               <Text style={styles.timeText}>
                 {format(
                   parseTimeString(
@@ -109,16 +107,18 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
                     shift.classes[shift.classes.length - 1].endTime
                   ),
                   "HH:mm"
-                )}{" "}
-                ~ {format(parseTimeString(shift.date, shift.endTime), "HH:mm")}
+                )}
+                {" ~ "}
+                {format(parseTimeString(shift.date, shift.endTime), "HH:mm")}
               </Text>
             </View>
           </>
         ) : (
           <View style={styles.timeSlot}>
-            <Text style={styles.timeSlotLabel}>スタッフ</Text>
+            <Text style={styles.timeSlotLabel}>スタッフ</Text>{" "}
             <Text style={styles.timeText}>
-              {format(parseTimeString(shift.date, shift.startTime), "HH:mm")} ~{" "}
+              {format(parseTimeString(shift.date, shift.startTime), "HH:mm")}
+              {" ~ "}
               {format(parseTimeString(shift.date, shift.endTime), "HH:mm")}
             </Text>
           </View>

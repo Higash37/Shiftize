@@ -23,7 +23,9 @@ export const ShiftTimeSlot: React.FC<ShiftTimeSlotProps> = ({
         {type === "class" ? "授業" : "スタッフ"}
       </Text>
       <Text style={styles.timeSlotTime}>
-        {startTime} ~ {endTime}
+        {startTime}
+        {" ~ "}
+        {endTime}
       </Text>
     </View>
   );

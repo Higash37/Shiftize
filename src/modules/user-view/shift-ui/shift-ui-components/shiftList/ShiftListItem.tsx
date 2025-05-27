@@ -20,7 +20,7 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
   children,
 }) => {
   return (
-    <View>
+    <View style={{ width: "100%" }}>
       <View
         style={[
           styles.shiftItem,
@@ -29,12 +29,6 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
         ]}
       >
         <TouchableOpacity style={styles.shiftContent} onPress={onPress}>
-          <AntDesign
-            name="user"
-            size={IS_SMALL_DEVICE ? 16 : 20}
-            color={colors.primary}
-            style={styles.icon}
-          />
           <View style={styles.textContainer}>
             <View style={styles.shiftInfoContainer}>
               {/* 日付表示部分を固定幅に */}
@@ -45,7 +39,6 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
                   })}
                 </Text>
               </View>
-
               {/* ステータスラベルを固定幅に */}
               <View style={styles.statusContainer}>
                 <Text
@@ -74,7 +67,6 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
                     : ""}
                 </Text>
               </View>
-
               {/* 時間表示 */}
               <Text
                 style={[
@@ -88,10 +80,9 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.detailsButton} onPress={onDetailsPress}>
-          <Text style={styles.detailsText}>詳細</Text>
           <AntDesign
             name={isSelected ? "down" : "right"}
-            size={IS_SMALL_DEVICE ? 14 : 16}
+            size={IS_SMALL_DEVICE ? 12 : 14}
             color={colors.text.secondary}
             style={styles.detailsIcon}
           />

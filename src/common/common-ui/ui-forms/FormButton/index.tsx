@@ -44,7 +44,6 @@ const Button: React.FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled || loading}
     >
-      {" "}
       {loading ? (
         <ActivityIndicator
           color={

@@ -155,10 +155,12 @@ export const UserShiftList: React.FC = () => {
           currentMonth={currentMonth}
           onDayPress={handleDayPress}
           onMonthChange={handleMonthChange}
-          onMount={handleCalendarMount}
-          // レスポンシブ対応のプロパティを追加
+          onMount={handleCalendarMount} // レスポンシブ対応のプロパティを追加
           responsiveSize={{
-            container: { width: "100%" },
+            container: {
+              width: "96%",
+              maxWidth: 480, // カレンダーの最大幅を明示的に設定
+            },
             day: { fontSize: 13 },
           }}
         />
@@ -166,8 +168,9 @@ export const UserShiftList: React.FC = () => {
       {isCalendarMounted && displayMonth && (
         <ScrollView
           ref={scrollViewRef}
-          style={styles.listContainer}
+          style={styles.listContainer} // スタイル定義を使用
           contentContainerStyle={styles.listContentContainer}
+          showsVerticalScrollIndicator={false} // スクロールバーを非表示に
         >
           {monthlyShifts.length > 0 ? (
             monthlyShifts.map((shift) => {
@@ -176,9 +179,12 @@ export const UserShiftList: React.FC = () => {
               const timeSlots = isSelected
                 ? splitShiftIntoTimeSlots(shift)
                 : null;
-
               return (
-                <View key={shift.id} ref={(ref) => (shiftRefs[shift.id] = ref)}>
+                <View
+                  key={shift.id}
+                  ref={(ref) => (shiftRefs[shift.id] = ref)}
+                  style={{ width: "100%" }} // 親Viewの幅を100%に設定
+                >
                   <ShiftListItem
                     shift={shift}
                     isSelected={isSelected}
@@ -196,13 +202,12 @@ export const UserShiftList: React.FC = () => {
               );
             })
           ) : (
-            <View style={styles.noShiftContainer}>
+            <View style={[styles.noShiftContainer, { width: "100%" }]}>
               <Text style={styles.noShiftText}>この月のシフトはありません</Text>
             </View>
           )}
         </ScrollView>
       )}
-
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => router.push("/(main)/user/shifts/create")}

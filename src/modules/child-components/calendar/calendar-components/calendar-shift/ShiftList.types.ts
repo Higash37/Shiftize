@@ -1,10 +1,9 @@
 import { ViewStyle, TextStyle } from "react-native";
-import { ShiftItem, ShiftStatus } from "@/common/common-models/ModelIndex";
+import { ShiftStatus, Shift } from "@/common/common-models/ModelIndex";
 
 export interface ShiftListProps {
-  shifts: ShiftItem[];
-  onToggleDetails: (shiftId: string) => void;
-  showDetails: { [key: string]: boolean };
+  shifts: Shift[];
+  selectedDate: string;
 }
 
 export interface ShiftListStyles {
@@ -31,3 +30,9 @@ export interface ShiftListStyles {
 }
 
 export type ShiftTypeMap = "user" | "class" | "deleted";
+
+export type ShiftItemProps = {
+  shift: Shift;
+  isExpanded: boolean;
+  onToggle: () => void;
+};

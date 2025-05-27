@@ -373,7 +373,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
               <AntDesign name="calendar" size={24} color={colors.primary} />
             </TouchableOpacity>
           </View>
-
           {/* 時間選択 */}
           <View style={styles.formSection}>
             <Text style={styles.sectionTitle}>時間</Text>
@@ -384,7 +383,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
                   value={shiftData.startTime}
                   onChange={(value) => handleTimeChange("start", value)}
                 />
-              </View>
+              </View>{" "}
               <Text style={styles.timeSeparator}>～</Text>
               <View style={styles.timeSelectContainer}>
                 <Text style={styles.timeLabel}>終了</Text>
@@ -395,11 +394,10 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
               </View>
             </View>
           </View>
-
           {/* 授業設定 */}
           <View style={styles.formSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>授業</Text>{" "}
+              <Text style={styles.sectionTitle}>授業</Text>
               <TouchableOpacity style={styles.addButton} onPress={addClass}>
                 <AntDesign name="plus" size={18} color="white" />
                 <Text style={styles.addButtonText}>授業を追加</Text>
@@ -416,7 +414,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
                         style={styles.removeButton}
                         onPress={() => removeClass(index)}
                       >
-                        {" "}
                         <AntDesign
                           name="close"
                           size={18}
@@ -456,14 +453,12 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
               </View>
             )}
           </View>
-
           {/* エラーメッセージ */}
           {errorMessage ? (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{errorMessage}</Text>
             </View>
           ) : null}
-
           {/* 送信ボタン */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -486,7 +481,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
             )}
           </View>
         </View>
-      </ScrollView>{" "}
+      </ScrollView>
       {/* 日付選択モーダル */}
       <CalendarModal
         visible={showCalendar}

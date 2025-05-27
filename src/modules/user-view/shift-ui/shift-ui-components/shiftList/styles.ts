@@ -9,16 +9,18 @@ export const shiftListItemStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: IS_SMALL_DEVICE ? theme.spacing.sm : theme.spacing.md,
+    padding: IS_SMALL_DEVICE ? 4 : 6, // パディングをさらに縮小
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
-    borderRadius: theme.borderRadius.md,
-    marginBottom: theme.spacing.sm,
-    width: "100%",
-    maxWidth: IS_TABLET ? 600 : "95%",
-    marginLeft: "auto", // 追加: 左右中央寄せ
-    marginRight: "auto",
+    borderRadius: IS_SMALL_DEVICE
+      ? theme.borderRadius.sm
+      : theme.borderRadius.md, // 角丸を調整
+    marginBottom: 3, // マージンをさらに縮小
+    width: "100%", // 親コンテナの幅いっぱいに広げる
+    marginLeft: 0, // 左右マージン削除
+    marginRight: 0,
+    ...getPlatformShadow(1), // 薄いシャドウを追加
   },
   shiftContent: {
     flexDirection: "row",
@@ -37,20 +39,21 @@ export const shiftListItemStyles = StyleSheet.create({
     flexWrap: "wrap",
   },
   dateContainer: {
-    width: IS_SMALL_DEVICE ? 60 : 80,
-    marginRight: 8,
+    width: IS_SMALL_DEVICE ? 55 : 70, // 幅をさらに縮小
+    marginRight: 3, // マージンをさらに縮小
   },
   dateText: {
-    fontSize: IS_SMALL_DEVICE ? 14 : 16,
+    fontSize: IS_SMALL_DEVICE ? 15 : 17, // フォントサイズを大きく
     fontWeight: "bold",
     color: colors.text.primary,
   },
   statusContainer: {
-    width: IS_SMALL_DEVICE ? 80 : 90,
-    marginRight: 8,
+    width: IS_SMALL_DEVICE ? 70 : 80, // 幅をさらに縮小
+    marginRight: 3, // マージンをさらに縮小
   },
   timeText: {
-    fontSize: IS_SMALL_DEVICE ? 12 : 14,
+    fontSize: IS_SMALL_DEVICE ? 14 : 16, // 時間表示を大きく
+    fontWeight: "500", // フォントを少し太く
     color: colors.text.primary,
     flex: 1,
   },
@@ -60,27 +63,28 @@ export const shiftListItemStyles = StyleSheet.create({
   userLabel: {
     color: colors.primary,
     backgroundColor: colors.primary + "20",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 4, // パディングを縮小
+    paddingVertical: 2, // パディングを縮小
     borderRadius: 4,
-    fontSize: IS_SMALL_DEVICE ? 12 : 14,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14, // フォントサイズを少し小さく
+    fontWeight: "500",
     textAlign: "center",
-    width: "100%", // 親のステータスコンテナに合わせて幅一杯に
+    width: "100%",
     overflow: "hidden",
   },
   detailsButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    gap: 2, // ギャップを縮小
+    paddingVertical: 2, // パディングを縮小
+    paddingHorizontal: 4, // パディングを縮小
   },
   detailsText: {
-    fontSize: IS_SMALL_DEVICE ? 12 : 14,
+    fontSize: IS_SMALL_DEVICE ? 11 : 13, // フォントサイズを縮小
     color: colors.text.secondary,
   },
   detailsIcon: {
-    marginLeft: 4,
+    marginLeft: 2, // マージンを縮小
   },
   selectedShiftItem: {
     backgroundColor: colors.surface, // 青ではなく通常の白背景に
@@ -106,42 +110,46 @@ export const shiftListViewStyles = StyleSheet.create({
   calendarContainer: {
     flex: IS_TABLET ? 1 : undefined,
     minWidth: IS_TABLET ? 340 : undefined,
-    maxWidth: IS_TABLET ? 480 : undefined,
-    width: IS_TABLET ? undefined : "100%",
-    marginTop: 0,
-    marginBottom: theme.spacing.sm,
+    maxWidth: IS_TABLET ? 480 : undefined, // カレンダーの最大幅を設定
+    width: IS_TABLET ? undefined : "96%", // 小さい画面では96%に合わせる
+    marginBottom: 4, // マージンを最小化
     alignItems: "center",
-    backgroundColor: undefined,
-    borderRadius: undefined,
-    borderWidth: undefined,
-    borderColor: undefined,
-    paddingRight: IS_TABLET ? 24 : 0, // カレンダーとリストの間に余白
+    alignSelf: "center", // 中央揃え
+    padding: 0,
+    margin: 0,
   },
   listContainer: {
     flex: IS_TABLET ? 1 : undefined,
-    width: IS_TABLET ? undefined : "100%",
+    width: "96%", // カレンダーと同じ幅に固定
     minWidth: IS_TABLET ? 320 : undefined,
-    maxWidth: IS_TABLET ? 600 : undefined,
-    paddingLeft: IS_TABLET ? 24 : 0, // カレンダーとリストの間に余白
+    maxWidth: 480, // カレンダーと同じ最大幅に設定
+    paddingHorizontal: 0,
+    paddingLeft: 0,
+    marginLeft: 0,
+    marginRight: 0,
+    alignSelf: "center", // 中央揃え
   },
   listContentContainer: {
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "column",
-    paddingHorizontal: IS_SMALL_DEVICE ? theme.spacing.md : theme.spacing.lg, // 左右の余白を大きめに統一
-    width: "100%",
-    // boxSizingは削除（React Native非対応）
+    paddingHorizontal: 0, // 水平パディングを削除して幅を合わせる
+    paddingBottom: 80, // 下部に余白を追加して、ボタンに隠れないようにする
+    width: "100%", // 親コンテナの幅いっぱいに広げる
+    borderRadius: 16, // カレンダーと同じ角丸
   },
   noShiftContainer: {
-    padding: theme.spacing.md,
+    padding: theme.spacing.sm,
     alignItems: "center",
     backgroundColor: colors.surface,
     borderRadius: theme.borderRadius.md,
     width: "100%",
-    maxWidth: IS_TABLET ? 600 : "95%",
     alignSelf: "center",
-    marginLeft: "auto",
-    marginRight: "auto",
+    marginLeft: 0,
+    marginRight: 0,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...getPlatformShadow(1), // カレンダーと同様の見た目に
   },
   noShiftText: {
     fontSize: IS_SMALL_DEVICE

@@ -29,7 +29,7 @@ export const styles = StyleSheet.create<ShiftListStyles>({
   shiftItem: {
     backgroundColor: colors.surface,
     borderRadius: 8,
-    padding: 12,
+    padding: 6,
     marginBottom: 8,
     borderWidth: 2,
   },
@@ -63,7 +63,7 @@ export const styles = StyleSheet.create<ShiftListStyles>({
   },
   detailsContainer: {
     marginTop: 8,
-    padding: 8,
+    padding: 4,
     backgroundColor: colors.background,
     borderRadius: 4,
   },
@@ -83,8 +83,8 @@ export const styles = StyleSheet.create<ShiftListStyles>({
     marginBottom: 16,
   },
   timeSlot: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },

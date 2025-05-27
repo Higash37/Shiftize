@@ -53,7 +53,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const responsiveStyles = useMemo(
     () => ({
       calendar: {
-        width: isSmallScreen ? "90%" : calendarWidth, // 85%に縮小
+        width: "96%", // リストと幅を統一（96%に統一）
         maxWidth: 480,
         marginHorizontal: "auto", // 中央揃え
         ...(responsiveSize?.container || {}),
@@ -239,7 +239,10 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     elevation: 0,
     shadowColor: "#00000010",
-    margin: 8, // iOS風に上下左右余白
+    margin: 0, // マージンを削除
+    paddingHorizontal: 0, // 水平パディングを削除
+    width: "96%", // カレンダー全体の幅を96%に（リストと統一）
+    alignSelf: "center", // 中央揃え
   },
   containerFullWidth: {
     paddingHorizontal: 16, // 余白を増やして見切れないようにする

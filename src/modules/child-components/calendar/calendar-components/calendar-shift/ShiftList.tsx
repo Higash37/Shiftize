@@ -9,8 +9,8 @@ import {
   getStatusColor,
   getStatusText,
 } from "../../calendar-utils/calendar.utils";
-import { ShiftListProps } from "../calendar-types/shift/ShiftList.types";
-import { ShiftItemProps } from "../calendar-types/shift/ShiftList.types";
+import { ShiftListProps } from "./ShiftList.types";
+import { ShiftItemProps } from "./ShiftList.types";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 import { ShiftDetailsAdapter } from "./ShiftListAdapter";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
