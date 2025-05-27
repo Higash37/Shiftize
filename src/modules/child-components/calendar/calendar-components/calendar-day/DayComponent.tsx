@@ -3,7 +3,10 @@ import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { DayComponentProps } from "../../calendar-types/common.types";
 import { getDayColor } from "../../calendar-utils/calendar.utils";
-import { useResponsiveCalendarSize } from "../../calendar-constants/constants";
+import {
+  useResponsiveCalendarSize,
+  HOLIDAYS,
+} from "../../calendar-constants/constants";
 
 /**
  * カレンダーの日付コンポーネント
@@ -20,6 +23,8 @@ function getIOSDayColor(
   if (isSelected) return "#fff";
   if (state === "disabled") return "#C0C0C0";
   if (state === "today") return colors.primary;
+  // 祝日チェックを追加
+  if (HOLIDAYS[dateString]) return "#FF3B30"; // 祝日:赤
   if (day === 0) return "#FF3B30"; // 日曜:赤
   if (day === 6) return "#007AFF"; // 土曜:青
   return "#222"; // 平日:濃いグレー

@@ -109,8 +109,13 @@ export const UserShiftList: React.FC = () => {
       </View>
     );
   }
-
   const handleDayPress = (day: { dateString: string }) => {
+    // 同じ日付をもう一度押したときに選択を解除
+    if (selectedDate === day.dateString) {
+      setSelectedDate("");
+      return;
+    }
+
     setSelectedDate(day.dateString);
 
     // 選択された日付のシフトまでスクロール
