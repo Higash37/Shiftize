@@ -12,6 +12,7 @@ export const styles = StyleSheet.create({
     width: "100%",
     flexShrink: 0,
     alignItems: "flex-start",
+    flex: 1, // ← 追加
   },
   title: {
     fontWeight: "bold",
@@ -51,7 +52,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRightWidth: 1,
     borderColor: colors.border,
-    minHeight: 44,
+    minHeight: 26, // ← 44の60%に変更
     backgroundColor: colors.surface,
   },
   timeCell: {
