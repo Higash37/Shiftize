@@ -4,7 +4,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { MasterFooter } from "@/common/common-ui/ui-layout";
+import { MasterFooter, MasterHeader } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
 
 export default function MasterLayout() {
@@ -57,7 +57,7 @@ export default function MasterLayout() {
     <View style={{ flex: 1 }}>
       <Stack
         screenOptions={{
-          headerShown: false,
+          header: () => <MasterHeader title="ホーム" />, // ホーム画面用ヘッダー
           gestureEnabled: true,
           animation: "slide_from_right",
         }}

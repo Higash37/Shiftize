@@ -1,6 +1,6 @@
 import React from "react";
-import { MasterHomeView } from "@/modules/master-view/masterHome/MasterHomeView";
+import HomeCommonScreen from "../../../modules/home-view/HomeCommonScreen";
 
 export default function MasterHomeScreen() {
-  return <MasterHomeView />;
+  return <HomeCommonScreen />;
 }

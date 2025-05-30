@@ -6,10 +6,13 @@ import {
   Modal,
   StyleSheet,
   SafeAreaView,
+  TouchableWithoutFeedback,
 } from "react-native";
+import { format } from "date-fns";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
+import ShiftDateSelector from "@/modules/user-view/shift-ui/shift-ui-components/ShiftDateSelector";
 
 interface DatePickerModalProps {
   isVisible: boolean;
@@ -74,12 +77,10 @@ const MonthPicker = ({
   tempDate,
   onMonthSelect,
   onBack,
-  onCancel,
 }: {
   tempDate: Date;
   onMonthSelect: (month: number) => void;
   onBack: () => void;
-  onCancel: () => void;
 }) => {
   // 月の配列を生成（1月から12月まで）
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -112,9 +113,6 @@ const MonthPicker = ({
         <TouchableOpacity style={styles.modalButton} onPress={onBack}>
           <Text style={styles.modalButtonText}>戻る</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.modalButton} onPress={onCancel}>
-          <Text style={styles.modalButtonText}>キャンセル</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -132,10 +130,14 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
   const [tempDate, setTempDate] = useState<Date>(initialDate);
   const [showYearPicker, setShowYearPicker] = useState(true);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
-  // initialDateが変わったら、またはisVisibleがtrueになったらtempDateを更新
+  const [showDayPicker, setShowDayPicker] = useState(false);
+
   useEffect(() => {
     if (isVisible) {
       setTempDate(initialDate);
+      setShowYearPicker(true);
+      setShowMonthPicker(false);
+      setShowDayPicker(false);
     }
   }, [initialDate, isVisible]);
 
@@ -153,20 +155,31 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
     const newDate = new Date(tempDate);
     newDate.setMonth(month - 1);
     setTempDate(newDate);
+    setShowMonthPicker(false);
+    setShowDayPicker(true);
+  };
+
+  // 日選択ハンドラ
+  const handleDaySelect = (dateString: string) => {
+    const [y, m, d] = dateString.split("-").map(Number);
+    const newDate = new Date(y, m - 1, d);
+    setTempDate(newDate);
     onSelect(newDate);
     onClose();
-    // 次回表示用にステートをリセット
-    setShowYearPicker(true);
-    setShowMonthPicker(false);
   };
 
   // モーダルクローズハンドラ
   const handleClose = () => {
     onClose();
-    // 次回表示用にステートをリセット
     setShowYearPicker(true);
     setShowMonthPicker(false);
+    setShowDayPicker(false);
   };
+
+  // カレンダーのcurrentをtempDateの年月に合わせる
+  const calendarCurrent = `${tempDate.getFullYear()}-${String(
+    tempDate.getMonth() + 1
+  ).padStart(2, "0")}-01`;
 
   return (
     <Modal
@@ -175,45 +188,84 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
       animationType="fade"
       onRequestClose={handleClose}
     >
-      <SafeAreaView style={styles.modalOverlay}>
-        {showYearPicker && (
-          <YearPicker
-            tempDate={tempDate}
-            onYearSelect={handleYearSelect}
-            onCancel={handleClose}
-          />
-        )}
-
-        {showMonthPicker && (
-          <MonthPicker
-            tempDate={tempDate}
-            onMonthSelect={handleMonthSelect}
-            onBack={() => {
-              setShowMonthPicker(false);
-              setShowYearPicker(true);
-            }}
-            onCancel={handleClose}
-          />
-        )}
-      </SafeAreaView>
+      <TouchableWithoutFeedback onPress={handleClose}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View>
+              {showYearPicker && (
+                <YearPicker
+                  tempDate={tempDate}
+                  onYearSelect={handleYearSelect}
+                  onCancel={handleClose}
+                />
+              )}
+              {showMonthPicker && (
+                <MonthPicker
+                  tempDate={tempDate}
+                  onMonthSelect={handleMonthSelect}
+                  onBack={() => {
+                    setShowMonthPicker(false);
+                    setShowYearPicker(true);
+                  }}
+                />
+              )}
+              {showDayPicker && (
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>
+                    {tempDate.getFullYear()}年{tempDate.getMonth() + 1}月
+                    日を選択
+                  </Text>
+                  <ShiftDateSelector
+                    selectedDate={format(tempDate, "yyyy-MM-dd")}
+                    onSelect={handleDaySelect}
+                  />
+                  <View style={styles.modalButtons}>
+                    <TouchableOpacity
+                      style={styles.modalButton}
+                      onPress={() => {
+                        setShowDayPicker(false);
+                        setShowMonthPicker(true);
+                      }}
+                    >
+                      <Text style={styles.modalButtonText}>戻る</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   modalOverlay: {
+    position: "absolute", // 画面全体を覆う
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
+    minHeight: undefined, // minHeightは不要
+    paddingBottom: 0, // 余白も不要
   },
   modalContent: {
     backgroundColor: "white",
     borderRadius: 12,
-    padding: 16,
-    width: "80%",
-    maxHeight: "80%",
+    padding: 24, // 余白を増やす
+    width: "90%", // ほぼ全幅
+    maxWidth: 520, // 最大幅を拡大
+    maxHeight: "100%", // 最大高さを拡大
+    minWidth: 320, // 最小幅も拡大
     ...getPlatformShadow(5),
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
   },
   modalTitle: {
     fontSize: 18,
@@ -246,6 +298,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 8,
   },
   monthItem: {
     width: "30%",
@@ -262,15 +316,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 16,
+    width: "100%",
   },
   modalButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     marginHorizontal: 8,
+    backgroundColor: colors.primary + "10",
+    borderRadius: 8,
   },
   modalButtonText: {
     color: colors.primary,
     fontSize: 16,
     fontWeight: "bold",
+    textAlign: "center",
   },
 });

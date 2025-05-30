@@ -4,7 +4,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { Footer } from "@/common/common-ui/ui-layout";
+import { Footer, Header } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
 
 export default function userLayout() {
@@ -60,7 +60,7 @@ export default function userLayout() {
     <View style={{ flex: 1 }}>
       <Stack
         screenOptions={{
-          headerShown: false,
+          header: () => <Header title="ホーム" />, // ホーム画面用ヘッダー
           gestureEnabled: true,
           animation: "slide_from_right",
         }}

@@ -1,6 +1,6 @@
 import React from "react";
-import { UserHomeView } from "@/modules/user-view/userHome/UserHomeView";
+import HomeCommonScreen from "../../../modules/home-view/HomeCommonScreen";
 
-export default function HomeScreen() {
-  return <UserHomeView />;
+export default function UserHomeScreen() {
+  return <HomeCommonScreen />;
 }
