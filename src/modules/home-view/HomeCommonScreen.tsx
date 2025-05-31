@@ -18,7 +18,9 @@ import { DatePickerModal } from "@/modules/child-components/calendar/calendar-co
 import type { SampleScheduleColumn } from "./home-view-types";
 import { HomeGanttWideScreen } from "./HomeGanttWideScreen";
 import { HomeGanttMobileScreen } from "./HomeGanttMobileScreen";
+import { HomeGanttTabletScreen } from "./HomeGanttTabletScreen";
 import { GanttHalfSwitch } from "./GanttHalfSwitch"; // 追加
+import { UserDayGanttModal } from "./UserDayGanttModal";
 
 // 型定義のimport
 // sampleSchedule: SampleScheduleColumn[]
@@ -72,6 +74,7 @@ export default function HomeCommonScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showFirst, setShowFirst] = useState(true); // 追加
+  const [modalUser, setModalUser] = useState<string | null>(null);
   const handlePrevDay = () => setSelectedDate((d) => addDays(d, -1));
   const handleNextDay = () => setSelectedDate((d) => addDays(d, 1));
   const dateLabel = format(selectedDate, "yyyy年M月d日(E)", { locale: ja });
@@ -152,7 +155,18 @@ export default function HomeCommonScreen() {
         }}
       />
       {/* レイアウト分岐 */}
-      {isWide ? (
+      {isTablet ? (
+        <HomeGanttTabletScreen
+          namesFirst={namesFirst}
+          namesSecond={namesSecond}
+          timesFirst={timesFirst}
+          timesSecond={timesSecond}
+          sampleSchedule={sampleSchedule}
+          CELL_WIDTH={CELL_WIDTH}
+          showFirst={showFirst}
+          onCellPress={setModalUser} // 追加
+        />
+      ) : isWide ? (
         <HomeGanttWideScreen
           namesFirst={namesFirst}
           namesSecond={namesSecond}
@@ -160,7 +174,8 @@ export default function HomeCommonScreen() {
           timesSecond={timesSecond}
           sampleSchedule={sampleSchedule}
           CELL_WIDTH={CELL_WIDTH}
-          showFirst={showFirst} // 追加
+          showFirst={showFirst}
+          onCellPress={setModalUser} // 追加
         />
       ) : (
         <HomeGanttMobileScreen
@@ -170,9 +185,18 @@ export default function HomeCommonScreen() {
           timesSecond={timesSecond}
           sampleSchedule={sampleSchedule}
           CELL_WIDTH={CELL_WIDTH}
-          showFirst={showFirst} // 追加
+          showFirst={showFirst}
+          onCellPress={setModalUser} // 追加
         />
       )}
+      {/* ユーザー1日ガントチャートモーダル */}
+      <UserDayGanttModal
+        visible={!!modalUser}
+        onClose={() => setModalUser(null)}
+        userName={modalUser || ""}
+        times={showFirst ? timesFirst : timesSecond}
+        sampleSchedule={sampleSchedule}
+      />
     </View>
   );
 }

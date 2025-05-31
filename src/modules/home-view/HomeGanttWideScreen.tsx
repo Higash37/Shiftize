@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, ScrollView, useWindowDimensions } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  useWindowDimensions,
+  Pressable,
+} from "react-native";
 import { styles } from "./home-view-styles";
 import type { SampleScheduleColumn } from "./home-view-types";
 
@@ -11,6 +17,7 @@ interface Props {
   sampleSchedule: SampleScheduleColumn[];
   CELL_WIDTH: number;
   showFirst: boolean; // 追加
+  onCellPress?: (userName: string) => void; // 追加
 }
 
 export const HomeGanttWideScreen: React.FC<Props> = ({
@@ -21,6 +28,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
   sampleSchedule,
   CELL_WIDTH,
   showFirst, // 追加
+  onCellPress, // 追加
 }) => {
   const { width: windowWidth } = useWindowDimensions();
   const totalColumnsFirst = timesFirst.length + 1;
@@ -98,7 +106,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
                 const span = endIdx !== -1 ? endIdx - startIdx : 1;
                 skip = span - 1;
                 cells.push(
-                  <View
+                  <Pressable
                     key={t}
                     style={[
                       styles.cell,
@@ -112,11 +120,12 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
                         alignItems: "center",
                       },
                     ]}
+                    onPress={() => onCellPress && onCellPress(name)}
                   >
                     <Text style={styles.taskText}>
                       {slot.task} {slot.start}~{slot.end}
                     </Text>
-                  </View>
+                  </Pressable>
                 );
               } else {
                 // 何もなければ空セル
