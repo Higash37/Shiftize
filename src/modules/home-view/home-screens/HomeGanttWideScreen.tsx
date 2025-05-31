@@ -6,8 +6,8 @@ import {
   useWindowDimensions,
   Pressable,
 } from "react-native";
-import { styles } from "./home-view-styles";
-import type { SampleScheduleColumn } from "./home-view-types";
+import { styles } from "../home-styles/home-view-styles";
+import type { SampleScheduleColumn } from "../home-types/home-view-types";
 
 interface Props {
   namesFirst: string[];
@@ -159,21 +159,6 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
           ? renderTable(namesFirst, timesFirst, "午前")
           : renderTable(namesSecond, timesSecond, "午後")}
       </ScrollView>
-      {/* フッター */}
-      <View
-        style={{
-          height: 48,
-          backgroundColor: "#fafafa",
-          borderTopWidth: 1,
-          borderTopColor: "#e0e0e0",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ color: "#888", fontSize: 13 }}>
-          © Convenience Store Shift Scheduler
-        </Text>
-      </View>
     </View>
   );
 };

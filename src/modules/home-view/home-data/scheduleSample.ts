@@ -1,4 +1,4 @@
-import type { SampleSlot } from "./home-view-types";
+import type { SampleSlot } from "../home-types/home-view-types";
 
 // サンプルスケジュールデータ（全て手動で配列化・9:00〜22:00を30分刻みで全員分埋める）
 

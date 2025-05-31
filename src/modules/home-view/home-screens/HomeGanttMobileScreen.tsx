@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, useWindowDimensions } from "react-native";
-import { styles } from "./home-view-styles";
-import type { SampleScheduleColumn } from "./home-view-types";
+import { styles } from "../home-styles/home-view-styles";
+import type { SampleScheduleColumn } from "../home-types/home-view-types";
 
 interface Props {
   namesFirst: string[];
@@ -11,18 +11,19 @@ interface Props {
   sampleSchedule: SampleScheduleColumn[];
   CELL_WIDTH: number;
   showFirst: boolean;
-  onCellPress?: (userName: string) => void;
+  onCellPress?: (userName: string) => void; // 追加
 }
 
 // レイアウト用定数
-const HEADER_HEIGHT = 200; // タブレット用にやや小さめ
-const FOOTER_HEIGHT = 80;
-const TABBAR_HEIGHT = 56;
-const VERTICAL_MARGIN = 5;
-const MIN_CELL_WIDTH = 120;
-const MIN_CELL_HEIGHT = 28;
+const HEADER_HEIGHT = 100; // ヘッダーの高さ（推定）
+const FOOTER_HEIGHT = 100; // フッターの高さ
+const TABBAR_HEIGHT = 56; // 下部ナビゲーションバーの高さ
+const VERTICAL_MARGIN = 5; // 上下マージン
+const MIN_CELL_WIDTH = 45;
+const MIN_CELL_HEIGHT = 20;
 
-function GanttHeaderRowTablet({
+// ヘッダー行（名前ラベル）
+function GanttHeaderRow({
   names,
   cellWidth,
   cellHeight,
@@ -48,7 +49,8 @@ function GanttHeaderRowTablet({
   );
 }
 
-function GanttRowTablet({
+// 1行分のガントチャート
+function GanttRow({
   time,
   names,
   sampleSchedule,
@@ -96,7 +98,7 @@ function GanttRowTablet({
                 alignItems: "center",
               },
             ]}
-            onTouchEnd={() => onCellPress && onCellPress(name)}
+            onTouchEnd={() => onCellPress && onCellPress(name)} // 追加
           >
             {slot && <Text style={styles.taskText}>{slot.task}</Text>}
           </View>
@@ -106,7 +108,7 @@ function GanttRowTablet({
   );
 }
 
-export const HomeGanttTabletScreen: React.FC<Props> = ({
+export const HomeGanttMobileScreen: React.FC<Props> = ({
   namesFirst,
   namesSecond,
   timesFirst,
@@ -122,7 +124,7 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
   const cellHeight = Math.max(
     MIN_CELL_HEIGHT,
     Math.floor(
-      (windowWidth >= 768 && windowWidth <= 1024
+      (windowWidth < 768
         ? windowHeight -
           HEADER_HEIGHT -
           FOOTER_HEIGHT -
@@ -144,20 +146,20 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
         showsVerticalScrollIndicator={false}
       >
         <View style={{ minWidth: windowWidth }}>
-          <GanttHeaderRowTablet
+          <GanttHeaderRow
             names={names}
             cellWidth={cellWidth}
             cellHeight={cellHeight}
           />
           {times.map((time) => (
-            <GanttRowTablet
+            <GanttRow
               key={time}
               time={time}
               names={names}
               sampleSchedule={sampleSchedule}
               cellWidth={cellWidth}
               cellHeight={cellHeight}
-              onCellPress={onCellPress}
+              onCellPress={onCellPress} // 追加
             />
           ))}
         </View>

@@ -10,17 +10,17 @@ import {
   useWindowDimensions,
   Pressable,
 } from "react-native";
-import { styles } from "./home-view-styles";
-import { sampleSchedule } from "./scheduleSample";
+import { styles } from "../home-styles/home-view-styles";
+import { sampleSchedule } from "../home-data/scheduleSample";
 import { format, addDays } from "date-fns";
 import ja from "date-fns/locale/ja";
 import { DatePickerModal } from "@/modules/child-components/calendar/calendar-components/calendar-modal/DatePickerModal";
-import type { SampleScheduleColumn } from "./home-view-types";
+import type { SampleScheduleColumn } from "../home-types/home-view-types";
 import { HomeGanttWideScreen } from "./HomeGanttWideScreen";
 import { HomeGanttMobileScreen } from "./HomeGanttMobileScreen";
 import { HomeGanttTabletScreen } from "./HomeGanttTabletScreen";
-import { GanttHalfSwitch } from "./GanttHalfSwitch"; // 追加
-import { UserDayGanttModal } from "./UserDayGanttModal";
+import { GanttHalfSwitch } from "../home-components/GanttHalfSwitch"; // 追加
+import { UserDayGanttModal } from "../home-components/UserDayGanttModal";
 
 // 型定義のimport
 // sampleSchedule: SampleScheduleColumn[]
