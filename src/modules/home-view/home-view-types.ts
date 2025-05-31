@@ -1,6 +1,7 @@
 export type SampleSlot = {
-  time: string;
   name: string;
+  start: string; // 開始時刻
+  end: string; // 終了時刻
   task: string;
 };
 

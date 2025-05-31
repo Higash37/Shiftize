@@ -18,6 +18,7 @@ import { DatePickerModal } from "@/modules/child-components/calendar/calendar-co
 import type { SampleScheduleColumn } from "./home-view-types";
 import { HomeGanttWideScreen } from "./HomeGanttWideScreen";
 import { HomeGanttMobileScreen } from "./HomeGanttMobileScreen";
+import { GanttHalfSwitch } from "./GanttHalfSwitch"; // 追加
 
 // 型定義のimport
 // sampleSchedule: SampleScheduleColumn[]
@@ -70,6 +71,7 @@ export default function HomeCommonScreen() {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showFirst, setShowFirst] = useState(true); // 追加
   const handlePrevDay = () => setSelectedDate((d) => addDays(d, -1));
   const handleNextDay = () => setSelectedDate((d) => addDays(d, 1));
   const dateLabel = format(selectedDate, "yyyy年M月d日(E)", { locale: ja });
@@ -81,19 +83,64 @@ export default function HomeCommonScreen() {
 
   return (
     <View style={[styles.container, { flex: 1 }]}>
-      <Text style={styles.title}>作業スケジュール（講師・マスター共通）</Text>
-      <View style={styles.datePickerRow}>
-        <Text style={styles.dateNavBtn} onPress={handlePrevDay}>
-          {"<"}
-        </Text>
-        <Pressable onPress={openDatePicker}>
-          <Text style={styles.dateLabel}>
-            {format(selectedDate, "yyyy年M月d日")}
+      {/* <Text style={styles.title}>作業スケジュール（講師・マスター共通）</Text> */}
+      <View
+        style={[
+          styles.datePickerRow,
+          {
+            alignItems: "center",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          },
+        ]}
+      >
+        {/* 左端：前半/後半ボタン */}
+        {isMobile ? (
+          // スマホ用：トグル型（1ボタンで表示が切り替わる）
+          <View style={{ marginLeft: 4, marginRight: 8 }}>
+            <Pressable
+              onPress={() => setShowFirst((v) => !v)}
+              style={{
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: "#90caf9",
+                backgroundColor: "#e3f2fd",
+                paddingHorizontal: 24,
+                paddingVertical: 8,
+              }}
+            >
+              <Text style={{ color: "#1976d2", fontWeight: "bold" }}>
+                {showFirst ? "前半" : "後半"}
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          // PC/タブレット用：従来のスイッチ
+          <GanttHalfSwitch showFirst={showFirst} onChange={setShowFirst} />
+        )}
+        {/* 中央：年月ピッカー＋日付ナビ */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            flex: 1,
+            justifyContent: "center",
+          }}
+        >
+          <Text style={styles.dateNavBtn} onPress={handlePrevDay}>
+            {"<"}
           </Text>
-        </Pressable>
-        <Text style={styles.dateNavBtn} onPress={handleNextDay}>
-          {">"}
-        </Text>
+          <Pressable onPress={openDatePicker}>
+            <Text style={styles.dateLabel}>
+              {format(selectedDate, "yyyy年M月d日")}
+            </Text>
+          </Pressable>
+          <Text style={styles.dateNavBtn} onPress={handleNextDay}>
+            {">"}
+          </Text>
+        </View>
+        {/* 右端スペース調整用 */}
+        <View style={{ width: 80 }} />
       </View>
       <DatePickerModal
         isVisible={showDatePicker}
@@ -113,6 +160,7 @@ export default function HomeCommonScreen() {
           timesSecond={timesSecond}
           sampleSchedule={sampleSchedule}
           CELL_WIDTH={CELL_WIDTH}
+          showFirst={showFirst} // 追加
         />
       ) : (
         <HomeGanttMobileScreen
@@ -122,6 +170,7 @@ export default function HomeCommonScreen() {
           timesSecond={timesSecond}
           sampleSchedule={sampleSchedule}
           CELL_WIDTH={CELL_WIDTH}
+          showFirst={showFirst} // 追加
         />
       )}
     </View>
