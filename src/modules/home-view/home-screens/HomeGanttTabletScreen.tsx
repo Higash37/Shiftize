@@ -77,9 +77,14 @@ function GanttRowTablet({
         <Text style={styles.positionText}>{time}</Text>
       </View>
       {names.map((name) => {
+        // 22:00セルも正しく埋まるようslot判定を修正
         const slot = sampleSchedule
           .flatMap((col) => col.slots)
-          .find((s) => s.name === name && time >= s.start && time < s.end);
+          .find((s) => {
+            if (time === s.start && time === s.end && time === "22:00")
+              return true;
+            return time >= s.start && time < s.end;
+          });
         return (
           <View
             key={name}

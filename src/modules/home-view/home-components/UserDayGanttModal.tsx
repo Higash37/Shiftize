@@ -3,12 +3,13 @@ import {
   Modal,
   View,
   Text,
-  Pressable,
+  TouchableWithoutFeedback,
   ScrollView,
   StyleSheet,
 } from "react-native";
 import { styles as ganttStyles } from "../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../home-types/home-view-types";
+import { timeSlots } from "../home-data/scheduleSample";
 
 interface UserDayGanttModalProps {
   visible: boolean;
@@ -30,6 +31,21 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
     .flatMap((col) => col.slots)
     .filter((s) => s.name === userName);
 
+  // 30分刻みで全スロットを生成
+  const slotRows = [];
+  for (let i = 0; i < timeSlots.length - 1; i++) {
+    const start = timeSlots[i];
+    const end = timeSlots[i + 1];
+    // このスロットに該当するシフトを探す
+    const slot = userSlots.find((s) => {
+      // 通常: start >= s.start && start < s.end
+      // ただし、start==s.start==s.end==end の場合(22:00)も含める
+      if (start === s.start && end === s.end && start === "22:00") return true;
+      return start >= s.start && start < s.end;
+    });
+    slotRows.push({ start, end, task: slot ? slot.task : "" });
+  }
+
   return (
     <Modal
       visible={visible}
@@ -37,58 +53,69 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={modalStyles.overlay} onPress={onClose}>
-        <Pressable
-          style={modalStyles.content}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <Text style={modalStyles.title}>{userName} の1日ガントチャート</Text>
-          {/* 詳細スロットリスト表示（1分刻みもOK） */}
-          {userSlots.length > 0 ? (
-            <ScrollView
-              style={{
-                width: "100%",
-                marginBottom: 16,
-                maxHeight: 220,
-              }}
-            >
-              {userSlots.map((slot, idx) => (
-                <View
-                  key={idx}
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={modalStyles.overlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={modalStyles.content}>
+              <Text style={modalStyles.title}>
+                {userName} の1日ガントチャート
+              </Text>
+              {/* その日のシフト開始～終了時間 */}
+              {userSlots.length > 0 && (
+                <Text
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginBottom: 4,
+                    color: "black",
+                    fontWeight: "bold",
+                    marginBottom: 8,
+                    fontSize: 25,
                   }}
                 >
-                  <Text
+                  {userSlots[0].start} ～ {userSlots[userSlots.length - 1].end}
+                </Text>
+              )}
+              {/* 30分刻みで全スロット表示 */}
+              <ScrollView
+                style={{
+                  width: "100%",
+                  marginBottom: 16,
+                  maxHeight: 320,
+                }}
+              >
+                {slotRows.map((row, idx) => (
+                  <View
+                    key={idx}
                     style={{
-                      color: "#1976d2",
-                      fontWeight: "bold",
-                      minWidth: 90,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 4,
                     }}
                   >
-                    {slot.start}~{slot.end}
-                  </Text>
-                  <Text
-                    style={{
-                      color: "#333",
-                      fontSize: 15,
-                      marginLeft: 8,
-                    }}
-                  >
-                    {slot.task}
-                  </Text>
-                </View>
-              ))}
-            </ScrollView>
-          ) : (
-            <Text style={{ color: "#888", marginBottom: 16 }}>
-              この日の業務はありません
-            </Text>
-          )}
-        </Pressable>
-      </Pressable>
+                    <Text
+                      style={{
+                        color: "#1976d2",
+                        fontWeight: "bold",
+                        minWidth: 90,
+                        textAlign: "center", // 中央揃え
+                      }}
+                    >
+                      {row.start}~{row.end}
+                    </Text>
+                    <Text
+                      style={{
+                        color: row.task ? "#333" : "#bbb",
+                        fontSize: 15,
+                        marginLeft: 8,
+                      }}
+                    >
+                      {row.task}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

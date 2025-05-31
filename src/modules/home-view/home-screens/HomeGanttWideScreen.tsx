@@ -93,10 +93,14 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
               }
               // このセルの開始時刻
               const t = timeList[i];
-              // この人のこの時間帯で開始するタスクを探す
+              // この人のこの時間帯で該当するタスクを探す（区間内判定）
               const slot = sampleSchedule
                 .flatMap((col) => col.slots)
-                .find((s) => s.name === name && s.start === t);
+                .find((s) => {
+                  if (t === s.start && t === s.end && t === "22:00")
+                    return true;
+                  return t >= s.start && t < s.end;
+                });
               if (slot) {
                 // 終了時刻までのセル数を計算
                 const startIdx = i;

@@ -88,17 +88,18 @@ export default function HomeCommonScreen() {
   }));
 
   // その日シフトがある人だけの名前リストを作成
-  const namesWithShift = Array.from(
-    new Set(
-      scheduleForSelectedDate.flatMap((col) => col.slots.map((s) => s.name))
-    )
+  // 午前・午後それぞれの時間帯にシフトがある人を動的に判定
+  const hasSlotInTimes = (name: string, times: string[]) =>
+    scheduleForSelectedDate.some((col) =>
+      col.slots.some(
+        (s) => s.name === name && times.some((t) => t >= s.start && t < s.end)
+      )
+    );
+  const filteredNamesFirst = allNames.filter((name) =>
+    hasSlotInTimes(name, timesFirst)
   );
-  // 前半・後半の名前リストもフィルタ
-  const filteredNamesFirst = namesFirst.filter((name) =>
-    namesWithShift.includes(name)
-  );
-  const filteredNamesSecond = namesSecond.filter((name) =>
-    namesWithShift.includes(name)
+  const filteredNamesSecond = allNames.filter((name) =>
+    hasSlotInTimes(name, timesSecond)
   );
 
   // スマホ・タブレット・PC・コンソールでレイアウトを正しく分岐

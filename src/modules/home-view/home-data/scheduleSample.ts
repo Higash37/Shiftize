@@ -112,7 +112,11 @@ function makeSlots90min(name: string): SampleSlot[] {
 export const sampleSchedule = [
   {
     position: "Aレジ",
-    slots: [...makeSlots("石黒"), ...makeSlots("ウエノ")],
+    slots: [
+      ...makeSlots("石黒"),
+      ...makeSlots("ウエノ"),
+      ...makeSlots("全日フル"), // 9:00~22:00全て埋める人
+    ],
   },
   {
     position: "Bレジ",
@@ -123,71 +127,7 @@ export const sampleSchedule = [
     slots: [
       ...makeSlots("午前追加1"),
       ...makeSlots("午後追加1"),
-      // --- 午前追加2: 90分刻み、16:00~17:00は休憩 ---
-      {
-        name: "午前追加2",
-        start: "9:00",
-        end: "10:30",
-        task: "レジ打ち",
-        date: "2025-06-01",
-      },
-      {
-        name: "午前追加2",
-        start: "10:30",
-        end: "12:00",
-        task: "品出し",
-        date: "2025-06-01",
-      },
-      {
-        name: "午前追加2",
-        start: "12:00",
-        end: "13:30",
-        task: "清掃",
-        date: "2025-06-01",
-      },
-      {
-        name: "午前追加2",
-        start: "13:30",
-        end: "15:00",
-        task: "FF補充",
-        date: "2025-06-01",
-      },
-      {
-        name: "午前追加2",
-        start: "15:00",
-        end: "16:00",
-        task: "宅急便受付",
-        date: "2025-06-01",
-      },
-      // 16:00~17:00 休憩
-      {
-        name: "午前追加2",
-        start: "17:00",
-        end: "18:30",
-        task: "レジ打ち",
-        date: "2025-06-01",
-      },
-      {
-        name: "午前追加2",
-        start: "18:30",
-        end: "20:00",
-        task: "品出し",
-        date: "2025-06-01",
-      },
-      {
-        name: "午前追加2",
-        start: "20:00",
-        end: "21:30",
-        task: "清掃",
-        date: "2025-06-01",
-      },
-      {
-        name: "午前追加2",
-        start: "21:30",
-        end: "22:00",
-        task: "終業作業",
-        date: "2025-06-01",
-      },
+      ...makeSlots90min("午前追加2"),
     ],
   },
 ];

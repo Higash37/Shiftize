@@ -79,9 +79,16 @@ function GanttRow({
         <Text style={styles.positionText}>{time}</Text>
       </View>
       {names.map((name) => {
+        // ここでslotの判定を修正: time >= s.start && time < s.end だと 22:00が含まれない
         const slot = sampleSchedule
           .flatMap((col) => col.slots)
-          .find((s) => s.name === name && time >= s.start && time < s.end);
+          .find((s) => {
+            // 通常: time >= s.start && time < s.end
+            // ただし、time==s.start==s.end==22:00 の場合も含める
+            if (time === s.start && time === s.end && time === "22:00")
+              return true;
+            return time >= s.start && time < s.end;
+          });
         return (
           <View
             key={name}
@@ -98,7 +105,7 @@ function GanttRow({
                 alignItems: "center",
               },
             ]}
-            onTouchEnd={() => onCellPress && onCellPress(name)} // 追加
+            onTouchEnd={() => onCellPress && onCellPress(name)}
           >
             {slot && <Text style={styles.taskText}>{slot.task}</Text>}
           </View>
