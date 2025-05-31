@@ -38,12 +38,20 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
     const end = timeSlots[i + 1];
     // このスロットに該当するシフトを探す
     const slot = userSlots.find((s) => {
-      // 通常: start >= s.start && start < s.end
-      // ただし、start==s.start==s.end==end の場合(22:00)も含める
       if (start === s.start && end === s.end && start === "22:00") return true;
       return start >= s.start && start < s.end;
     });
-    slotRows.push({ start, end, task: slot ? slot.task : "" });
+    slotRows.push({
+      start,
+      end,
+      task: slot ? slot.task : "",
+      color: slot
+        ? slot.type === "class"
+          ? "#eee"
+          : slot.color || "#e3f2fd"
+        : undefined,
+      type: slot ? slot.type : undefined,
+    });
   }
 
   return (
@@ -88,6 +96,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
                       flexDirection: "row",
                       alignItems: "center",
                       marginBottom: 4,
+                      backgroundColor: row.color,
                     }}
                   >
                     <Text

@@ -84,7 +84,7 @@ export const DEFAULT_SHIFT_STATUS_CONFIG: ShiftStatusConfig[] = [
 /**
  * シフトの種類
  */
-export type ShiftType = "user" | "class" | "deleted";
+export type ShiftType = "user" | "class" | "staff" | "deleted";
 
 /**
  * 基本的なシフト情報

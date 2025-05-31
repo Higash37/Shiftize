@@ -81,6 +81,7 @@ function GanttRowTablet({
         const slot = sampleSchedule
           .flatMap((col) => col.slots)
           .find((s) => {
+            if (s.name !== name) return false;
             if (time === s.start && time === s.end && time === "22:00")
               return true;
             return time >= s.start && time < s.end;
@@ -93,8 +94,16 @@ function GanttRowTablet({
               {
                 width: cellWidth,
                 height: cellHeight,
-                backgroundColor: slot ? "#e3f2fd" : undefined,
-                borderColor: slot ? "#90caf9" : undefined,
+                backgroundColor: slot
+                  ? slot.type === "class"
+                    ? "#eee"
+                    : slot.color || "#e3f2fd"
+                  : undefined,
+                borderColor: slot
+                  ? slot.type === "class"
+                    ? "#bbb"
+                    : slot.color || "#90caf9"
+                  : undefined,
                 borderWidth: slot ? 1 : 0,
                 opacity: slot ? 1 : 0.1,
                 justifyContent: "center",

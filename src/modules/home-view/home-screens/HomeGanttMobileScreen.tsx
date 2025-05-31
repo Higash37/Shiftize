@@ -19,7 +19,7 @@ const HEADER_HEIGHT = 100; // ヘッダーの高さ（推定）
 const FOOTER_HEIGHT = 100; // フッターの高さ
 const TABBAR_HEIGHT = 56; // 下部ナビゲーションバーの高さ
 const VERTICAL_MARGIN = 5; // 上下マージン
-const MIN_CELL_WIDTH = 45;
+const MIN_CELL_WIDTH = 70;
 const MIN_CELL_HEIGHT = 20;
 
 // ヘッダー行（名前ラベル）
@@ -79,16 +79,26 @@ function GanttRow({
         <Text style={styles.positionText}>{time}</Text>
       </View>
       {names.map((name) => {
-        // ここでslotの判定を修正: time >= s.start && time < s.end だと 22:00が含まれない
-        const slot = sampleSchedule
+        // 授業時間優先でslotを取得
+        const classSlot = sampleSchedule
           .flatMap((col) => col.slots)
-          .find((s) => {
-            // 通常: time >= s.start && time < s.end
-            // ただし、time==s.start==s.end==22:00 の場合も含める
-            if (time === s.start && time === s.end && time === "22:00")
-              return true;
-            return time >= s.start && time < s.end;
-          });
+          .find(
+            (s) =>
+              s.name === name &&
+              s.type === "class" &&
+              ((time === s.start && time === s.end && time === "22:00") ||
+                (time >= s.start && time < s.end))
+          );
+        const staffSlot = sampleSchedule
+          .flatMap((col) => col.slots)
+          .find(
+            (s) =>
+              s.name === name &&
+              s.type !== "class" &&
+              ((time === s.start && time === s.end && time === "22:00") ||
+                (time >= s.start && time < s.end))
+          );
+        const slot = classSlot || staffSlot;
         return (
           <View
             key={name}
@@ -97,8 +107,16 @@ function GanttRow({
               {
                 width: cellWidth,
                 height: cellHeight,
-                backgroundColor: slot ? "#e3f2fd" : undefined,
-                borderColor: slot ? "#90caf9" : undefined,
+                backgroundColor: slot
+                  ? slot.type === "class"
+                    ? "#eee"
+                    : slot.color || "#e3f2fd"
+                  : undefined,
+                borderColor: slot
+                  ? slot.type === "class"
+                    ? "#bbb"
+                    : slot.color || "#90caf9"
+                  : undefined,
                 borderWidth: slot ? 1 : 0,
                 opacity: slot ? 1 : 0.1,
                 justifyContent: "center",

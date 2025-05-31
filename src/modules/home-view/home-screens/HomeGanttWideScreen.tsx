@@ -59,7 +59,9 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
             key={time}
             style={[styles.headerCell, { width: cellWidthFirst }]}
           >
-            <Text style={styles.headerText}>{time}</Text>
+            <Text style={[styles.headerText, { fontWeight: "bold" }]}>
+              {time}
+            </Text>
           </View>
         ))}
       </View>
@@ -97,6 +99,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
               const slot = sampleSchedule
                 .flatMap((col) => col.slots)
                 .find((s) => {
+                  if (s.name !== name) return false;
                   if (t === s.start && t === s.end && t === "22:00")
                     return true;
                   return t >= s.start && t < s.end;
@@ -111,14 +114,20 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
                 skip = span - 1;
                 cells.push(
                   <Pressable
-                    key={t}
+                    key={name + "-" + t + "-" + slot.start}
                     style={[
                       styles.cell,
                       {
                         width: cellWidthFirst * span,
                         height: cellHeightFirst,
-                        backgroundColor: "#e3f2fd",
-                        borderColor: "#90caf9",
+                        backgroundColor:
+                          slot.type === "class"
+                            ? "#eee"
+                            : slot.color || "#e3f2fd",
+                        borderColor:
+                          slot.type === "class"
+                            ? "#bbb"
+                            : slot.color || "#90caf9",
                         borderWidth: 1,
                         justifyContent: "center",
                         alignItems: "center",
@@ -135,7 +144,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
                 // 何もなければ空セル
                 cells.push(
                   <View
-                    key={t}
+                    key={name + "-" + t + "-empty"}
                     style={[
                       styles.cell,
                       {
