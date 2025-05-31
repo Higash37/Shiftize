@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { styles } from "../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../home-types/home-view-types";
+import { GanttHeaderRow } from "../home-components/GanttHeaderRow";
 
 interface Props {
   namesFirst: string[];
