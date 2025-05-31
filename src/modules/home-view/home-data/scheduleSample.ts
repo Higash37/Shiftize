@@ -42,6 +42,7 @@ function makeSlots(name: string): SampleSlot[] {
       start: timeList[i],
       end: timeList[i + 1],
       task: tasks[i % tasks.length],
+      date: "2025-06-01", // 追加
     });
   }
   // 21:30-22:00は終業作業系
@@ -50,6 +51,7 @@ function makeSlots(name: string): SampleSlot[] {
     start: "21:30",
     end: "22:00",
     task: closingTasks[0],
+    date: "2025-06-01", // 追加
   });
   return slots;
 }
@@ -77,6 +79,7 @@ function makeSlots90min(name: string): SampleSlot[] {
         start: cur,
         end: "16:00",
         task: tasks[taskIdx % tasks.length],
+        date: "2025-06-01", // 追加
       });
       cur = "17:00";
       taskIdx++;
@@ -89,6 +92,7 @@ function makeSlots90min(name: string): SampleSlot[] {
       start: cur,
       end,
       task: tasks[taskIdx % tasks.length],
+      date: "2025-06-01", // 追加
     });
     cur = end;
     taskIdx++;
@@ -100,6 +104,7 @@ function makeSlots90min(name: string): SampleSlot[] {
     start: "21:30",
     end: "22:00",
     task: closingTasks[0],
+    date: "2025-06-01", // 追加
   });
   return slots;
 }
@@ -119,16 +124,70 @@ export const sampleSchedule = [
       ...makeSlots("午前追加1"),
       ...makeSlots("午後追加1"),
       // --- 午前追加2: 90分刻み、16:00~17:00は休憩 ---
-      { name: "午前追加2", start: "9:00", end: "10:30", task: "レジ打ち" },
-      { name: "午前追加2", start: "10:30", end: "12:00", task: "品出し" },
-      { name: "午前追加2", start: "12:00", end: "13:30", task: "清掃" },
-      { name: "午前追加2", start: "13:30", end: "15:00", task: "FF補充" },
-      { name: "午前追加2", start: "15:00", end: "16:00", task: "宅急便受付" },
+      {
+        name: "午前追加2",
+        start: "9:00",
+        end: "10:30",
+        task: "レジ打ち",
+        date: "2025-06-01",
+      },
+      {
+        name: "午前追加2",
+        start: "10:30",
+        end: "12:00",
+        task: "品出し",
+        date: "2025-06-01",
+      },
+      {
+        name: "午前追加2",
+        start: "12:00",
+        end: "13:30",
+        task: "清掃",
+        date: "2025-06-01",
+      },
+      {
+        name: "午前追加2",
+        start: "13:30",
+        end: "15:00",
+        task: "FF補充",
+        date: "2025-06-01",
+      },
+      {
+        name: "午前追加2",
+        start: "15:00",
+        end: "16:00",
+        task: "宅急便受付",
+        date: "2025-06-01",
+      },
       // 16:00~17:00 休憩
-      { name: "午前追加2", start: "17:00", end: "18:30", task: "レジ打ち" },
-      { name: "午前追加2", start: "18:30", end: "20:00", task: "品出し" },
-      { name: "午前追加2", start: "20:00", end: "21:30", task: "清掃" },
-      { name: "午前追加2", start: "21:30", end: "22:00", task: "終業作業" },
+      {
+        name: "午前追加2",
+        start: "17:00",
+        end: "18:30",
+        task: "レジ打ち",
+        date: "2025-06-01",
+      },
+      {
+        name: "午前追加2",
+        start: "18:30",
+        end: "20:00",
+        task: "品出し",
+        date: "2025-06-01",
+      },
+      {
+        name: "午前追加2",
+        start: "20:00",
+        end: "21:30",
+        task: "清掃",
+        date: "2025-06-01",
+      },
+      {
+        name: "午前追加2",
+        start: "21:30",
+        end: "22:00",
+        task: "終業作業",
+        date: "2025-06-01",
+      },
     ],
   },
 ];

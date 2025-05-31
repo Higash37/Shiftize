@@ -80,6 +80,27 @@ export default function HomeCommonScreen() {
   const dateLabel = format(selectedDate, "yyyy年M月d日(E)", { locale: ja });
   const openDatePicker = () => setShowDatePicker(true);
 
+  // ★ 選択日付でスケジュールをフィルタ
+  const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
+  const scheduleForSelectedDate = sampleSchedule.map((col) => ({
+    ...col,
+    slots: col.slots.filter((s) => s.date === selectedDateStr),
+  }));
+
+  // その日シフトがある人だけの名前リストを作成
+  const namesWithShift = Array.from(
+    new Set(
+      scheduleForSelectedDate.flatMap((col) => col.slots.map((s) => s.name))
+    )
+  );
+  // 前半・後半の名前リストもフィルタ
+  const filteredNamesFirst = namesFirst.filter((name) =>
+    namesWithShift.includes(name)
+  );
+  const filteredNamesSecond = namesSecond.filter((name) =>
+    namesWithShift.includes(name)
+  );
+
   // スマホ・タブレット・PC・コンソールでレイアウトを正しく分岐
   // isWide: PC/タブレット横向き, isConsole: 横長な小型画面, それ以外はスマホ
   const isTablet = width >= 768 && width <= 1024;
@@ -157,33 +178,33 @@ export default function HomeCommonScreen() {
       {/* レイアウト分岐 */}
       {isTablet ? (
         <HomeGanttTabletScreen
-          namesFirst={namesFirst}
-          namesSecond={namesSecond}
+          namesFirst={filteredNamesFirst}
+          namesSecond={filteredNamesSecond}
           timesFirst={timesFirst}
           timesSecond={timesSecond}
-          sampleSchedule={sampleSchedule}
+          sampleSchedule={scheduleForSelectedDate}
           CELL_WIDTH={CELL_WIDTH}
           showFirst={showFirst}
           onCellPress={setModalUser} // 追加
         />
       ) : isWide ? (
         <HomeGanttWideScreen
-          namesFirst={namesFirst}
-          namesSecond={namesSecond}
+          namesFirst={filteredNamesFirst}
+          namesSecond={filteredNamesSecond}
           timesFirst={timesFirst}
           timesSecond={timesSecond}
-          sampleSchedule={sampleSchedule}
+          sampleSchedule={scheduleForSelectedDate}
           CELL_WIDTH={CELL_WIDTH}
           showFirst={showFirst}
           onCellPress={setModalUser} // 追加
         />
       ) : (
         <HomeGanttMobileScreen
-          namesFirst={namesFirst}
-          namesSecond={namesSecond}
+          namesFirst={filteredNamesFirst}
+          namesSecond={filteredNamesSecond}
           timesFirst={timesFirst}
           timesSecond={timesSecond}
-          sampleSchedule={sampleSchedule}
+          sampleSchedule={scheduleForSelectedDate}
           CELL_WIDTH={CELL_WIDTH}
           showFirst={showFirst}
           onCellPress={setModalUser} // 追加
@@ -195,7 +216,7 @@ export default function HomeCommonScreen() {
         onClose={() => setModalUser(null)}
         userName={modalUser || ""}
         times={showFirst ? timesFirst : timesSecond}
-        sampleSchedule={sampleSchedule}
+        sampleSchedule={scheduleForSelectedDate}
       />
     </View>
   );

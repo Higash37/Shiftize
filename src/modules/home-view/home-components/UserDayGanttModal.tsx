@@ -3,7 +3,7 @@ import {
   Modal,
   View,
   Text,
-  TouchableWithoutFeedback,
+  Pressable,
   ScrollView,
   StyleSheet,
 } from "react-native";
@@ -37,61 +37,58 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={modalStyles.overlay}>
-          <TouchableWithoutFeedback onPress={() => {}}>
-            <View style={modalStyles.content}>
-              <Text style={modalStyles.title}>
-                {userName} の1日ガントチャート
-              </Text>
-              {/* 詳細スロットリスト表示（1分刻みもOK） */}
-              {userSlots.length > 0 ? (
-                <ScrollView
+      <Pressable style={modalStyles.overlay} onPress={onClose}>
+        <Pressable
+          style={modalStyles.content}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <Text style={modalStyles.title}>{userName} の1日ガントチャート</Text>
+          {/* 詳細スロットリスト表示（1分刻みもOK） */}
+          {userSlots.length > 0 ? (
+            <ScrollView
+              style={{
+                width: "100%",
+                marginBottom: 16,
+                maxHeight: 220,
+              }}
+            >
+              {userSlots.map((slot, idx) => (
+                <View
+                  key={idx}
                   style={{
-                    width: "100%",
-                    marginBottom: 16,
-                    maxHeight: 220,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 4,
                   }}
                 >
-                  {userSlots.map((slot, idx) => (
-                    <View
-                      key={idx}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginBottom: 4,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: "#1976d2",
-                          fontWeight: "bold",
-                          minWidth: 90,
-                        }}
-                      >
-                        {slot.start}~{slot.end}
-                      </Text>
-                      <Text
-                        style={{
-                          color: "#333",
-                          fontSize: 15,
-                          marginLeft: 8,
-                        }}
-                      >
-                        {slot.task}
-                      </Text>
-                    </View>
-                  ))}
-                </ScrollView>
-              ) : (
-                <Text style={{ color: "#888", marginBottom: 16 }}>
-                  この日の業務はありません
-                </Text>
-              )}
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
+                  <Text
+                    style={{
+                      color: "#1976d2",
+                      fontWeight: "bold",
+                      minWidth: 90,
+                    }}
+                  >
+                    {slot.start}~{slot.end}
+                  </Text>
+                  <Text
+                    style={{
+                      color: "#333",
+                      fontSize: 15,
+                      marginLeft: 8,
+                    }}
+                  >
+                    {slot.task}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          ) : (
+            <Text style={{ color: "#888", marginBottom: 16 }}>
+              この日の業務はありません
+            </Text>
+          )}
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
