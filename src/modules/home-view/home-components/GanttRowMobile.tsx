@@ -33,7 +33,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
       >
         <Text style={styles.positionText}>{time}</Text>
       </View>
-      {names.map((name) => {
+      {names.map((name, index) => {
         // 授業時間優先でslotを取得
         const classSlot = sampleSchedule
           .flatMap((col) => col.slots)
@@ -56,7 +56,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
         const slot = classSlot || staffSlot;
         return (
           <View
-            key={name}
+            key={`${name}-${index}`}
             style={[
               styles.cell,
               {

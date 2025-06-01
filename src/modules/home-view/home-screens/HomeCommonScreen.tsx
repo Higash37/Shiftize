@@ -17,6 +17,7 @@ import { useHomeGanttState } from "../home-components/useHomeGanttState";
 // import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 // import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { DateNavBar } from "../home-components/DateNavBar";
+import "./home-common-screen.css";
 
 export default function HomeCommonScreen() {
   const gantt = useHomeGanttState();

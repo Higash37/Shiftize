@@ -6,6 +6,7 @@ export const styles = StyleSheet.create<ShiftDateSelectorStyles>({
   container: {
     borderRadius: 8,
     overflow: "hidden",
+    alignItems: "center", // 中央揃えを追加
   },
 });
 

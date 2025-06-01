@@ -1,0 +1,13 @@
+body {
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.date-nav-bar,
+.gantt-half-switch,
+.time-label {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}

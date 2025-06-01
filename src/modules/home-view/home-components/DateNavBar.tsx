@@ -33,7 +33,7 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
   >
     {/* 左端：前半/後半ボタン */}
     {isMobile ? (
-      <View style={{ marginLeft: 4, marginRight: 8 }}>
+      <View style={{ marginLeft: 30 }}>
         <Pressable
           onPress={onToggleHalf}
           style={{
@@ -41,7 +41,7 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
             borderWidth: 1,
             borderColor: "#90caf9",
             backgroundColor: "#e3f2fd",
-            paddingHorizontal: 24,
+            paddingHorizontal: 10,
             paddingVertical: 8,
           }}
         >
