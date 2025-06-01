@@ -42,6 +42,10 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
     onDelete,
   } = props;
 
+  // デバッグログを追加
+  console.log("ユーザー配列:", users);
+  console.log("選択されたユーザーID:", newShiftData.userId);
+
   return (
     <Modal
       visible={visible}
@@ -68,9 +72,11 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
               <Picker
                 selectedValue={newShiftData.userId}
                 onValueChange={(itemValue) => {
+                  console.log("選択された値:", itemValue);
                   const user = users.find((u) => u.uid === itemValue);
+                  console.log("選択されたユーザー:", user);
                   onChange("userId", itemValue);
-                  onChange("nickname", user ? user.nickname : "");
+                  onChange("nickname", user ? user.nickname : "未選択");
                 }}
                 style={styles.picker}
               >

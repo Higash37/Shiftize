@@ -38,11 +38,26 @@ export function useGanttShiftActions({
       }
     ) => {
       if (editingShift) {
+        if (editingShift?.status === "deletion_requested") {
+          newShiftData.status = "rejected"; // 削除申請中のシフトを却下状態に変更
+        }
+        // Master が直接却下にする場合の処理
+        if (newShiftData.status === "rejected") {
+          await updateDoc(doc(db, "shifts", editingShift.id), {
+            ...newShiftData,
+            updatedAt: serverTimestamp(),
+          });
+          if (onShiftUpdate) await onShiftUpdate();
+          return;
+        }
         await updateDoc(doc(db, "shifts", editingShift.id), {
           ...newShiftData,
           updatedAt: serverTimestamp(),
         });
       } else {
+        if (newShiftData.status === "deleted") {
+          newShiftData.status = "deletion_requested"; // 削除申請中に変更
+        }
         await addDoc(collection(db, "shifts"), {
           ...newShiftData,
           status: "approved",

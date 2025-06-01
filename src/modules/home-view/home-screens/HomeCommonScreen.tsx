@@ -36,6 +36,11 @@ export default function HomeCommonScreen() {
       return next;
     });
 
+  // scheduleForSelectedDateをフィルタリングして承認済みのシフトのみを表示
+  const approvedSchedule = gantt.scheduleForSelectedDate.filter(
+    (shift) => shift.status === "approved"
+  );
+
   return (
     <View style={[styles.container, { flex: 1 }]}>
       {/* <Text style={styles.title}>作業スケジュール（講師・マスター共通）</Text> */}
@@ -70,7 +75,7 @@ export default function HomeCommonScreen() {
           namesSecond={gantt.filteredNamesSecond}
           timesFirst={gantt.timesFirst}
           timesSecond={gantt.timesSecond}
-          sampleSchedule={gantt.scheduleForSelectedDate}
+          sampleSchedule={approvedSchedule}
           CELL_WIDTH={gantt.CELL_WIDTH}
           showFirst={gantt.showFirst}
           onCellPress={gantt.setModalUser}
@@ -81,7 +86,7 @@ export default function HomeCommonScreen() {
           namesSecond={gantt.filteredNamesSecond}
           timesFirst={gantt.timesFirst}
           timesSecond={gantt.timesSecond}
-          sampleSchedule={gantt.scheduleForSelectedDate}
+          sampleSchedule={approvedSchedule}
           CELL_WIDTH={gantt.CELL_WIDTH}
           showFirst={gantt.showFirst}
           onCellPress={gantt.setModalUser}
@@ -92,7 +97,7 @@ export default function HomeCommonScreen() {
           namesSecond={gantt.filteredNamesSecond}
           timesFirst={gantt.timesFirst}
           timesSecond={gantt.timesSecond}
-          sampleSchedule={gantt.scheduleForSelectedDate}
+          sampleSchedule={approvedSchedule}
           CELL_WIDTH={gantt.CELL_WIDTH}
           showFirst={gantt.showFirst}
           onCellPress={gantt.setModalUser}

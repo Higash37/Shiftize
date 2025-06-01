@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 24, // 余白を増やす
     width: "90%", // ほぼ全幅
-    maxWidth: 520, // 最大幅を拡大
+    maxWidth: 600, // PC画面での最大幅を調整
     maxHeight: "100%", // 最大高さを拡大
     minWidth: 320, // 最小幅も拡大
     ...getPlatformShadow(5),
@@ -297,12 +297,12 @@ const styles = StyleSheet.create({
   monthGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "space-around", // PC画面でのレイアウトを改善
     width: "100%",
     marginBottom: 8,
   },
   monthItem: {
-    width: "30%",
+    width: "28%", // PC画面でのアイテム幅を調整
     padding: 12,
     marginBottom: 8,
     borderRadius: 8,

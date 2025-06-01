@@ -43,8 +43,7 @@ export function useHomeGanttState() {
   const shiftsForDate = shifts.filter(
     (s) =>
       (s.date === selectedDateStr || s.date === localDateStr) &&
-      s.status !== "deleted" &&
-      s.status !== "purged"
+      s.status === "approved" // 承認済みのシフトのみ
   );
 
   const allNames: string[] = Array.from(
@@ -126,7 +125,12 @@ export function useHomeGanttState() {
   const filteredNamesSecond = allNames.filter((name) =>
     hasSlotInTimes(name, timesSecond)
   );
-  const scheduleForSelectedDate = buildScheduleColumns(allNames);
+  const scheduleForSelectedDate = buildScheduleColumns(allNames).map(
+    (column) => ({
+      ...column,
+      status: "approved", // 仮のステータスを追加
+    })
+  );
 
   return {
     selectedDate,

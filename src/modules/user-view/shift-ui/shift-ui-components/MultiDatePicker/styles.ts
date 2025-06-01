@@ -8,6 +8,8 @@ export const styles = StyleSheet.create<MultiDatePickerStyles>({
     borderRadius: 16,
     padding: 16,
     elevation: 2,
+    maxWidth: 600, // PC画面での最大幅を設定
+    alignSelf: "center", // 中央揃え
   },
   label: {
     fontSize: 16,
@@ -18,6 +20,7 @@ export const styles = StyleSheet.create<MultiDatePickerStyles>({
   calendar: {
     borderRadius: 12,
     overflow: "hidden",
+    marginHorizontal: "auto", // PC画面での中央揃え
   },
 });
 

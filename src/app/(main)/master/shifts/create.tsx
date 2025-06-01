@@ -330,6 +330,13 @@ export default function MasterShiftCreateScreen() {
     user.nickname.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  useEffect(() => {
+    const selectedUser = users.find((u) => u.uid === selectedUserId);
+    if (selectedUser) {
+      setSelectedUserNickname(selectedUser.nickname);
+    }
+  }, [selectedUserId, users]);
+
   if (isLoading || usersLoading) {
     return (
       <View style={styles.loadingContainer}>
