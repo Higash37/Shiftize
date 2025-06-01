@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
     marginRight: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 24, // もともと18、より大きく
     fontWeight: "bold",
     color: colors.text.primary,
   },

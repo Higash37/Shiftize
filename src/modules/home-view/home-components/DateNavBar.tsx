@@ -1,0 +1,79 @@
+import React from "react";
+import { View, Text, Pressable } from "react-native";
+import { styles } from "../home-styles/home-view-styles";
+
+interface DateNavBarProps {
+  isMobile: boolean;
+  showFirst: boolean;
+  onToggleHalf: () => void;
+  onPrevDay: () => void;
+  onNextDay: () => void;
+  dateLabel: string;
+  onOpenDatePicker: () => void;
+}
+
+export const DateNavBar: React.FC<DateNavBarProps> = ({
+  isMobile,
+  showFirst,
+  onToggleHalf,
+  onPrevDay,
+  onNextDay,
+  dateLabel,
+  onOpenDatePicker,
+}) => (
+  <View
+    style={[
+      styles.datePickerRow,
+      {
+        alignItems: "center",
+        flexDirection: "row",
+        justifyContent: "space-between",
+      },
+    ]}
+  >
+    {/* 左端：前半/後半ボタン */}
+    {isMobile ? (
+      <View style={{ marginLeft: 4, marginRight: 8 }}>
+        <Pressable
+          onPress={onToggleHalf}
+          style={{
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: "#90caf9",
+            backgroundColor: "#e3f2fd",
+            paddingHorizontal: 24,
+            paddingVertical: 8,
+          }}
+        >
+          <Text style={{ color: "#1976d2", fontWeight: "bold" }}>
+            {showFirst ? "前半" : "後半"}
+          </Text>
+        </Pressable>
+      </View>
+    ) : (
+      // PC/タブレット用：従来のスイッチ
+      <></> // GanttHalfSwitchは親でラップ
+    )}
+    {/* 中央：年月ピッカー＋日付ナビ */}
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        flex: 1,
+        justifyContent: "center",
+      }}
+    >
+      <Text style={styles.dateNavBtn} onPress={onPrevDay}>
+        {"<"}
+      </Text>
+      <Pressable onPress={onOpenDatePicker}>
+        <Text style={styles.dateLabel}>{dateLabel}</Text>
+      </Pressable>
+      <Text style={styles.dateNavBtn} onPress={onNextDay}>
+        {">"}
+      </Text>
+    </View>
+    {/* 右端スペース調整用 */}
+    <View style={{ width: 80 }} />
+  </View>
+);

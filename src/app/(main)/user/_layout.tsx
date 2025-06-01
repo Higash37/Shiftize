@@ -60,9 +60,9 @@ export default function userLayout() {
     <View style={{ flex: 1 }}>
       <Stack
         screenOptions={{
-          header: () => <Header title="ホーム" />, // ホーム画面用ヘッダー
           gestureEnabled: true,
           animation: "slide_from_right",
+          headerShown: false, // デフォルトのWebヘッダーを非表示
         }}
       >
         <Slot />

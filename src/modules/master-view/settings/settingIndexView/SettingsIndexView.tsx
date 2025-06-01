@@ -9,7 +9,7 @@ export const SettingsIndexView: React.FC<SettingsIndexViewProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: "設定", headerShown: true }} />
+      <Stack.Screen options={{ title: "設定", headerShown: false }} />
       <Text style={styles.title}>設定</Text>
       <View style={styles.listContainer}>
         <TouchableOpacity

@@ -102,7 +102,6 @@ export const UserShiftList: React.FC = () => {
   if (shiftsLoading) {
     return (
       <View style={styles.container}>
-        <Header title="シフト一覧" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -152,7 +151,6 @@ export const UserShiftList: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="シフト一覧" />
       <View style={styles.calendarContainer}>
         <ShiftCalendar
           shifts={monthlyShifts}

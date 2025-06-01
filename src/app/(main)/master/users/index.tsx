@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useUser } from "@/modules/child-components/user-management/user-hooks/useUser";
 import { UserForm } from "@/modules/child-components/user-management/user-props/UserForm";
 import { UserList } from "@/modules/child-components/user-management/user-props/UserList";
 import { User } from "@/common/common-models/model-user/UserModel";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import UserManagement from "@/modules/child-components/user-management/user-props/UserManagement";
-import { Header, MasterHeader } from "@/common/common-ui/ui-layout";
+import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { db } from "@/services/firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
 
@@ -126,9 +125,7 @@ export default function UsersScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.headerWrapper}>
-        <MasterHeader title="ユーザー管理" />
-      </View>
+      <MasterHeader title="ユーザー管理" />
       <View style={styles.container}>
         {selectedUser || isAddingUser ? (
           <View style={styles.formContainer70}>
@@ -161,13 +158,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  headerWrapper: {
-    width: "100%",
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    zIndex: 10,
   },
   container: {
     flex: 1,
