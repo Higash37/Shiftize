@@ -35,15 +35,6 @@
       "display": "standalone",
       "startUrl": "/",
       "orientation": "portrait",
-      "meta": {
-        "apple": {
-          "mobileWebAppCapable": "yes",
-          "mobileWebAppStatusBarStyle": "black-translucent",
-          "appleMobileWebAppTitle": "シフト管理",
-          "appleMobileWebAppCapable": "yes",
-          "appleMobileWebAppStatusBarStyle": "black-translucent"
-        }
-      },
       "appleTouchIcon": "./public/PWAIcon180x180.png"
     },
     "scheme": "shift-scheduler-app",

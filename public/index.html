@@ -5,41 +5,29 @@
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
     />
     <title>%WEB_TITLE%</title>
 
-    <!-- ✅ iOS用PWA対応meta -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    
+    <!-- PWA 設定 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="シフト管理">
+    <meta name="theme-color" content="#1565C0">
+    
     <link rel="apple-touch-icon" href="/PWAIcon180x180.png" />
+    <link rel="manifest" href="/manifest.json" />
 
-    <!-- The `react-native-web` recommended style reset -->
+    <!-- その他のスタイルとスクリプト -->
     <style id="expo-reset">
-      html,
-      body {
-        height: 100%;
-      }
-      body {
-        overflow: hidden;
-      }
-      #root {
-        display: flex;
-        height: 100%;
-        flex: 1;
-      }
+      html, body { height: 100%; }
+      body { overflow: hidden; }
+      #root { display: flex; height: 100%; flex: 1; }
     </style>
   </head>
-
   <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
-    <noscript> You need to enable JavaScript to run this app. </noscript>
-    <!-- The root element for your Expo app. -->
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
   </body>
 </html>
