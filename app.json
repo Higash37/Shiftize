@@ -30,7 +30,7 @@
       "shortName": "シフト管理",
       "lang": "ja",
       "scope": "/",
-      "themeColor": "#1976d2",
+      "themeColor": "#1565C0",
       "backgroundColor": "#ffffff",
       "display": "standalone",
       "startUrl": "/",
@@ -38,7 +38,10 @@
       "meta": {
         "apple": {
           "mobileWebAppCapable": "yes",
-          "statusBarStyle": "default"
+          "mobileWebAppStatusBarStyle": "black-translucent",
+          "appleMobileWebAppTitle": "シフト管理",
+          "appleMobileWebAppCapable": "yes",
+          "appleMobileWebAppStatusBarStyle": "black-translucent"
         }
       },
       "appleTouchIcon": "./public/PWAIcon180x180.png"
