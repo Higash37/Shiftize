@@ -17,7 +17,7 @@ interface Props {
 }
 
 // レイアウト用定数
-const HEADER_HEIGHT = 100; // ヘッダーの高さ（推定）
+const HEADER_HEIGHT = 160; // ヘッダーの高さ（推定）
 const FOOTER_HEIGHT = 100; // フッターの高さ
 const TABBAR_HEIGHT = 56; // 下部ナビゲーションバーの高さ
 const VERTICAL_MARGIN = 5; // 上下マージン
