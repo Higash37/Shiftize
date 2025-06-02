@@ -48,8 +48,13 @@ function RootLayoutNav() {
     <>
       <StatusBar style="light" backgroundColor={colors.primary} />
       <SafeAreaView
-        style={{ flex: 1, backgroundColor: colors.primary }}
-        edges={["top", "bottom"]}
+        style={{
+          flex: 1,
+          backgroundColor: colors.primary,
+          height: "100%",
+          width: "100%",
+        }}
+        edges={["top", "bottom", "left", "right"]}
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}

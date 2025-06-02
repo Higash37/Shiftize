@@ -10,20 +10,37 @@
     <title>%WEB_TITLE%</title>
 
     <!-- PWA 設定 -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="シフト管理">
-    <meta name="theme-color" content="#1565C0">
-    
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="シフト管理" />
+    <meta name="theme-color" content="#1565C0" />
+
     <link rel="apple-touch-icon" href="/PWAIcon180x180.png" />
     <link rel="manifest" href="/manifest.json" />
 
     <!-- その他のスタイルとスクリプト -->
     <style id="expo-reset">
-      html, body { height: 100%; }
-      body { overflow: hidden; }
-      #root { display: flex; height: 100%; flex: 1; }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        overflow: hidden;
+        background-color: #1565c0; /* ヘッダーの色と一致させる */
+        min-height: 100vh;
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+        flex-direction: column;
+      }
     </style>
   </head>
   <body>
