@@ -20,7 +20,7 @@ export type ColorsType = {
 };
 
 export const colors: ColorsType = {
-  primary: "#1DA1F2", // メインカラー（トライワークスブルー）
+  primary: "#1565C0", // メインカラー（ヘッダーと同じ青）
   secondary: "#657786", // サブカラー
   background: "#FFFFFF", // 背景色
   surface: "#F5F8FA", // カード背景色

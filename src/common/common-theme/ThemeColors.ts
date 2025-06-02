@@ -1,7 +1,7 @@
 import { ShiftStatus } from "@/common/common-models/ModelIndex";
 
 export const colors = {
-  primary: "#007AFF",
+  primary: "#1565C0", // ヘッダーと同じ青色に統一
   secondary: "#5856D6",
   background: "#F2F2F7",
   surface: "#FFFFFF",
