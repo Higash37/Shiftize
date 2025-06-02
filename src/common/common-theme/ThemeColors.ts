@@ -26,7 +26,7 @@ export const colors = {
   // ShiftStatus型に準拠したステータスカラー
   status: {
     draft: "#B0BEC5",
-    approved: "#2196F3", // 青色
+    approved: "#1565C0", // 青色
     pending: "#FFC107",
     deleted: "#F44336",
     rejected: "#EF5350",

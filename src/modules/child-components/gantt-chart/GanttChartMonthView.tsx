@@ -71,7 +71,7 @@ const DEFAULT_SHIFT_STATUS_CONFIG = [
   {
     status: "approved" as ShiftStatus,
     label: "承認済み",
-    color: "#4CAF50",
+    color: "#1565C0",
     canEdit: true,
   },
   {

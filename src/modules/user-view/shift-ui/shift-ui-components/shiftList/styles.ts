@@ -11,7 +11,7 @@ export const shiftListItemStyles = StyleSheet.create({
     alignItems: "center",
     padding: IS_SMALL_DEVICE ? 4 : 6, // パディングをさらに縮小
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.status.approved, // ステータスに応じた色を適用
     backgroundColor: colors.surface,
     borderRadius: IS_SMALL_DEVICE
       ? theme.borderRadius.sm

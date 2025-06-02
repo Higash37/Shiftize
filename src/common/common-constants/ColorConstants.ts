@@ -1,4 +1,4 @@
-import { ShiftStatus } from "../common-models/model-shift/ShiftModel";
+import { ShiftStatus } from "../common-models/model-shift/shiftTypes";
 
 export type ColorsType = {
   primary: string;
@@ -38,9 +38,11 @@ export const colors: ColorsType = {
   shift: {
     draft: "#9E9E9E", // 灰色 - 下書き
     pending: "#FFA726", // 黄 - 変更申請中
-    approved: "#66BB6A", // 緑 - 実施済み
+    approved: "#1565C0", // 青色 - 承認済み
     rejected: "#EF5350", // 赤 - 削除済み
     deleted: "#B0BEC5", // 青 - 承認済み（未完了）
-    completed: "#42A5F5",
+    completed: "#42A5F5", // 青色 - 完了
+    deletion_requested: "#FFA500", // オレンジ - 削除申請中
+    purged: "#000000", // 黒 - 完全非表示
   },
 };
