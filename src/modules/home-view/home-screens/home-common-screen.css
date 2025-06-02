@@ -2,6 +2,12 @@ body {
   cursor: default;
   -webkit-user-select: none;
   user-select: none;
+  background-color: #1565c0; /* ヘッダーの色と一致 */
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .date-nav-bar,
@@ -10,4 +16,16 @@ body {
   cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* セーフエリアの調整 */
+html {
+  height: 100%;
+}
+
+/* コンテンツが画面全体をカバーするように調整 */
+#root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
