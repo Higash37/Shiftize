@@ -44,7 +44,7 @@ export default function Login() {
             onPress={() => router.push("/(main)")}
           >
             <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
-              シフトスケジューラー
+              Shiftee
             </Text>
           </TouchableOpacity>
         </View>

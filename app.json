@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "シフトスケジューラー",
+    "name": "Shiftee",
     "slug": "shift-scheduler-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -26,7 +26,7 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "manifest": "public/manifest.json",
-      "name": "シフトスケジューラー",
+      "name": "Shiftee",
       "shortName": "シフト管理",
       "lang": "ja",
       "scope": "/",

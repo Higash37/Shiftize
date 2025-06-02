@@ -1,11 +1,11 @@
 {
-  "name": "シフトスケジューラー",
-  "short_name": "シフト管理",
+  "name": "Shiftee",
+  "short_name": "Shiftee",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1565C0",
-  "description": "シフト管理・スケジューラーPWAアプリ",
+  "description": "シフト管理アプリ",
   "icons": [
     {
       "src": "PWAIcon60x60.png",
