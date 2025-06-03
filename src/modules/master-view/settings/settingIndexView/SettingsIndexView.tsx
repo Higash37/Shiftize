@@ -39,6 +39,13 @@ export const SettingsIndexView: React.FC<SettingsIndexViewProps> = ({
         >
           <Text style={styles.listText}>シフトステータス</Text>
         </TouchableOpacity>
+        <View style={styles.separator} />
+        <TouchableOpacity
+          style={styles.listItem}
+          onPress={() => onNavigate("/master/taskManagement")}
+        >
+          <Text style={styles.listText}>タスク管理</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
