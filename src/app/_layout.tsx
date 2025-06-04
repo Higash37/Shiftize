@@ -54,7 +54,7 @@ function RootLayoutNav() {
           height: "100%",
           width: "100%",
         }}
-        edges={["top", "left", "right", "bottom"]} // セーフエリア全体を考慮
+        edges={["top", "left", "right"]} // セーフエリア全体を考慮
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -73,7 +73,7 @@ function RootLayoutNav() {
               width: "100%",
               paddingVertical: 8,
               alignItems: "center",
-              paddingBottom: 16, // セーフエリアの高さを考慮
+              paddingBottom: 25, // セーフエリアの高さを考慮
             }}
           >
             <View style={{ maxWidth: 600, paddingHorizontal: 12 }}>
