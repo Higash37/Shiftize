@@ -69,9 +69,11 @@ function RootLayoutNav() {
           {/* フッターのスタイルを調整 */}
           <View
             style={{
+              position: "absolute",
+              bottom: 16, // 少し上に上げる
               backgroundColor: colors.primary,
+              width: "100%",
               paddingVertical: 8,
-              paddingBottom: 4, // セーフエリアの影響を減らす
               alignItems: "center",
             }}
           >
