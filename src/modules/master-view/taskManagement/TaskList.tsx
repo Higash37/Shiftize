@@ -10,7 +10,6 @@ import {
   Keyboard,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 import TaskCardComponent from "./task-components/TaskCardComponent";
 import ModalComponent from "./task-components/ModalComponent";
 import TaskListStyles from "./task-styles/TaskListStyles";
@@ -26,19 +25,29 @@ interface Task {
 interface TaskListProps {
   tasks: Task[];
   onEditTask: (updatedTask: Task) => void;
+  onAddTask: (task: Task) => void; // onAddTaskを追加
+  handleDeleteTask: (id: string) => Promise<void>; // 削除ハンドラ
+  reloadTasks: () => Promise<void>; // タスク再読み込み関数
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, onEditTask }) => {
+const TaskList: React.FC<TaskListProps> = ({
+  tasks,
+  onAddTask,
+  onEditTask,
+  handleDeleteTask,
+  reloadTasks,
+}) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [newTask, setNewTask] = useState({
+    id: "", // IDプロパティを追加
     title: "",
     frequency: "",
     timePerTask: "",
     description: "",
   });
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [customTime, setCustomTime] = useState("");
   const [customInterval, setCustomInterval] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // 送信中フラグ
 
   const frequencyOptions = [
     "1分に1回",
@@ -60,106 +69,123 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onEditTask }) => {
     "その他",
   ];
 
-  const openModal = () => setModalVisible(true);
-  const closeModal = () => setModalVisible(false);
-
-  const addTask = () => {
+  const addTask = async () => {
     const timePerTask =
       newTask.timePerTask === "その他" ? customTime : newTask.timePerTask;
     const frequency =
       newTask.frequency === "その他" ? customInterval : newTask.frequency;
-    onEditTask({
-      id: Date.now().toString(),
+
+    const taskToAdd: Task = {
       ...newTask,
       timePerTask,
       frequency,
-    });
-    setNewTask({
-      title: "",
-      frequency: "",
-      timePerTask: "",
-      description: "",
-    });
-    setCustomTime("");
-    setCustomInterval("");
-    closeModal();
-  };
+    };
 
-  const openEditModal = (task: Task) => {
-    setEditingTask(task);
-    setModalVisible(true);
-  };
+    setIsSubmitting(true); // ボタンを無効化
 
-  const saveTaskEdits = () => {
-    if (editingTask) {
-      const timePerTask =
-        editingTask.timePerTask === "その他"
-          ? customTime
-          : editingTask.timePerTask;
-      const frequency =
-        editingTask.frequency === "その他"
-          ? customInterval
-          : editingTask.frequency;
-      onEditTask({ ...editingTask, timePerTask, frequency });
-      setEditingTask(null);
+    try {
+      if (newTask.id) {
+        await onEditTask(taskToAdd); // 既存タスクの編集
+      } else {
+        await onAddTask(taskToAdd); // 新規タスクの追加
+        await reloadTasks(); // Firebaseから即座に読み込む
+      }
+
+      setNewTask({
+        id: "", // IDをリセット
+        title: "",
+        frequency: "",
+        timePerTask: "",
+        description: "",
+      });
       setCustomTime("");
       setCustomInterval("");
-      closeModal();
+      setModalVisible(false); // モーダルを閉じる
+    } catch (error) {
+      console.error("タスクの処理中にエラーが発生しました: ", error);
+    } finally {
+      setIsSubmitting(false); // ボタンを再度有効化
     }
   };
 
-  const renderItem = ({ item }: { item: Task }) => {
-    console.log("Rendering TaskCardComponent with item:", item);
-    return (
-      <TaskCardComponent
-        frequency={item.frequency}
-        timePerTask={item.timePerTask}
-        title={item.title}
-        onPress={() => openEditModal(item)}
-      />
-    );
-  };
-
-  console.log("Rendering TaskList component");
-  console.log("Received tasks in TaskList:", tasks);
-  console.log("Modal visibility:", isModalVisible);
+  const styles = StyleSheet.create({
+    ...TaskListStyles,
+    buttonText: {
+      color: "#fff",
+      fontSize: 16,
+      textAlign: "center",
+    },
+    deleteButton: {
+      backgroundColor: "#ff4d4d",
+      padding: 10,
+      borderRadius: 5,
+      marginLeft: 10,
+    },
+    buttonContainer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 20,
+    },
+    cancelButton: {
+      backgroundColor: "#007bff",
+      padding: 10,
+      borderRadius: 5,
+    },
+  });
 
   return (
     <>
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <TaskCardComponent
+            title={item.title}
+            frequency={item.frequency}
+            timePerTask={item.timePerTask}
+            onPress={() => {
+              setNewTask(item); // カードを押したときにモーダルにデータを設定
+              setModalVisible(true); // モーダルを表示
+            }}
+          />
+        )}
         contentContainerStyle={styles.listContainer}
       />
-      <TouchableOpacity style={styles.addButton} onPress={openModal}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => {
+          setNewTask({
+            id: "", // IDプロパティを追加
+            title: "",
+            frequency: "",
+            timePerTask: "",
+            description: "",
+          }); // 新規タスク用にリセット
+          setModalVisible(true); // モーダルを表示
+        }}
+      >
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
 
       <ModalComponent
         isVisible={isModalVisible}
-        title={editingTask ? "タスクを編集" : "タスクを追加"}
-        onClose={closeModal}
-        onSave={editingTask ? saveTaskEdits : addTask}
+        title={newTask.id ? "タスクを編集" : "タスクを追加"} // モーダルタイトルを動的に変更
+        onClose={() => setModalVisible(false)}
+        onSave={addTask}
       >
         <TextInput
           style={styles.input}
           placeholder="タスク名"
-          value={editingTask?.title || newTask.title}
-          onChangeText={(text) =>
-            editingTask
-              ? setEditingTask({ ...editingTask, title: text })
-              : setNewTask({ ...newTask, title: text })
-          }
+          value={newTask.title}
+          onChangeText={(text) => setNewTask({ ...newTask, title: text })}
         />
         <View>
           <Text>時間</Text>
           <Picker
-            selectedValue={editingTask?.timePerTask || newTask.timePerTask}
+            selectedValue={newTask.timePerTask}
             onValueChange={(value) =>
-              editingTask
-                ? setEditingTask({ ...editingTask, timePerTask: value })
-                : setNewTask({ ...newTask, timePerTask: value })
+              setNewTask({ ...newTask, timePerTask: value })
             }
             style={styles.picker}
           >
@@ -167,8 +193,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onEditTask }) => {
               <Picker.Item key={option} label={option} value={option} />
             ))}
           </Picker>
-          {(editingTask?.timePerTask === "その他" ||
-            newTask.timePerTask === "その他") && (
+          {newTask.timePerTask === "その他" && (
             <TextInput
               style={styles.customInput}
               placeholder="カスタム時間を入力"
@@ -180,11 +205,9 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onEditTask }) => {
         <View>
           <Text>頻度</Text>
           <Picker
-            selectedValue={editingTask?.frequency || newTask.frequency}
+            selectedValue={newTask.frequency}
             onValueChange={(value) =>
-              editingTask
-                ? setEditingTask({ ...editingTask, frequency: value })
-                : setNewTask({ ...newTask, frequency: value })
+              setNewTask({ ...newTask, frequency: value })
             }
             style={styles.picker}
           >
@@ -192,8 +215,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onEditTask }) => {
               <Picker.Item key={option} label={option} value={option} />
             ))}
           </Picker>
-          {(editingTask?.frequency === "その他" ||
-            newTask.frequency === "その他") && (
+          {newTask.frequency === "その他" && (
             <TextInput
               style={styles.customInput}
               placeholder="カスタム頻度を入力"
@@ -205,19 +227,35 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onEditTask }) => {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="記述"
-          value={editingTask?.description || newTask.description}
-          onChangeText={(text) =>
-            editingTask
-              ? setEditingTask({ ...editingTask, description: text })
-              : setNewTask({ ...newTask, description: text })
-          }
+          value={newTask.description}
+          onChangeText={(text) => setNewTask({ ...newTask, description: text })}
           multiline
         />
+        <View style={styles.buttonContainer}>
+          {newTask.id && (
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={async () => {
+                await handleDeleteTask(newTask.id); // 削除処理
+                setModalVisible(false); // モーダルを閉じる
+                await reloadTasks(); // 画面全体をリロード
+              }}
+            >
+              <Text style={styles.buttonText}>削除</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </ModalComponent>
     </>
   );
 };
 
-const styles = TaskListStyles;
+const styles = StyleSheet.create({
+  ...TaskListStyles,
+  disabledButton: {
+    backgroundColor: "#d3d3d3", // 無効化時の色
+    opacity: 0.6, // 無効化時の透明度
+  },
+});
 
 export default TaskList;

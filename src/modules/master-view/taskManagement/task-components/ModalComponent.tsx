@@ -14,6 +14,7 @@ interface ModalProps {
   children: React.ReactNode;
   onClose: () => void;
   onSave: () => void;
+  onDelete?: () => void; // 削除ボタン用のプロップを追加
 }
 
 const ModalComponent: React.FC<ModalProps> = ({
@@ -22,6 +23,7 @@ const ModalComponent: React.FC<ModalProps> = ({
   children,
   onClose,
   onSave,
+  onDelete,
 }) => {
   if (!isVisible) return null;
 
@@ -33,11 +35,19 @@ const ModalComponent: React.FC<ModalProps> = ({
             <Text style={styles.modalTitle}>{title}</Text>
             {children}
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.saveButton} onPress={onSave}>
-                <Text style={styles.saveButtonText}>保存</Text>
-              </TouchableOpacity>
               <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
                 <Text style={styles.cancelButtonText}>キャンセル</Text>
+              </TouchableOpacity>
+              {onDelete && (
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={onDelete}
+                >
+                  <Text style={styles.deleteButtonText}>削除</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.saveButton} onPress={onSave}>
+                <Text style={styles.saveButtonText}>保存</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -97,6 +107,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
+  deleteButton: {
+    backgroundColor: "#ff4d4d",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: "center",
+  },
   saveButtonText: {
     color: "#fff",
     fontSize: 16,
@@ -104,6 +121,11 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: "#666",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  deleteButtonText: {
+    color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },

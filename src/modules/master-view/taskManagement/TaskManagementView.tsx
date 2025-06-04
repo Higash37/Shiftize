@@ -33,6 +33,7 @@ const TaskManagementView: React.FC = () => {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskFrequency, setNewTaskFrequency] = useState("");
   const [newTaskTimePerTask, setNewTaskTimePerTask] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const reloadTasks = async () => {
     const updatedTasks = await getTasks();
@@ -44,6 +45,11 @@ const TaskManagementView: React.FC = () => {
   }, []);
 
   const handleAddTask = async () => {
+    if (!newTaskTitle || !newTaskFrequency || !newTaskTimePerTask) {
+      console.error("タスクの追加に必要なデータが不足しています。");
+      return;
+    }
+
     const newTask: Task = {
       id: generateTaskId(),
       title: newTaskTitle,
@@ -51,11 +57,20 @@ const TaskManagementView: React.FC = () => {
       timePerTask: newTaskTimePerTask,
       description: "",
     };
-    await addTask(newTask);
-    setNewTaskTitle("");
-    setNewTaskFrequency("");
-    setNewTaskTimePerTask("");
-    reloadTasks();
+
+    setIsSubmitting(true); // ボタンを無効化
+
+    try {
+      await addTask(newTask);
+      setNewTaskTitle("");
+      setNewTaskFrequency("");
+      setNewTaskTimePerTask("");
+      await reloadTasks(); // Firebase送信後に画面をリロード
+    } catch (error) {
+      console.error("タスクの追加中にエラーが発生しました: ", error);
+    } finally {
+      setIsSubmitting(false); // ボタンを再度有効化
+    }
   };
 
   const handleEditTask = async (updatedTask: Task) => {
@@ -71,7 +86,13 @@ const TaskManagementView: React.FC = () => {
   return (
     <View style={TaskManagementStyles.container}>
       <Text style={TaskManagementStyles.title}>タスク管理</Text>
-      <TaskList tasks={tasks} onEditTask={handleEditTask} />
+      <TaskList
+        tasks={tasks}
+        onAddTask={addTask}
+        onEditTask={handleEditTask}
+        handleDeleteTask={handleDeleteTask} // 削除処理を渡す
+        reloadTasks={reloadTasks} // リロード処理を渡す
+      />
     </View>
   );
 };
