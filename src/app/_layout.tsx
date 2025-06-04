@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Text,
+  ScrollView,
 } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
@@ -61,9 +62,14 @@ function RootLayoutNav() {
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
           <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Slot />
-            </Stack>
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
+              <Stack screenOptions={{ headerShown: false }}>
+                <Slot />
+              </Stack>
+            </ScrollView>
           </View>
 
           {/* フッターのスタイルを調整 */}
@@ -73,7 +79,8 @@ function RootLayoutNav() {
               width: "100%",
               paddingVertical: 8,
               alignItems: "center",
-              paddingBottom: 25, // セーフエリアの高さを考慮
+              position: "absolute", // フッターを固定
+              paddingBottom: 25, // 画面下部に配置
             }}
           >
             <View style={{ maxWidth: 600, paddingHorizontal: 12 }}>
