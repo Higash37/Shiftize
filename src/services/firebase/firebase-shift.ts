@@ -56,6 +56,8 @@ export const ShiftService = {
           updatedAt: data.updatedAt?.toDate() || new Date(),
           classes: data.classes || [],
           requestedChanges: data.requestedChanges || undefined,
+          tasks: data.tasks || {},
+          comments: data.comments || "",
         };
       });
     } catch (error) {
@@ -151,6 +153,27 @@ export const ShiftService = {
       throw error;
     }
   },
+
+  /**
+   * シフトデータにタスク回数とコメントを追加します
+   */
+  updateShiftWithTasks: async (
+    id: string,
+    tasks: { [taskId: string]: number },
+    comments: string
+  ): Promise<void> => {
+    try {
+      const shiftRef = doc(db, "shifts", id);
+      await updateDoc(shiftRef, {
+        tasks,
+        comments,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("シフトのタスク更新に失敗しました:", error);
+      throw error;
+    }
+  },
 };
 
 // エクスポート
@@ -161,4 +184,5 @@ export const {
   markShiftAsDeleted,
   approveShiftChanges,
   markShiftAsCompleted,
+  updateShiftWithTasks,
 } = ShiftService;

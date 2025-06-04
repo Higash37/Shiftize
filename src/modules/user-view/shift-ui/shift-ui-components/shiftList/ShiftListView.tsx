@@ -5,6 +5,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Text,
+  Modal,
+  Pressable,
+  TextInput,
+  FlexAlignType,
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
@@ -18,8 +22,9 @@ import { ShiftListItem } from "./ShiftListItem";
 import { ShiftDetailsView } from "../shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "../../shift-ui-utils/shift-time.utils";
 import { shiftListViewStyles as styles } from "./styles";
+import { ViewStyle } from "react-native";
 
-export const UserShiftList: React.FC = () => {
+export const UserShiftList = () => {
   const router = useRouter();
   const navigation = useNavigation();
   const { shifts, loading: shiftsLoading, fetchShifts } = useShift();
@@ -32,6 +37,11 @@ export const UserShiftList: React.FC = () => {
   const [displayMonth, setDisplayMonth] = useState<string | null>(null);
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
   const [isCalendarMounted, setIsCalendarMounted] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalShift, setModalShift] = useState<any>(null);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [taskCounts, setTaskCounts] = useState<{ [key: string]: number }>({});
+  const [comments, setComments] = useState("");
   const scrollViewRef = useRef<ScrollView>(null);
   const shiftRefs = useRef<{ [key: string]: any }>({}).current;
 
@@ -149,74 +159,246 @@ export const UserShiftList: React.FC = () => {
     });
   };
 
+  const handleShiftPress = (shift: any) => {
+    console.log("Shift status:", shift.status); // デバッグ用ログ
+    if (shift.status === "approved") {
+      setModalShift(shift);
+      setModalVisible(true);
+    } else {
+      handleShiftEdit(shift);
+    }
+  };
+
+  const handleReportShift = () => {
+    if (modalShift) {
+      setModalVisible(false);
+      setReportModalVisible(true);
+      setTaskCounts({
+        タスク1: 0,
+        タスク2: 0,
+        タスク3: 0,
+        その他: 0,
+      });
+    }
+  };
+
+  const handleEditShift = () => {
+    if (modalShift) {
+      handleShiftEdit(modalShift);
+    }
+    setModalVisible(false);
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.calendarContainer}>
-        <ShiftCalendar
-          shifts={monthlyShifts}
-          selectedDate={selectedDate}
-          currentMonth={currentMonth}
-          onDayPress={handleDayPress}
-          onMonthChange={handleMonthChange}
-          onMount={handleCalendarMount} // レスポンシブ対応のプロパティを追加
-          responsiveSize={{
-            container: {
-              width: "96%",
-              maxWidth: 480, // カレンダーの最大幅を明示的に設定
-            },
-            day: { fontSize: 13 },
-          }}
-        />
-      </View>
-      {isCalendarMounted && displayMonth && (
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.listContainer} // スタイル定義を使用
-          contentContainerStyle={styles.listContentContainer}
-          showsVerticalScrollIndicator={false} // スクロールバーを非表示に
+    <>
+      <View style={styles.container}>
+        <View style={styles.calendarContainer}>
+          <ShiftCalendar
+            shifts={monthlyShifts}
+            selectedDate={selectedDate}
+            currentMonth={currentMonth}
+            onDayPress={handleDayPress}
+            onMonthChange={handleMonthChange}
+            onMount={handleCalendarMount} // レスポンシブ対応のプロパティを追加
+            responsiveSize={{
+              container: {
+                width: "96%",
+                maxWidth: 480, // カレンダーの最大幅を明示的に設定
+              },
+              day: { fontSize: 13 },
+            }}
+          />
+        </View>
+        {isCalendarMounted && displayMonth && (
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.listContainer} // スタイル定義を使用
+            contentContainerStyle={styles.listContentContainer}
+            showsVerticalScrollIndicator={false} // スクロールバーを非表示に
+          >
+            {monthlyShifts.length > 0 ? (
+              monthlyShifts.map((shift) => {
+                // シフトの表示
+                const isSelected = selectedShiftId === shift.id;
+                const timeSlots = isSelected
+                  ? splitShiftIntoTimeSlots(shift)
+                  : null;
+                return (
+                  <View
+                    key={shift.id}
+                    ref={(ref) => (shiftRefs[shift.id] = ref)}
+                    style={{ width: "100%" }} // 親Viewの幅を100%に設定
+                  >
+                    <ShiftListItem
+                      shift={shift}
+                      isSelected={isSelected}
+                      selectedDate={selectedDate}
+                      onPress={() => handleShiftPress(shift)}
+                      onDetailsPress={() => {
+                        setSelectedShiftId(isSelected ? null : shift.id);
+                      }}
+                    >
+                      {isSelected && timeSlots && (
+                        <ShiftDetailsView timeSlots={timeSlots} />
+                      )}
+                    </ShiftListItem>
+                  </View>
+                );
+              })
+            ) : (
+              <View style={[styles.noShiftContainer, { width: "100%" }]}>
+                <Text style={styles.noShiftText}>
+                  この月のシフトはありません
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        )}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => router.push("/(main)/user/shifts/create")}
         >
-          {monthlyShifts.length > 0 ? (
-            monthlyShifts.map((shift) => {
-              // シフトの表示
-              const isSelected = selectedShiftId === shift.id;
-              const timeSlots = isSelected
-                ? splitShiftIntoTimeSlots(shift)
-                : null;
+          <AntDesign name="plus" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable
+          style={modalStyles.modalOverlay}
+          onPress={() => setModalVisible(false)}
+        >
+          <View style={modalStyles.modalContent}>
+            <Text style={modalStyles.modalTitle}>シフト操作</Text>
+            <TouchableOpacity
+              style={modalStyles.modalButton}
+              onPress={handleReportShift}
+            >
+              <Text style={modalStyles.modalButtonText}>シフト報告をする</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={modalStyles.modalButton}
+              onPress={handleEditShift}
+            >
+              <Text style={modalStyles.modalButtonText}>シフト変更をする</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+      <Modal
+        visible={reportModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setReportModalVisible(false)}
+      >
+        <Pressable
+          style={modalStyles.modalOverlay}
+          onPress={() => setReportModalVisible(false)}
+        >
+          <View style={modalStyles.modalContent}>
+            <Text style={modalStyles.modalTitle}>シフト報告</Text>
+            {Object.keys(taskCounts).map((task) => {
               return (
                 <View
-                  key={shift.id}
-                  ref={(ref) => (shiftRefs[shift.id] = ref)}
-                  style={{ width: "100%" }} // 親Viewの幅を100%に設定
+                  key={task}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginVertical: 5,
+                  }}
                 >
-                  <ShiftListItem
-                    shift={shift}
-                    isSelected={isSelected}
-                    selectedDate={selectedDate}
-                    onPress={() => handleShiftEdit(shift)}
-                    onDetailsPress={() => {
-                      setSelectedShiftId(isSelected ? null : shift.id);
-                    }}
+                  <Text style={{ flex: 1 }}>{task}</Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      setTaskCounts((prev) => ({
+                        ...prev,
+                        [task]: Math.max((prev[task] || 0) - 1, 0),
+                      }))
+                    }
                   >
-                    {isSelected && timeSlots && (
-                      <ShiftDetailsView timeSlots={timeSlots} />
-                    )}
-                  </ShiftListItem>
+                    <Text style={{ fontSize: 18, marginHorizontal: 10 }}>
+                      -
+                    </Text>
+                  </TouchableOpacity>
+                  <Text>{taskCounts[task] || 0} 分</Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      setTaskCounts((prev) => ({
+                        ...prev,
+                        [task]: (prev[task] || 0) + 1,
+                      }))
+                    }
+                  >
+                    <Text style={{ fontSize: 18, marginHorizontal: 10 }}>
+                      +
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               );
-            })
-          ) : (
-            <View style={[styles.noShiftContainer, { width: "100%" }]}>
-              <Text style={styles.noShiftText}>この月のシフトはありません</Text>
-            </View>
-          )}
-        </ScrollView>
-      )}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => router.push("/(main)/user/shifts/create")}
-      >
-        <AntDesign name="plus" size={24} color="white" />
-      </TouchableOpacity>
-    </View>
+            })}
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: "#ccc",
+                borderRadius: 5,
+                padding: 10,
+                marginVertical: 10,
+                width: "100%",
+              }}
+              placeholder="コメントを入力してください"
+              value={comments}
+              onChangeText={setComments}
+            />
+            <TouchableOpacity
+              style={modalStyles.modalButton}
+              onPress={() => {
+                console.log("報告内容:", { taskCounts, comments });
+                setReportModalVisible(false);
+              }}
+            >
+              <Text style={modalStyles.modalButtonText}>報告を送信</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+    </>
   );
+};
+
+const modalStyles = {
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalContent: {
+    width: "80%" as ViewStyle["width"],
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center" as const,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold" as const,
+    marginBottom: 15,
+  },
+  modalButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginVertical: 5,
+    width: "100%" as ViewStyle["width"],
+    alignItems: "center" as const,
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 16,
+  },
 };

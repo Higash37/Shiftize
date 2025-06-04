@@ -4,6 +4,8 @@ import { theme } from "@/common/common-theme/ThemeDefinition";
 import { IS_TABLET, IS_SMALL_DEVICE } from "@/common/common-utils/util-style";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
 export const shiftListItemStyles = StyleSheet.create({
   shiftItem: {
     flexDirection: "row",
@@ -168,5 +170,62 @@ export const shiftListViewStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     ...getPlatformShadow(4),
+  },
+});
+export const modalStyles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center", // 型エラー解消のため修正
+  },
+  modalContent: {
+    width: IS_TABLET || SCREEN_WIDTH > 1024 ? "40%" : "80%", // PCでは40%、モバイルでは80%
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700", // 修正
+    marginBottom: 16,
+    color: colors.primary,
+  },
+  modalButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginVertical: 8,
+    alignItems: "center", // 型エラー解消のため修正
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  taskRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginVertical: 8,
+  },
+  taskControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  commentInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 8,
+    marginVertical: 16,
+    width: "100%",
   },
 });
