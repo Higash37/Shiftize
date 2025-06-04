@@ -54,7 +54,7 @@ function RootLayoutNav() {
           height: "100%",
           width: "100%",
         }}
-        edges={["top", "left", "right"]} // "bottom"を削除
+        edges={["top", "left", "right", "bottom"]} // セーフエリア全体を考慮
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -69,12 +69,11 @@ function RootLayoutNav() {
           {/* フッターのスタイルを調整 */}
           <View
             style={{
-              position: "absolute",
-              bottom: 16, // 少し上に上げる
               backgroundColor: colors.primary,
               width: "100%",
               paddingVertical: 8,
               alignItems: "center",
+              paddingBottom: 16, // セーフエリアの高さを考慮
             }}
           >
             <View style={{ maxWidth: 600, paddingHorizontal: 12 }}>
