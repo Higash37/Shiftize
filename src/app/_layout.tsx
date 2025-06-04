@@ -54,7 +54,7 @@ function RootLayoutNav() {
           height: "100%",
           width: "100%",
         }}
-        edges={["top", "bottom", "left", "right"]}
+        edges={["top", "left", "right"]} // "bottom"を削除
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -66,11 +66,12 @@ function RootLayoutNav() {
             </Stack>
           </View>
 
-          {/* 共通固定フッター */}
+          {/* フッターのスタイルを調整 */}
           <View
             style={{
               backgroundColor: colors.primary,
               paddingVertical: 8,
+              paddingBottom: 4, // セーフエリアの影響を減らす
               alignItems: "center",
             }}
           >
