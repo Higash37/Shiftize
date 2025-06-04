@@ -172,60 +172,37 @@ export const shiftListViewStyles = StyleSheet.create({
     ...getPlatformShadow(4),
   },
 });
-export const modalStyles = StyleSheet.create({
+export const modalStyles = {
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center", // 型エラー解消のため修正
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   modalContent: {
-    width: IS_TABLET || SCREEN_WIDTH > 1024 ? "40%" : "80%", // PCでは40%、モバイルでは80%
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    width: IS_TABLET ? "40%" : "80%", // PCでは40%、モバイルでは80%
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center" as const,
     elevation: 5,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: "700", // 修正
-    marginBottom: 16,
-    color: colors.primary,
+    fontWeight: "bold" as const,
+    marginBottom: 15,
   },
   modalButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    marginVertical: 8,
-    alignItems: "center", // 型エラー解消のため修正
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginVertical: 5,
+    width: "100%" as const,
+    alignItems: "center" as const,
   },
   modalButtonText: {
     color: "white",
     fontSize: 16,
-    textAlign: "center",
   },
-  taskRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 8,
-  },
-  taskControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  commentInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 8,
-    marginVertical: 16,
-    width: "100%",
-  },
-});
+};

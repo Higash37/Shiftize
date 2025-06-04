@@ -8,17 +8,21 @@ import {
   AppState,
   Platform,
   KeyboardAvoidingView,
-  Text,
   ScrollView,
 } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 function RootLayoutNav() {
   const { user, role, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (loading) return;
@@ -55,7 +59,7 @@ function RootLayoutNav() {
           height: "100%",
           width: "100%",
         }}
-        edges={["top", "left", "right"]} // セーフエリア全体を考慮
+        edges={["top", "bottom", "left", "right"]} // ← bottom を追加
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -72,15 +76,15 @@ function RootLayoutNav() {
             </ScrollView>
           </View>
 
-          {/* フッターのスタイルを調整 */}
+          {/* ✅ セーフエリア考慮したフッター */}
           <View
             style={{
-              backgroundColor: colors.primary,
+              position: "absolute",
+              bottom: insets.bottom,
               width: "100%",
-              paddingVertical: 8,
+              backgroundColor: colors.primary,
               alignItems: "center",
-              position: "absolute", // フッターを固定
-              paddingBottom: 25, // 画面下部に配置
+              paddingBottom: 8,
             }}
           >
             <View style={{ maxWidth: 600, paddingHorizontal: 12 }}>
@@ -92,16 +96,6 @@ function RootLayoutNav() {
     </>
   );
 }
-
-// function SlotFooter() {
-//   return (
-// <View>
-//   {/* <Text style={{ fontSize: 12, color: "#fff", textAlign: "center" }}>
-//   午前2:00～5:00の間、サーバーメンテナンスのためサービスの利用ができなくなる場合があります。
-// </Text> */}
-// </View>
-//   );
-// }
 
 export default function RootLayout() {
   return (

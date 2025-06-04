@@ -6,6 +6,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
 const IS_TABLET = SCREEN_WIDTH > 768;
 
+
 /**
  * シフトUI用の共通スタイル定数
  */
