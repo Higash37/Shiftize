@@ -59,7 +59,7 @@ const user_TABS: TabItem[] = [
   {
     name: "shifts",
     label: "シフト",
-    path: "/user/shifts",
+    path: "/user/shifts/",
     icon: (active: boolean) => (
       <FontAwesome5
         name="calendar-alt"

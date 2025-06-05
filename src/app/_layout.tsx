@@ -83,7 +83,6 @@ function RootLayoutNav() {
               width: "100%",
               backgroundColor: colors.primary,
               alignItems: "center",
-              paddingBottom: 8,
             }}
           >
             <View style={{ maxWidth: 600, paddingHorizontal: 12 }}>

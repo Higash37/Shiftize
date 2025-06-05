@@ -5,6 +5,7 @@ import { IS_TABLET, IS_SMALL_DEVICE } from "@/common/common-utils/util-style";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const windowWidth = Dimensions.get("window").width;
 
 export const shiftListItemStyles = StyleSheet.create({
   shiftItem: {
@@ -180,7 +181,7 @@ export const modalStyles = {
     backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   modalContent: {
-    width: IS_TABLET ? "40%" : "80%", // PCでは40%、モバイルでは80%
+    width: windowWidth * 0.8, // 修正: width を数値型に変更
     backgroundColor: "white",
     borderRadius: 10,
     padding: 20,

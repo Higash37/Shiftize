@@ -9,7 +9,24 @@ import {
 } from "react-native";
 import { modalStyles } from "./styles";
 
-export const ShiftModal = ({
+// 型定義を追加
+interface ShiftModalProps {
+  isModalVisible: boolean;
+  setModalVisible: (visible: boolean) => void;
+  modalShift: any;
+  handleReportShift: () => void;
+  handleEditShift: () => void;
+  reportModalVisible: boolean;
+  setReportModalVisible: (visible: boolean) => void;
+  taskCounts: { [key: string]: number };
+  setTaskCounts: React.Dispatch<
+    React.SetStateAction<{ [key: string]: number }>
+  >;
+  comments: string;
+  setComments: (comments: string) => void;
+}
+
+export const ShiftModal: React.FC<ShiftModalProps> = ({
   isModalVisible,
   setModalVisible,
   modalShift,
@@ -78,7 +95,7 @@ export const ShiftModal = ({
                 <Text style={{ flex: 1 }}>{task}</Text>
                 <TouchableOpacity
                   onPress={() =>
-                    setTaskCounts((prev) => ({
+                    setTaskCounts((prev: { [key: string]: number }) => ({
                       ...prev,
                       [task]: Math.max((prev[task] || 0) - 1, 0),
                     }))
@@ -89,7 +106,7 @@ export const ShiftModal = ({
                 <Text>{taskCounts[task] || 0} 分</Text>
                 <TouchableOpacity
                   onPress={() =>
-                    setTaskCounts((prev) => ({
+                    setTaskCounts((prev: { [key: string]: number }) => ({
                       ...prev,
                       [task]: (prev[task] || 0) + 1,
                     }))
