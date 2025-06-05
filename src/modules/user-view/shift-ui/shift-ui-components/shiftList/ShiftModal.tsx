@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -8,23 +8,23 @@ import {
   TextInput,
 } from "react-native";
 import { modalStyles } from "./styles";
+import { getTasks } from "@/services/firebase/firebase-task";
 
-// 型定義を追加
-interface ShiftModalProps {
+type ShiftModalProps = {
   isModalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
-  modalShift: any;
+  modalShift: any; // Replace 'any' with the correct type if known
   handleReportShift: () => void;
   handleEditShift: () => void;
   reportModalVisible: boolean;
   setReportModalVisible: (visible: boolean) => void;
-  taskCounts: { [key: string]: number };
+  taskCounts: { [task: string]: number };
   setTaskCounts: React.Dispatch<
-    React.SetStateAction<{ [key: string]: number }>
+    React.SetStateAction<{ [task: string]: number }>
   >;
   comments: string;
   setComments: (comments: string) => void;
-}
+};
 
 export const ShiftModal: React.FC<ShiftModalProps> = ({
   isModalVisible,
@@ -39,37 +39,20 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
   comments,
   setComments,
 }) => {
+  const [firebaseTasks, setFirebaseTasks] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (reportModalVisible) {
+      const fetchTasks = async () => {
+        const tasks = await getTasks();
+        setFirebaseTasks(tasks.map((task) => task.title));
+      };
+      fetchTasks();
+    }
+  }, [reportModalVisible]);
+
   return (
     <>
-      {/* メインモーダル */}
-      <Modal
-        visible={isModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable
-          style={modalStyles.modalOverlay}
-          onPress={() => setModalVisible(false)}
-        >
-          <View style={modalStyles.modalContent}>
-            <Text style={modalStyles.modalTitle}>シフト操作</Text>
-            <TouchableOpacity
-              style={modalStyles.modalButton}
-              onPress={handleReportShift}
-            >
-              <Text style={modalStyles.modalButtonText}>シフト報告をする</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={modalStyles.modalButton}
-              onPress={handleEditShift}
-            >
-              <Text style={modalStyles.modalButtonText}>シフト変更をする</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Modal>
-
       {/* 報告モーダル */}
       <Modal
         visible={reportModalVisible}
@@ -83,7 +66,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         >
           <View style={modalStyles.modalContent}>
             <Text style={modalStyles.modalTitle}>シフト報告</Text>
-            {Object.keys(taskCounts).map((task) => (
+            {firebaseTasks.map((task) => (
               <View
                 key={task}
                 style={{
@@ -95,7 +78,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
                 <Text style={{ flex: 1 }}>{task}</Text>
                 <TouchableOpacity
                   onPress={() =>
-                    setTaskCounts((prev: { [key: string]: number }) => ({
+                    setTaskCounts((prev) => ({
                       ...prev,
                       [task]: Math.max((prev[task] || 0) - 1, 0),
                     }))
@@ -106,7 +89,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
                 <Text>{taskCounts[task] || 0} 分</Text>
                 <TouchableOpacity
                   onPress={() =>
-                    setTaskCounts((prev: { [key: string]: number }) => ({
+                    setTaskCounts((prev) => ({
                       ...prev,
                       [task]: (prev[task] || 0) + 1,
                     }))

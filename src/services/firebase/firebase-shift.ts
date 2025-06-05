@@ -174,6 +174,30 @@ export const ShiftService = {
       throw error;
     }
   },
+
+  /**
+   * シフト報告を保存します
+   */
+  addShiftReport: async (
+    shiftId: string,
+    reportData: {
+      taskCounts: Record<string, { count: number; time: number }>;
+      comments: string;
+    }
+  ) => {
+    try {
+      const reportsRef = collection(db, "reports");
+      await addDoc(reportsRef, {
+        shiftId,
+        taskCounts: reportData.taskCounts,
+        comments: reportData.comments,
+        createdAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("シフト報告の保存に失敗しました:", error);
+      throw error;
+    }
+  },
 };
 
 // エクスポート
@@ -185,4 +209,5 @@ export const {
   approveShiftChanges,
   markShiftAsCompleted,
   updateShiftWithTasks,
+  addShiftReport,
 } = ShiftService;

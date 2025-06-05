@@ -23,6 +23,9 @@ import { ShiftDetailsView } from "../shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "../../shift-ui-utils/shift-time.utils";
 import { shiftListViewStyles as styles } from "./styles";
 import { ViewStyle } from "react-native";
+import { ShiftService } from "@/services/firebase/firebase-shift";
+import { ShiftRuleValuePicker } from "@/modules/master-view/settings/ShiftRuleValuePicker";
+import { getTasks } from "@/services/firebase/firebase-task";
 
 export const UserShiftList = () => {
   const router = useRouter();
@@ -40,8 +43,13 @@ export const UserShiftList = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [modalShift, setModalShift] = useState<any>(null);
   const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [taskCounts, setTaskCounts] = useState<{ [key: string]: number }>({});
+  const [taskCounts, setTaskCounts] = useState<{
+    [key: string]: { count: number; time: number };
+  }>({});
   const [comments, setComments] = useState("");
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [isTaskModalVisible, setTaskModalVisible] = useState(false);
+  const [picker, setPicker] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const shiftRefs = useRef<{ [key: string]: any }>({}).current;
 
@@ -169,16 +177,28 @@ export const UserShiftList = () => {
     }
   };
 
-  const handleReportShift = () => {
+  const handleReportShift = async () => {
     if (modalShift) {
       setModalVisible(false);
       setReportModalVisible(true);
-      setTaskCounts({
-        タスク1: 0,
-        タスク2: 0,
-        タスク3: 0,
-        その他: 0,
-      });
+
+      try {
+        const tasks = await getTasks();
+        const taskCountsData = tasks.reduce(
+          (
+            acc: { [key: string]: { count: number; time: number } },
+            task: { title: string }
+          ) => {
+            acc[task.title] = { count: 0, time: 0 };
+            return acc;
+          },
+          {}
+        );
+
+        setTaskCounts(taskCountsData);
+      } catch (error) {
+        console.error("タスクの取得に失敗しました:", error);
+      }
     }
   };
 
@@ -187,6 +207,51 @@ export const UserShiftList = () => {
       handleShiftEdit(modalShift);
     }
     setModalVisible(false);
+  };
+
+  const handleReportSubmit = async () => {
+    if (modalShift) {
+      try {
+        await ShiftService.addShiftReport(modalShift.id, {
+          taskCounts,
+          comments,
+        });
+        console.log("報告が保存されました:", { taskCounts, comments });
+        setReportModalVisible(false);
+      } catch (error) {
+        console.error("報告の保存に失敗しました:", error);
+      }
+    }
+  };
+
+  const timeOptions = [5, 10, 20, 30, 60];
+
+  const handleTaskUpdate = (
+    task: string,
+    field: "count" | "time",
+    value: number
+  ) => {
+    setTaskCounts((prev) => ({
+      ...prev,
+      [task]: {
+        count: prev[task]?.count || 0,
+        time: prev[task]?.time || 0,
+        [field]:
+          field === "time"
+            ? value
+            : Math.max((prev[task]?.[field] || 0) + value, 0),
+      },
+    }));
+  };
+
+  const handleTaskModalOpen = (task: string) => {
+    setSelectedTask(task);
+    setTaskModalVisible(true);
+  };
+
+  const handleTaskModalClose = () => {
+    setSelectedTask(null);
+    setTaskModalVisible(false);
   };
 
   return (
@@ -301,41 +366,52 @@ export const UserShiftList = () => {
           <View style={modalStyles.modalContent}>
             <Text style={modalStyles.modalTitle}>シフト報告</Text>
             {Object.keys(taskCounts).map((task) => {
+              const taskData = taskCounts[task] || { count: 0, time: 0 };
               return (
                 <View
                   key={task}
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
+                    justifyContent: "space-between",
                     marginVertical: 5,
                   }}
                 >
                   <Text style={{ flex: 1 }}>{task}</Text>
-                  <TouchableOpacity
-                    onPress={() =>
-                      setTaskCounts((prev) => ({
-                        ...prev,
-                        [task]: Math.max((prev[task] || 0) - 1, 0),
-                      }))
-                    }
-                  >
-                    <Text style={{ fontSize: 18, marginHorizontal: 10 }}>
-                      -
-                    </Text>
-                  </TouchableOpacity>
-                  <Text>{taskCounts[task] || 0} 分</Text>
-                  <TouchableOpacity
-                    onPress={() =>
-                      setTaskCounts((prev) => ({
-                        ...prev,
-                        [task]: (prev[task] || 0) + 1,
-                      }))
-                    }
-                  >
-                    <Text style={{ fontSize: 18, marginHorizontal: 10 }}>
-                      +
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <TouchableOpacity
+                      onPress={() => handleTaskUpdate(task, "count", -1)}
+                      style={{ marginHorizontal: 5 }}
+                    >
+                      <Text style={{ fontSize: 18 }}>-</Text>
+                    </TouchableOpacity>
+                    <Text>{taskData.count} 回</Text>
+                    <TouchableOpacity
+                      onPress={() => handleTaskUpdate(task, "count", 1)}
+                      style={{ marginHorizontal: 5 }}
+                    >
+                      <Text style={{ fontSize: 18 }}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleTaskUpdate(task, "time", taskData.time - 5)
+                      }
+                      style={{ marginHorizontal: 5 }}
+                    >
+                      <Text style={{ fontSize: 18 }}>-</Text>
+                    </TouchableOpacity>
+                    <Text>{taskData.time} 分</Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleTaskUpdate(task, "time", taskData.time + 5)
+                      }
+                      style={{ marginHorizontal: 5 }}
+                    >
+                      <Text style={{ fontSize: 18 }}>+</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               );
             })}
@@ -354,16 +430,139 @@ export const UserShiftList = () => {
             />
             <TouchableOpacity
               style={modalStyles.modalButton}
-              onPress={() => {
-                console.log("報告内容:", { taskCounts, comments });
-                setReportModalVisible(false);
-              }}
+              onPress={handleReportSubmit}
             >
               <Text style={modalStyles.modalButtonText}>報告を送信</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
       </Modal>
+      <Modal
+        visible={isTaskModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={handleTaskModalClose}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          }}
+        >
+          <View
+            style={{
+              width: "90%",
+              backgroundColor: "white",
+              borderRadius: 10,
+              padding: 20,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{ fontSize: 18, fontWeight: "bold", marginBottom: 20 }}
+            >
+              タスク設定: {selectedTask}
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 20,
+              }}
+            >
+              <Text style={{ flex: 1, fontSize: 16 }}>回数:</Text>
+              <TouchableOpacity
+                onPress={() => handleTaskUpdate(selectedTask!, "count", -1)}
+                style={{
+                  padding: 10,
+                  backgroundColor: "#f0f0f0",
+                  borderRadius: 5,
+                }}
+              >
+                <Text style={{ fontSize: 18 }}>-</Text>
+              </TouchableOpacity>
+              <Text style={{ marginHorizontal: 10, fontSize: 16 }}>
+                {taskCounts[selectedTask!]?.count || 0} 回
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleTaskUpdate(selectedTask!, "count", 1)}
+                style={{
+                  padding: 10,
+                  backgroundColor: "#f0f0f0",
+                  borderRadius: 5,
+                }}
+              >
+                <Text style={{ fontSize: 18 }}>+</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ marginBottom: 20, width: "100%" }}>
+              <Text style={{ fontSize: 16, marginBottom: 10 }}>時間:</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                }}
+              >
+                {timeOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() =>
+                      handleTaskUpdate(selectedTask!, "time", option)
+                    }
+                    style={{
+                      padding: 10,
+                      margin: 5,
+                      backgroundColor:
+                        taskCounts[selectedTask!]?.time === option
+                          ? "#007BFF"
+                          : "#f0f0f0",
+                      borderRadius: 5,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          taskCounts[selectedTask!]?.time === option
+                            ? "white"
+                            : "black",
+                      }}
+                    >
+                      {option} 分
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={handleTaskModalClose}
+              style={{
+                padding: 10,
+                backgroundColor: "#007BFF",
+                borderRadius: 5,
+                width: "100%",
+              }}
+            >
+              <Text
+                style={{ color: "white", textAlign: "center", fontSize: 16 }}
+              >
+                保存
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <ShiftRuleValuePicker
+        visible={picker === "time"}
+        values={timeOptions}
+        value={taskCounts[selectedTask!]?.time || 0}
+        unit="分"
+        title="時間選択"
+        onSelect={(v: number) => handleTaskUpdate(selectedTask!, "time", v)}
+        onClose={() => setPicker(null)}
+      />
     </>
   );
 };
@@ -373,32 +572,122 @@ const modalStyles = {
     flex: 1,
     justifyContent: "center" as const,
     alignItems: "center" as const,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: "80%" as ViewStyle["width"],
-    backgroundColor: "white",
+    width: "90%" as ViewStyle["width"],
+    maxWidth: 500,
+    backgroundColor: "#ffffff",
     borderRadius: 10,
     padding: 20,
     alignItems: "center" as const,
     elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "bold" as const,
     marginBottom: 15,
+    color: "#333",
+  },
+  taskRow: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
+    width: "100%" as ViewStyle["width"],
+    marginVertical: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  taskText: {
+    fontSize: 16,
+    color: "#555",
+    flex: 1,
+  },
+  countControls: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+  },
+  countButton: {
+    padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  countText: {
+    fontSize: 16,
+    marginHorizontal: 10,
+  },
+  valueTouchable: {
+    padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+    marginLeft: 10,
+  },
+  valueText: {
+    fontSize: 16,
+    color: "#333",
   },
   modalButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: "#007bff",
     borderRadius: 5,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginVertical: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 20,
     width: "100%" as ViewStyle["width"],
     alignItems: "center" as const,
   },
   modalButtonText: {
     color: "white",
     fontSize: 16,
+    fontWeight: "600" as const,
   },
+};
+
+// モーダル内のタスクリスト表示を改善
+const renderTaskRows = (
+  taskCounts: { [key: string]: { count: number; time: number } },
+  handleTaskUpdate: Function,
+  timeOptions: number[],
+  setPicker: Function,
+  picker: string | null,
+  selectedTask: string | null,
+  setSelectedTask: Function
+) => {
+  return Object.keys(taskCounts).map((task) => {
+    const taskData = taskCounts[task] || { count: 0, time: 0 };
+    return (
+      <View key={task} style={modalStyles.taskRow}>
+        <Text style={modalStyles.taskText}>{task}</Text>
+        <View style={modalStyles.countControls}>
+          <TouchableOpacity
+            style={modalStyles.countButton}
+            onPress={() => handleTaskUpdate(task, "count", taskData.count - 1)}
+          >
+            <Text style={modalStyles.taskText}>-</Text>
+          </TouchableOpacity>
+          <Text style={modalStyles.countText}>{taskData.count} 回</Text>
+          <TouchableOpacity
+            style={modalStyles.countButton}
+            onPress={() => handleTaskUpdate(task, "count", taskData.count + 1)}
+          >
+            <Text style={modalStyles.taskText}>+</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          style={modalStyles.valueTouchable}
+          onPress={() => {
+            setSelectedTask(task);
+            setPicker("time");
+          }}
+        >
+          <Text style={modalStyles.valueText}>{taskData.time} 分</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  });
 };
