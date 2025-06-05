@@ -79,7 +79,6 @@ function RootLayoutNav() {
           {/* ✅ セーフエリア考慮したフッター */}
           <View
             style={{
-              position: "absolute",
               bottom: insets.bottom,
               width: "100%",
               backgroundColor: colors.primary,
