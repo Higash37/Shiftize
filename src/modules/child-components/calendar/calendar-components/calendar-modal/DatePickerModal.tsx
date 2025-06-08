@@ -242,30 +242,22 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
 
 const styles = StyleSheet.create({
   modalOverlay: {
-    position: "absolute", // 画面全体を覆う
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flex: 1,
+    flex: 1, // 画面全体を覆う
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    minHeight: undefined, // minHeightは不要
-    paddingBottom: 0, // 余白も不要
   },
   modalContent: {
     backgroundColor: "white",
     borderRadius: 12,
-    padding: 24, // 余白を増やす
-    width: "90%", // ほぼ全幅
-    maxWidth: 600, // PC画面での最大幅を調整
-    maxHeight: "100%", // 最大高さを拡大
-    minWidth: 320, // 最小幅も拡大
+    padding: 24,
+    width: "90%",
+    maxWidth: 600,
+    maxHeight: "80%", // 高さを調整
+    minWidth: 320,
     ...getPlatformShadow(5),
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "center",
   },
   modalTitle: {
     fontSize: 18,

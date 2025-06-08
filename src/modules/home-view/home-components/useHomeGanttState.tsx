@@ -43,7 +43,7 @@ export function useHomeGanttState() {
   const shiftsForDate = shifts.filter(
     (s) =>
       (s.date === selectedDateStr || s.date === localDateStr) &&
-      s.status === "approved" // 承認済みのシフトのみ
+      (s.status === "approved" || s.status === "completed") // 承認済みまたは完了のシフト
   );
 
   const allNames: string[] = Array.from(

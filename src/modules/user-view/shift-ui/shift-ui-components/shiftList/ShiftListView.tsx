@@ -212,11 +212,25 @@ export const UserShiftList = () => {
   const handleReportSubmit = async () => {
     if (modalShift) {
       try {
-        await ShiftService.addShiftReport(modalShift.id, {
+        // taskCounts を期待される形式に変換
+        const formattedTasks = Object.keys(taskCounts).reduce((acc, key) => {
+          acc[key] = {
+            count: taskCounts[key].count,
+            time: taskCounts[key].time,
+          }; // count と time を含む形式に変換
+          return acc;
+        }, {} as { [key: string]: { count: number; time: number } });
+
+        await ShiftService.updateShiftWithTasks(
+          modalShift.id,
+          formattedTasks,
+          comments
+        );
+        console.log("報告が保存され、ステータスが完了に更新されました:", {
           taskCounts,
           comments,
         });
-        console.log("報告が保存されました:", { taskCounts, comments });
+        fetchShifts(); // シフトデータを再取得して画面を更新
         setReportModalVisible(false);
       } catch (error) {
         console.error("報告の保存に失敗しました:", error);
