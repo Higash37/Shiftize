@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/services/auth/useAuth";
 import { AntDesign } from "@expo/vector-icons";
 import styles from "../gantt-chart-styles/GanttChartMonthView.styles";
+import { PrintButton } from "../print/PrintButton";
 
 interface MonthSelectorBarProps {
   selectedDate: Date;
@@ -28,6 +29,7 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
     onBatchDelete,
     isLoading,
   } = props;
+
   return (
     <View style={styles.monthSelector}>
       <View style={styles.monthNavigator}>
@@ -47,6 +49,7 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
         </TouchableOpacity>
       </View>
       <View style={styles.addShiftButtonRow}>
+        {Platform.OS === "web" && <PrintButton />}
         <TouchableOpacity style={styles.addShiftButton} onPress={onReload}>
           <Ionicons name="add" size={20} color="#4A90E2" />
         </TouchableOpacity>

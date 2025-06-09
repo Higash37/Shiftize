@@ -412,6 +412,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
+  pdfButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e3f2fd",
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  pdfButtonText: {
+    marginLeft: 4,
+    color: "#1976d2",
+    fontWeight: "bold",
+  },
 });
 
 export default styles;
