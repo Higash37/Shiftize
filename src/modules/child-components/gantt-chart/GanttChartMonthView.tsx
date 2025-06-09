@@ -38,6 +38,11 @@ import { DatePickerModal } from "@/modules/child-components/calendar/calendar-co
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
 import {
+  calculateMinutesBetween,
+  calculateWage,
+  calculateTotalWage,
+} from "@/common/common-utils/util-shift/wageCalculator";
+import {
   DEFAULT_SHIFT_STATUS_CONFIG,
   ShiftStatusConfig,
 } from "@/common/common-models/model-shift/shiftTypes";
@@ -335,6 +340,56 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     });
     return map;
   }, [users]);
+  // 月の全シフトから金額と時間を計算
+  const calculateMonthlyTotals = useCallback(() => {
+    let totalMinutes = 0;
+    let totalAmount = 0;
+
+    // 表示されている承認済みシフトのみを対象に計算
+    const approvedShifts = shifts.filter(
+      (shift) => shift.status === "approved" || shift.status === "completed"
+    );
+
+    // デバッグ用：時給計算に使用する標準値を表示
+    console.log("デフォルト時給: 1,100円で計算しています");
+    console.log("授業時間を除外して給与計算を行います");
+
+    approvedShifts.forEach((shift) => {
+      // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
+      const user = users.find((u) => u.uid === shift.userId);
+      // 時給が設定されていない場合は1,100円をデフォルト値として使用
+      const hourlyWage = user?.hourlyWage || 1100;
+
+      // 授業時間を除外したシフト時間の計算
+      const classes = shift.classes || [];
+      const { totalMinutes: workMinutes, totalWage: workWage } =
+        calculateTotalWage(
+          {
+            startTime: shift.startTime,
+            endTime: shift.endTime,
+            classes: classes,
+          },
+          hourlyWage
+        );
+
+      totalMinutes += workMinutes;
+      totalAmount += workWage;
+    });
+
+    return {
+      totalHours: totalMinutes / 60,
+      totalAmount: Math.round(totalAmount),
+    };
+  }, [shifts, users]);
+
+  // 合計金額と時間を保持するstate
+  const [totalWage, setTotalWage] = useState({ totalAmount: 0, totalHours: 0 });
+
+  // シフトまたはユーザーが変更されたら再計算
+  useEffect(() => {
+    const { totalAmount, totalHours } = calculateMonthlyTotals();
+    setTotalWage({ totalAmount, totalHours });
+  }, [shifts, users, calculateMonthlyTotals]);
 
   // --- 本体 ---
   return (
@@ -360,6 +415,8 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         onBatchApprove={() => setBatchModal({ visible: true, type: "approve" })}
         onBatchDelete={() => setBatchModal({ visible: true, type: "delete" })}
         isLoading={isLoading}
+        totalAmount={totalWage.totalAmount}
+        totalHours={totalWage.totalHours}
       />
       {/* 年月ピッカーモーダル */}
       <DatePickerModal

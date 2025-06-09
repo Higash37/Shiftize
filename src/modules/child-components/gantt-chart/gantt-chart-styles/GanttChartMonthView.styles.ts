@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   },
   monthNavButton: {
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 10,
   },
   monthNavButtonText: {
     fontSize: 18,

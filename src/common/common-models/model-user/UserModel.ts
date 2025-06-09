@@ -10,6 +10,7 @@ export interface User {
   role: "master" | "user";
   nickname: string;
   color?: string; // 講師ごとの色
+  hourlyWage?: number; // 時給
 }
 
 /**
@@ -21,4 +22,5 @@ export interface UserData {
   email: string;
   currentPassword?: string;
   createdAt: Date;
+  hourlyWage?: number; // 時給
 }

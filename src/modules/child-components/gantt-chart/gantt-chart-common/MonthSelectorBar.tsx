@@ -15,6 +15,8 @@ interface MonthSelectorBarProps {
   onBatchApprove: () => void;
   onBatchDelete: () => void;
   isLoading: boolean;
+  totalAmount?: number; // 追加：合計金額
+  totalHours?: number; // 追加：合計時間
 }
 
 export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
@@ -28,10 +30,37 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
     onBatchApprove,
     onBatchDelete,
     isLoading,
+    totalAmount = 0,
+    totalHours = 0,
   } = props;
 
   return (
     <View style={styles.monthSelector}>
+      {/* 金額表示部分 */}{" "}
+      <View
+        style={{
+          position: "absolute",
+          left: 10,
+          top: "38%",
+          transform: [{ translateY: -24 }],
+          backgroundColor: "#f0f8ff",
+          padding: 5,
+          borderRadius: 6,
+          borderWidth: 1,
+          borderColor: "#4A90E2",
+          zIndex: 10,
+        }}
+      >
+        <Text style={{ fontWeight: "bold", color: "#333" }}>
+          合計: {totalAmount.toLocaleString()}円
+        </Text>
+        <Text style={{ fontSize: 12, color: "#666" }}>
+          ({Math.floor(totalHours)}時間{Math.round((totalHours % 1) * 60)}分)
+        </Text>
+        <Text style={{ fontSize: 10, color: "#888", fontStyle: "italic" }}>
+          ※授業時間を除く
+        </Text>
+      </View>
       <View style={styles.monthNavigator}>
         <TouchableOpacity style={styles.monthNavButton} onPress={onPrevMonth}>
           <Text style={styles.monthNavButtonText}>＜</Text>

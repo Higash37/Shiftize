@@ -32,6 +32,7 @@ export interface UserFormProps extends BaseUserProps {
     nickname: string;
     role: "master" | "user";
     color?: string;
+    hourlyWage?: number;
   }) => Promise<void>;
   onCancel: () => void;
   error?: string | null;

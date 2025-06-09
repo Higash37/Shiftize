@@ -31,6 +31,9 @@ export const UserForm: React.FC<UserFormProps> = ({
   const [errorMessage, setError] = useState<string | null>(null);
   const [hasMaster, setHasMaster] = useState(false);
   const [color, setColor] = useState(initialData?.color || PRESET_COLORS[0]);
+  const [hourlyWage, setHourlyWage] = useState<string>(
+    initialData?.hourlyWage?.toString() || ""
+  );
   const [colorPickerVisible, setColorPickerVisible] = useState(false);
 
   const isMasterEdit = mode === "edit" && initialData?.role === "master";
@@ -49,7 +52,6 @@ export const UserForm: React.FC<UserFormProps> = ({
       checkForMasterUser();
     }
   }, [mode]);
-
   // 初期データが変更された時の更新
   useEffect(() => {
     if (initialData) {
@@ -58,6 +60,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       setRole(initialData.role);
       setPassword("");
       setColor(initialData.color || PRESET_COLORS[0]);
+      setHourlyWage(initialData.hourlyWage?.toString() || "");
     }
   }, [initialData]);
 
@@ -83,6 +86,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         nickname,
         role: isMasterEdit ? "master" : role,
         color,
+        hourlyWage: hourlyWage ? parseFloat(hourlyWage) : undefined,
       });
 
       if (mode === "add") {
@@ -104,13 +108,24 @@ export const UserForm: React.FC<UserFormProps> = ({
           <Text style={styles.passwordLabel}>現在のパスワード</Text>
           <Text style={styles.passwordValue}>{currentPassword}</Text>
         </View>
-      )}
+      )}{" "}
       <Input
         label="ニックネーム"
         value={nickname}
         onChangeText={setNickname}
         placeholder="山田 太郎"
         error={!nickname ? "ニックネームを入力してください" : undefined}
+      />
+      <Input
+        label="時給（円）"
+        value={hourlyWage}
+        onChangeText={(text) => {
+          // 数字のみ許可
+          const numericValue = text.replace(/[^0-9]/g, "");
+          setHourlyWage(numericValue);
+        }}
+        placeholder="1000"
+        keyboardType="numeric"
       />
       {/* 講師色選択ボタン */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
