@@ -37,7 +37,10 @@ import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { DatePickerModal } from "@/modules/child-components/calendar/calendar-components/calendar-modal/DatePickerModal";
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
-import { ShiftStatusConfig } from "./gantt-chart-types/GanttChartTypes";
+import {
+  DEFAULT_SHIFT_STATUS_CONFIG,
+  ShiftStatusConfig,
+} from "@/common/common-models/model-shift/shiftTypes";
 import styles from "./gantt-chart-styles/GanttChartMonthView.styles";
 import { GanttChartMonthViewProps } from "./gantt-chart-types/GanttChartProps";
 import {
@@ -59,40 +62,6 @@ import { GanttHeader } from "./gantt-chart-common/GanttHeader";
 import { GanttChartBody } from "./gantt-chart-common/GanttChartBody";
 import { useGanttShiftActions } from "./gantt-chart-common/useGanttShiftActions";
 import { ConfirmBatchModalView } from "./view-modals/ConfirmBatchModalView";
-
-// シフトステータスの設定
-const DEFAULT_SHIFT_STATUS_CONFIG = [
-  {
-    status: "pending" as ShiftStatus,
-    label: "申請中",
-    color: "#FFA500",
-    canEdit: true,
-  },
-  {
-    status: "approved" as ShiftStatus,
-    label: "承認済み",
-    color: "#1565C0",
-    canEdit: true,
-  },
-  {
-    status: "rejected" as ShiftStatus,
-    label: "却下",
-    color: "#FF4444",
-    canEdit: true,
-  },
-  {
-    status: "deleted" as ShiftStatus,
-    label: "削除済み",
-    color: "#999999",
-    canEdit: false,
-  },
-  {
-    status: "deletion_requested" as ShiftStatus,
-    label: "削除申請中",
-    color: "#FF9800",
-    canEdit: false,
-  },
-];
 
 export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   shifts,
@@ -135,7 +104,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     type: "approve" | "delete" | null;
   }>({ visible: false, type: null });
   const { user } = useAuth();
-  const { saveShift, deleteShift } = useGanttShiftActions({
+  const { saveShift, deleteShift, updateShiftStatus } = useGanttShiftActions({
     user,
     onShiftUpdate,
   });
@@ -154,10 +123,11 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     const unsubscribe = onSnapshot(configRef, (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        const updatedConfigs = DEFAULT_SHIFT_STATUS_CONFIG.map((config) => ({
-          ...config,
-          ...data[config.status],
-        }));
+        const updatedConfigs: ShiftStatusConfig[] =
+          DEFAULT_SHIFT_STATUS_CONFIG.map((config) => ({
+            ...config,
+            ...data[config.status],
+          }));
         setStatusConfigs(updatedConfigs);
       }
     });
@@ -246,20 +216,22 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   }, []);
 
   // シフト削除
-  const handleDeleteShift = useCallback(
-    async (shift: { id: string; status: string }) => {
-      setIsLoading(true);
-      try {
-        await deleteShift(shift);
-      } catch (error) {
-        console.error("シフト削除エラー:", error);
-      } finally {
-        setIsLoading(false);
-        setShowEditModal(false);
-      }
-    },
-    [deleteShift]
-  );
+  const handleDeleteShift = async (shiftId: string) => {
+    setIsLoading(true); // ローディング開始
+    const newStatus: ShiftStatus = "deleted"; // 状態に関係なく削除済みに変更
+    await updateShiftStatus(shiftId, newStatus);
+    setShowEditModal(false); // モーダルを閉じる
+    setIsLoading(false); // ローディング終了
+  };
+
+  const handleBatchDelete = () => {
+    const rejectedShifts = shifts.filter(
+      (shift) => shift.status === "rejected"
+    );
+    rejectedShifts.forEach((shift) => {
+      updateShiftStatus(shift.id, "deleted"); // 一括削除で削除済みに変更
+    });
+  };
 
   // シフト保存
   const handleSaveShift = useCallback(async () => {
@@ -508,13 +480,9 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         }
         onClose={() => setShowEditModal(false)}
         onSave={handleSaveShift}
-        onDelete={() => {
-          // 編集中のshiftのIDとstatusを必ず渡す
+        onDelete={async () => {
           if (editingShift) {
-            handleDeleteShift({
-              id: editingShift.id,
-              status: editingShift.status,
-            });
+            await handleDeleteShift(editingShift.id); // 非同期処理に対応
           }
         }}
       />

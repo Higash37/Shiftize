@@ -1,6 +1,10 @@
 import React from "react";
 import { View } from "react-native";
-import { ShiftItem } from "@/common/common-models/ModelIndex";
+import {
+  ShiftItem,
+  ShiftStatus,
+  ShiftStatusConfig,
+} from "@/common/common-models/ModelIndex";
 import {
   DateCell,
   GanttChartGrid,
@@ -17,11 +21,15 @@ interface GanttChartRowProps {
   cellWidth: number;
   halfHourLines: string[];
   isClassTime: (time: string) => boolean;
-  getStatusConfig: (status: string) => any;
+  getStatusConfig: (status: string) => ShiftStatusConfig;
   handleShiftPress: (shift: ShiftItem) => void;
   handleEmptyCellClick: (date: string, position: number) => void;
   styles: any;
   userColorsMap: Record<string, string>;
+  statusStyles?: (status: ShiftStatus) => {
+    borderColor: string;
+    color: string;
+  };
 }
 
 export const GanttChartRow: React.FC<GanttChartRowProps> = ({
@@ -38,6 +46,7 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
   handleEmptyCellClick,
   styles,
   userColorsMap,
+  statusStyles,
 }) => {
   if (group && group.length > 0) {
     // シフトがある日

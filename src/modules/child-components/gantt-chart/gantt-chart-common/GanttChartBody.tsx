@@ -1,7 +1,11 @@
 import React, { useMemo } from "react";
 import { FlatList, ListRenderItemInfo } from "react-native";
 import { GanttChartRow } from "./GanttChartRow";
-import { ShiftItem } from "@/common/common-models/ModelIndex";
+import {
+  ShiftItem,
+  ShiftStatus,
+  ShiftStatusConfig,
+} from "@/common/common-models/ModelIndex";
 
 interface GanttChartBodyProps {
   days: string[];
@@ -12,11 +16,12 @@ interface GanttChartBodyProps {
   cellWidth: number;
   halfHourLines: string[];
   isClassTime: (time: string) => boolean;
-  getStatusConfig: (status: string) => any;
+  getStatusConfig: (status: string) => ShiftStatusConfig;
   handleShiftPress: (shift: ShiftItem) => void;
   handleEmptyCellClick: (date: string, position: number) => void;
   styles: any;
   userColorsMap: Record<string, string>;
+  statusStyles?: (status: string) => { borderColor: string; color: string };
 }
 
 interface RowData {
@@ -38,21 +43,27 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
   handleEmptyCellClick,
   styles,
   userColorsMap,
+  statusStyles,
 }) => {
-  // 日付ごとにgroupを紐付け
+  // 日付ごとに行を生成し、シフトがない日も空のグループとして含める
   const data: RowData[] = useMemo(
     () =>
-      days.map((date: string) => {
-        const found = rows.filter(([rowDate]) => rowDate === date);
-        return { date, group: found.length > 0 ? found[0][1] : [] };
-      }),
+      days
+        .map((date) => {
+          const found = rows.filter(([rowDate]) => rowDate === date);
+          return found.length > 0
+            ? found.map(([rowDate, group]) => ({ date: rowDate, group }))
+            : [{ date, group: [] }];
+        })
+        .flat(),
     [days, rows]
   );
 
   return (
     <FlatList
       data={data}
-      keyExtractor={(item: RowData) => item.date}
+      // ユニークなキーを生成するために日付とインデックスを組み合わせる
+      keyExtractor={(item: RowData, index: number) => `${item.date}-${index}`}
       renderItem={({ item }: ListRenderItemInfo<RowData>) => (
         <GanttChartRow
           date={item.date}
@@ -68,12 +79,12 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
           handleEmptyCellClick={handleEmptyCellClick}
           styles={styles}
           userColorsMap={userColorsMap}
+          statusStyles={statusStyles}
         />
       )}
       initialNumToRender={20}
       windowSize={21}
       removeClippedSubviews={true}
-      getItemLayout={(_, index) => ({ length: 70, offset: 70 * index, index })}
     />
   );
 };

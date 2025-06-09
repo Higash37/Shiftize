@@ -377,6 +377,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     zIndex: 3,
   },
+  headerCostCellLeft: {
+    justifyContent: "flex-start",
+    alignItems: "center",
+    padding: 10,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 5,
+  },
+  costLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1976D2",
+    textDecorationLine: "underline",
+  },
+  monthCostContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  monthCostContainerLeft: {
+    position: "absolute",
+    left: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  monthPickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
 });
 
 export default styles;

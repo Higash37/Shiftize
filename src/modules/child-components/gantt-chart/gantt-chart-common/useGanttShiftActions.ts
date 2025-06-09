@@ -102,5 +102,25 @@ export function useGanttShiftActions({
     [onShiftUpdate]
   );
 
-  return { saveShift, deleteShift };
+  const updateShiftStatus = useCallback(
+    async (shiftId: string, status: ShiftStatus) => {
+      if (!user) throw new Error("ユーザーが未ログインです");
+
+      const shiftRef = doc(db, "shifts", shiftId);
+      console.log(`Updating shift ${shiftId} to status ${status}`); // デバッグ用ログ
+      await updateDoc(shiftRef, { status });
+
+      if (onShiftUpdate) {
+        console.log("Calling onShiftUpdate callback"); // デバッグ用ログ
+        await onShiftUpdate();
+      }
+    },
+    [user, onShiftUpdate]
+  );
+
+  return {
+    saveShift,
+    deleteShift,
+    updateShiftStatus,
+  };
 }

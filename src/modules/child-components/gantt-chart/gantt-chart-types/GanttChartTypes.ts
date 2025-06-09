@@ -1,10 +1,8 @@
 // ガントチャート共通型定義
 
-import { ShiftStatus } from "@/common/common-models/ModelIndex";
+import {
+  ShiftStatusConfig,
+  ShiftStatus,
+} from "@/common/common-models/model-shift/shiftTypes";
 
-export interface ShiftStatusConfig {
-  status: ShiftStatus;
-  label: string;
-  color: string;
-  canEdit: boolean;
-}
+// ShiftStatusConfig のローカル定義を削除しました。
