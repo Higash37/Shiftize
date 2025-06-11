@@ -7,20 +7,8 @@ export interface MarkedDate {
   dotStyle?: any;
 }
 
-export interface ShiftCalendarProps {
-  shifts: Shift[];
-  selectedDate: string;
-  currentMonth: string;
-  onDayPress: (day: { dateString: string }) => void;
-  onMonthChange?: (month: { dateString: string }) => void;
-  markedDates?: Record<string, MarkedDate>;
-  onMount?: () => void;
-  responsiveSize?: {
-    container?: any;
-    day?: any;
-    header?: any;
-  };
-}
+// ShiftCalendarProps は ShiftCalendar.types.ts に移動しました
+// 以下はコンポーネント間で共有される型定義のみを保持します
 
 export interface DayComponentProps {
   date?: {
