@@ -4,7 +4,7 @@
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no, viewport-fit=cover"
     />
     <title>%WEB_TITLE%</title>
 
@@ -73,9 +73,14 @@
         height: 100%;
         margin: 0;
         padding: 0;
+        position: fixed;
+        width: 100%;
+        overflow: hidden;
+        -webkit-overflow-scrolling: none;
+        overscroll-behavior: none;
+        touch-action: manipulation;
       }
       body {
-        overflow: hidden;
         background-color: #ffffff; /* 白色に変更 */
         min-height: 100vh;
       }
@@ -84,6 +89,8 @@
         height: 100%;
         flex: 1;
         flex-direction: column;
+        overscroll-behavior: none;
+        touch-action: manipulation;
       }
     </style>
   </head>
@@ -115,6 +122,30 @@
           }
         }, 1500); // 1.5秒後にスプラッシュスクリーンを非表示
       });
+      
+      // タッチ操作の防止
+      document.addEventListener('touchmove', function(e) {
+        if (e.touches.length > 1) {
+          e.preventDefault(); // ピンチジェスチャーを防止
+        }
+      }, { passive: false });
+      
+      document.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 1) {
+          e.preventDefault(); // マルチタッチを防止
+        }
+      }, { passive: false });
+      
+      // ダブルタップによるズームを防止
+      let lastTap = 0;
+      document.addEventListener('touchend', function(e) {
+        const now = new Date().getTime();
+        const timeDiff = now - lastTap;
+        if (timeDiff < 300 && timeDiff > 0) {
+          e.preventDefault();
+        }
+        lastTap = now;
+      }, { passive: false });
     </script>
   </body>
 </html>
