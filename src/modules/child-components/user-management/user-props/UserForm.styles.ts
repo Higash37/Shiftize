@@ -4,7 +4,7 @@ import { typography } from "../../../../common/common-theme/ThemeTypography";
 
 export const styles = StyleSheet.create({
   container: {
-    gap: 16,
+    gap: 1,
   },
   roleContainer: {
     flexDirection: "row",
