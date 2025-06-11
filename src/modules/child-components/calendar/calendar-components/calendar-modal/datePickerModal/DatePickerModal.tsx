@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { format } from "date-fns";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
-import ShiftDateSelector from "@/modules/user-view/shift-ui/shift-ui-components/ShiftDateSelector";
+import ShiftDateSelector from "@/modules/user-view/shift-ui-components/ShiftDateSelector";
 import { styles } from "./DatePickerModal.styles";
 import {
   DatePickerModalProps,

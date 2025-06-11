@@ -5,5 +5,5 @@
 // テーマ関連のエクスポート（互換性のためのブリッジを使用）
 export * from "./ThemeBridgeConstants";
 
-// レガシーカラーのエクスポート
-export { LegacyColors } from "./LegacyColorConstants";
+// レガシーカラーのエクスポートは削除しました
+// 不要になったレガシーコードです

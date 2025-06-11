@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { ShiftCreateForm } from "@/modules/user-view/shift-ui/shift-ui-components/shiftCreate/ShiftCreateForm";
+import { ShiftCreateForm } from "@/modules/user-view/shift-ui-components/shiftCreate/ShiftCreateForm";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import Header from "@/common/common-ui/ui-layout/LayoutHeader";
 
