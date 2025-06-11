@@ -21,6 +21,51 @@
     <link rel="apple-touch-icon" href="/PWAIcon180x180.png" />
     <link rel="manifest" href="/manifest.json" />
 
+    <!-- スプラッシュスクリーン用スタイル -->
+    <style id="expo-splash-screen">
+      #splash-screen {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background-color: #1565c0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease-out;
+      }
+      #splash-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #splash-screen img {
+        width: 150px;
+        height: auto;
+        margin-bottom: 20px;
+      }
+      #splash-screen h1 {
+        color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 24px;
+        margin: 0;
+      }
+      #splash-loader {
+        margin-top: 20px;
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        border-left-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+
     <!-- その他のスタイルとスクリプト -->
     <style id="expo-reset">
       html,
@@ -31,7 +76,7 @@
       }
       body {
         overflow: hidden;
-        background-color: #1565c0; /* ヘッダーの色と一致させる */
+        background-color: #ffffff; /* 白色に変更 */
         min-height: 100vh;
       }
       #root {
@@ -44,6 +89,32 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    
+    <!-- スプラッシュスクリーン -->
+    <div id="splash-screen">
+      <img src="/PWAIcon192x192.png" alt="シフト管理アプリ" />
+      <h1>シフト管理アプリ</h1>
+      <div id="splash-loader"></div>
+    </div>
+    
     <div id="root"></div>
+    
+    <!-- スプラッシュスクリーン制御スクリプト -->
+    <script>
+      // アプリがロードされたらスプラッシュスクリーンを非表示にする
+      window.addEventListener('load', function() {
+        // アプリのロード完了を待つために少し遅延させる
+        setTimeout(function() {
+          const splashScreen = document.getElementById('splash-screen');
+          if (splashScreen) {
+            splashScreen.classList.add('hidden');
+            // アニメーション終了後に要素を削除
+            setTimeout(function() {
+              splashScreen.remove();
+            }, 300);
+          }
+        }, 1500); // 1.5秒後にスプラッシュスクリーンを非表示
+      });
+    </script>
   </body>
 </html>
