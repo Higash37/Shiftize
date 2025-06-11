@@ -4,7 +4,8 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { styles } from "./ShiftDetails.styles";
 import { ShiftDetailsProps } from "./ShiftDetails.types";
-import { parseTimeString } from "../../calendar-utils/shift.utils";
+// import { parseTimeString } from "../../calendar-utils/shift.utils";
+import { parseTimeString } from "../../../calendar-utils/shift.utils";
 
 /**
  * ShiftDetails - シフト詳細情報表示コンポーネント

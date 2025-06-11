@@ -5,4 +5,5 @@ import {
   ShiftStatus,
 } from "@/common/common-models/model-shift/shiftTypes";
 
-// ShiftStatusConfig のローカル定義を削除しました。
+// 外部で使用するために再エクスポート
+export { ShiftStatusConfig, ShiftStatus };

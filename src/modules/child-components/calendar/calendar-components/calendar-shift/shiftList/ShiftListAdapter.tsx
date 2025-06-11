@@ -1,8 +1,8 @@
 import React, { memo } from "react";
 import { View, StyleSheet } from "react-native";
-import { ShiftDetails } from "./ShiftDetails";
-import { ShiftAdapterProps } from "../../calendar-types/shift.types";
-import { Shift } from "@/common/common-models/model-shift/shiftTypes";
+import { ShiftDetails } from "../shiftDetails/ShiftDetails";
+import { ShiftAdapterProps } from "../../../calendar-types/shift.types";
+import { Shift } from "@/common/common-models/ModelIndex";
 
 /**
  * シフト詳細表示用のアダプターコンポーネント

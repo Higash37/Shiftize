@@ -8,11 +8,12 @@ import { Shift } from "@/common/common-models/ModelIndex";
 import {
   getStatusColor,
   getStatusText,
-} from "../../calendar-utils/calendar.utils";
+} from "../../../calendar-utils/calendar.utils";
 import { ShiftListProps } from "./ShiftList.types";
 import { ShiftItemProps } from "./ShiftList.types";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 import { ShiftDetailsAdapter } from "./ShiftListAdapter";
+import { ShiftAdapterProps } from "../../../calendar-types/shift.types";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 
 /**
@@ -50,7 +51,7 @@ const ShiftItem = memo(({ shift, isExpanded, onToggle }: ShiftItemProps) => {
           size={14}
           color={colors.text.primary}
           style={styles.expandIcon}
-        />
+        />{" "}
       </TouchableOpacity>
       <ShiftDetailsAdapter shift={shift} isOpen={isExpanded} />
     </View>

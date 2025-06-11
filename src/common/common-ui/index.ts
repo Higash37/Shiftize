@@ -19,4 +19,4 @@ export { default as CustomScrollView } from "./ui-scroll/ScrollViewComponent";
 
 // レガシーコンポーネント（Common）- 後方互換性のため
 // 将来的には新しい場所に移行する予定
-export * from "./Common";
+// export * from "./Common"; // 移行済みまたは削除されたため、コメントアウト
