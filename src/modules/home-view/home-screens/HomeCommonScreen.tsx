@@ -7,7 +7,7 @@ import { View, useWindowDimensions } from "react-native";
 import { styles } from "../home-styles/home-view-styles";
 import { format } from "date-fns";
 import ja from "date-fns/locale/ja";
-import { DatePickerModal } from "@/modules/child-components/calendar/calendar-components/calendar-modal/DatePickerModal";
+import { DatePickerModal } from "@/modules/child-components/calendar/calendar-components/calendar-modal/datePickerModal/DatePickerModal";
 import { HomeGanttWideScreen } from "./HomeGanttWideScreen";
 import { HomeGanttMobileScreen } from "./HomeGanttMobileScreen";
 import { HomeGanttTabletScreen } from "./HomeGanttTabletScreen";

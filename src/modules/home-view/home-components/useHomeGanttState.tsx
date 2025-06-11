@@ -14,10 +14,9 @@ for (let h = 9; h <= 22; h++) {
 export function useHomeGanttState() {
   const { shifts, loading, fetchShiftsByMonth } = useShifts();
   const { users } = useUsers();
-
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showFirst, setShowFirst] = useState(true);
+  const [showFirst, setShowFirst] = useState(false); // デフォルトで後半を表示
   const [modalUser, setModalUser] = useState<string | null>(null);
   const [currentYearMonth, setCurrentYearMonth] = useState(() => ({
     year: new Date().getFullYear(),

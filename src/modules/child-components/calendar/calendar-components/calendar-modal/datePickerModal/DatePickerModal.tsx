@@ -4,34 +4,25 @@ import {
   Text,
   TouchableOpacity,
   Modal,
-  StyleSheet,
-  SafeAreaView,
   TouchableWithoutFeedback,
 } from "react-native";
 import { format } from "date-fns";
-import { colors } from "@/common/common-theme/ThemeColors";
-import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import ShiftDateSelector from "@/modules/user-view/shift-ui/shift-ui-components/ShiftDateSelector";
-
-interface DatePickerModalProps {
-  isVisible: boolean;
-  initialDate: Date;
-  onClose: () => void;
-  onSelect: (date: Date) => void;
-}
+import { styles } from "./DatePickerModal.styles";
+import {
+  DatePickerModalProps,
+  YearPickerProps,
+  MonthPickerProps,
+} from "./DatePickerModal.types";
 
 /**
  * 年選択コンポーネント
  */
-const YearPicker = ({
+const YearPicker: React.FC<YearPickerProps> = ({
   tempDate,
   onYearSelect,
   onCancel,
-}: {
-  tempDate: Date;
-  onYearSelect: (year: number) => void;
-  onCancel: () => void;
 }) => {
   // 年の配列を生成（現在の年から前後5年）
   const currentYear = new Date().getFullYear();
@@ -73,14 +64,10 @@ const YearPicker = ({
 /**
  * 月選択コンポーネント
  */
-const MonthPicker = ({
+const MonthPicker: React.FC<MonthPickerProps> = ({
   tempDate,
   onMonthSelect,
   onBack,
-}: {
-  tempDate: Date;
-  onMonthSelect: (month: number) => void;
-  onBack: () => void;
 }) => {
   // 月の配列を生成（1月から12月まで）
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -180,7 +167,6 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
   const calendarCurrent = `${tempDate.getFullYear()}-${String(
     tempDate.getMonth() + 1
   ).padStart(2, "0")}-01`;
-
   return (
     <Modal
       visible={isVisible}
@@ -191,7 +177,7 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View>
+            <View style={styles.modalContainer}>
               {showYearPicker && (
                 <YearPicker
                   tempDate={tempDate}
@@ -233,94 +219,9 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
                 </View>
               )}
             </View>
-          </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>{" "}
         </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1, // 画面全体を覆う
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 24,
-    width: "90%",
-    maxWidth: 600,
-    maxHeight: "80%", // 高さを調整
-    minWidth: 320,
-    ...getPlatformShadow(5),
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 16,
-    color: colors.text.primary,
-  },
-  pickerContainer: {
-    maxHeight: 300,
-  },
-  pickerItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  selectedItem: {
-    backgroundColor: colors.primary + "20",
-  },
-  pickerText: {
-    fontSize: 16,
-    textAlign: "center",
-    color: colors.text.primary,
-  },
-  selectedText: {
-    color: colors.primary,
-    fontWeight: "bold",
-  },
-  monthGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-around", // PC画面でのレイアウトを改善
-    width: "100%",
-    marginBottom: 8,
-  },
-  monthItem: {
-    width: "28%", // PC画面でのアイテム幅を調整
-    padding: 12,
-    marginBottom: 8,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  monthItemText: {
-    fontSize: 16,
-    color: colors.text.primary,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 16,
-    width: "100%",
-  },
-  modalButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginHorizontal: 8,
-    backgroundColor: colors.primary + "10",
-    borderRadius: 8,
-  },
-  modalButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-});

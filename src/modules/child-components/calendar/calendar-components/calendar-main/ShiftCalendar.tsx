@@ -13,7 +13,7 @@ import {
 } from "../../calendar-types/common.types";
 import { DayComponent } from "../calendar-day/DayComponent";
 import { CalendarHeader } from "../calendar-header/CalendarHeader";
-import { DatePickerModal } from "../calendar-modal/DatePickerModal";
+import { DatePickerModal } from "../calendar-modal/datePickerModal/DatePickerModal";
 import {
   useResponsiveCalendarSize,
   PLATFORM_SPECIFIC,

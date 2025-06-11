@@ -34,7 +34,7 @@ import { format, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Ionicons } from "@expo/vector-icons";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
-import { DatePickerModal } from "@/modules/child-components/calendar/calendar-components/calendar-modal/DatePickerModal";
+import { DatePickerModal } from "@/modules/child-components/calendar/calendar-components/calendar-modal/datePickerModal/DatePickerModal";
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
 import {
@@ -339,20 +339,28 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       if (u.uid && u.color) map[u.uid] = u.color;
     });
     return map;
-  }, [users]);
-  // 月の全シフトから金額と時間を計算
+  }, [users]); // 月の全シフトから金額と時間を計算
   const calculateMonthlyTotals = useCallback(() => {
     let totalMinutes = 0;
     let totalAmount = 0;
+
+    // シフトがない場合は0を返す
+    if (!shifts || shifts.length === 0) {
+      console.log("シフトがありません - 計算結果: 0円");
+      return {
+        totalHours: 0,
+        totalAmount: 0,
+      };
+    }
 
     // 表示されている承認済みシフトのみを対象に計算
     const approvedShifts = shifts.filter(
       (shift) => shift.status === "approved" || shift.status === "completed"
     );
 
-    // デバッグ用：時給計算に使用する標準値を表示
-    console.log("デフォルト時給: 1,100円で計算しています");
-    console.log("授業時間を除外して給与計算を行います");
+    console.log(
+      `計算対象: 全シフト ${shifts.length}件中、承認済み ${approvedShifts.length}件`
+    );
 
     approvedShifts.forEach((shift) => {
       // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
@@ -380,13 +388,18 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       totalHours: totalMinutes / 60,
       totalAmount: Math.round(totalAmount),
     };
-  }, [shifts, users]);
-
-  // 合計金額と時間を保持するstate
+  }, [shifts, users]); // 合計金額と時間を保持するstate
+  // 初期値は空のシフトセットだと金額を表示しないように
   const [totalWage, setTotalWage] = useState({ totalAmount: 0, totalHours: 0 });
 
   // シフトまたはユーザーが変更されたら再計算
   useEffect(() => {
+    // シフトがない場合は何もしない
+    if (!shifts || shifts.length === 0) {
+      setTotalWage({ totalAmount: 0, totalHours: 0 });
+      return;
+    }
+
     const { totalAmount, totalHours } = calculateMonthlyTotals();
     setTotalWage({ totalAmount, totalHours });
   }, [shifts, users, calculateMonthlyTotals]);

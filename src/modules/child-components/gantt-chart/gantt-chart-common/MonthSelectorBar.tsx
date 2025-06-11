@@ -33,10 +33,9 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
     totalAmount = 0,
     totalHours = 0,
   } = props;
-
   return (
     <View style={styles.monthSelector}>
-      {/* 金額表示部分 */}{" "}
+      {/* 金額表示部分 - シフトがなくても表示 */}
       <View
         style={{
           position: "absolute",
@@ -52,11 +51,19 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
         }}
       >
         <Text style={{ fontWeight: "bold", color: "#333" }}>
-          合計: {totalAmount.toLocaleString()}円
+          合計: {totalAmount.toLocaleString()}円{" "}
         </Text>
-        <Text style={{ fontSize: 12, color: "#666" }}>
-          ({Math.floor(totalHours)}時間{Math.round((totalHours % 1) * 60)}分)
-        </Text>
+        {totalHours > 0 ? (
+          <Text style={{ fontSize: 12, color: "#666" }}>
+            ({Math.floor(totalHours)}時間
+            {Math.round((totalHours % 1) * 60) > 0
+              ? `${Math.round((totalHours % 1) * 60)}分`
+              : ""}
+            )
+          </Text>
+        ) : (
+          <Text style={{ fontSize: 12, color: "#666" }}>(0時間)</Text>
+        )}
         <Text style={{ fontSize: 10, color: "#888", fontStyle: "italic" }}>
           ※授業時間を除く
         </Text>
