@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
-import { styles } from "../home-styles/home-view-styles";
+import { styles } from "../../home-styles/home-view-styles";
 
 interface DateNavBarProps {
   isMobile: boolean;
@@ -31,7 +31,7 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
       },
     ]}
   >
-    {/* 左端：前半/後半ボタン */}
+    {/* 左端：前半/後半ボタンまたはスペーサー */}
     {isMobile ? (
       <View style={{ marginLeft: 30 }}>
         <Pressable
@@ -51,8 +51,8 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
         </Pressable>
       </View>
     ) : (
-      // PC/タブレット用：従来のスイッチ
-      <></> // GanttHalfSwitchは親でラップ
+      // PC/タブレット用：左側のスペーサー（バランス用）
+      <View style={{ width: 80 }} />
     )}
     {/* 中央：年月ピッカー＋日付ナビ */}
     <View

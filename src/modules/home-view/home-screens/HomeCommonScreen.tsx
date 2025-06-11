@@ -11,12 +11,12 @@ import { DatePickerModal } from "@/modules/child-components/calendar/calendar-co
 import { HomeGanttWideScreen } from "./HomeGanttWideScreen";
 import { HomeGanttMobileScreen } from "./HomeGanttMobileScreen";
 import { HomeGanttTabletScreen } from "./HomeGanttTabletScreen";
-import { GanttHalfSwitch } from "../home-components/GanttHalfSwitch"; // 追加
-import { UserDayGanttModal } from "../home-components/UserDayGanttModal";
-import { useHomeGanttState } from "../home-components/useHomeGanttState";
+import { GanttHalfSwitch } from "../home-components/home-gantt/GanttHalfSwitch"; // 追加
+import { UserDayGanttModal } from "../home-components/home-gantt/UserDayGanttModal";
+import { useHomeGanttState } from "../home-components/home-hooks/useHomeGanttState";
 // import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 // import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
-import { DateNavBar } from "../home-components/DateNavBar";
+import { DateNavBar } from "../home-components/home-nav/DateNavBar";
 import "./home-common-screen.css";
 
 export default function HomeCommonScreen() {

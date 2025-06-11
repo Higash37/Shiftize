@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Pressable, Text } from "react-native";
-import { styles } from "../home-styles/home-view-styles";
+import { styles } from "../../home-styles/home-view-styles";
 
 interface GanttHalfSwitchProps {
   showFirst: boolean;

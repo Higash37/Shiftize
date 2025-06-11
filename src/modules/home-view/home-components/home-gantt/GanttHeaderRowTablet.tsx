@@ -1,14 +1,14 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { styles } from "../home-styles/home-view-styles";
+import { styles } from "../../home-styles/home-view-styles";
 
-interface GanttHeaderRowProps {
+interface GanttHeaderRowTabletProps {
   names: string[];
   cellWidth: number;
   cellHeight: number;
 }
 
-export const GanttHeaderRow: React.FC<GanttHeaderRowProps> = ({
+export const GanttHeaderRowTablet: React.FC<GanttHeaderRowTabletProps> = ({
   names,
   cellWidth,
   cellHeight,

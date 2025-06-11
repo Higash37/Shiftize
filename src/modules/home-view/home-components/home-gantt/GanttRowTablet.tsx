@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { styles } from "../home-styles/home-view-styles";
-import type { SampleScheduleColumn } from "../home-types/home-view-types";
+import { styles } from "../../home-styles/home-view-styles";
+import type { SampleScheduleColumn } from "../../home-types/home-view-types";
 
 interface GanttRowTabletProps {
   time: string;

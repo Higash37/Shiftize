@@ -7,9 +7,9 @@ import {
   ScrollView,
   StyleSheet,
 } from "react-native";
-import { styles as ganttStyles } from "../home-styles/home-view-styles";
-import type { SampleScheduleColumn } from "../home-types/home-view-types";
-import { timeSlots } from "../home-data/scheduleSample";
+import { styles as ganttStyles } from "../../home-styles/home-view-styles";
+import type { SampleScheduleColumn } from "../../home-types/home-view-types";
+import { timeSlots } from "../../home-data/scheduleSample";
 
 interface UserDayGanttModalProps {
   visible: boolean;
