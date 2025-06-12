@@ -111,6 +111,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const { user } = useAuth();
   const { saveShift, deleteShift, updateShiftStatus } = useGanttShiftActions({
     user,
+    users, // usersパラメータを追加
     onShiftUpdate,
   });
 
@@ -304,33 +305,48 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute
         .toString()
         .padStart(2, "0")}`;
+
+      // マスター権限の場合はユーザーIDをクリアして選択できるようにする
+      // 一般ユーザーの場合は自分自身のIDを設定
+      const isMaster = user?.role === "master";
+      const defaultUserId = isMaster ? "" : user?.uid || "";
+      const defaultNickname = isMaster
+        ? ""
+        : users.find((u) => u.uid === user?.uid)?.nickname || "";
       setNewShiftData({
         date,
         startTime,
         endTime,
-        userId: "",
-        nickname: "",
-        status: "pending",
+        userId: defaultUserId,
+        nickname: defaultNickname,
+        status: isMaster ? "approved" : "pending", // マスター権限の場合は直接承認済みに
         classes: [],
       });
       setShowAddModal(true);
     },
     [positionToTime]
   );
-
   // シフト追加
   const handleAddShift = useCallback(() => {
+    // マスター権限の場合はユーザーIDをクリアして選択できるようにする
+    // 一般ユーザーの場合は自分自身のIDを設定
+    const isMaster = user?.role === "master";
+    const defaultUserId = isMaster ? "" : user?.uid || "";
+    const defaultNickname = isMaster
+      ? ""
+      : users.find((u) => u.uid === user?.uid)?.nickname || "";
+
     setNewShiftData({
       date: format(selectedDate, "yyyy-MM-dd"),
       startTime: "09:00",
       endTime: "11:00",
-      userId: "",
-      nickname: "",
-      status: "approved",
+      userId: defaultUserId,
+      nickname: defaultNickname,
+      status: isMaster ? "approved" : "pending",
       classes: [],
     });
     setShowAddModal(true);
-  }, [selectedDate]);
+  }, [selectedDate, user, users]);
 
   // ユーザーID→colorマップを作成
   const userColorsMap = React.useMemo(() => {
@@ -339,7 +355,9 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       if (u.uid && u.color) map[u.uid] = u.color;
     });
     return map;
-  }, [users]); // 月の全シフトから金額と時間を計算
+  }, [users]);
+
+  // 月の全シフトから金額と時間を計算（選択された月のシフトのみ）
   const calculateMonthlyTotals = useCallback(() => {
     let totalMinutes = 0;
     let totalAmount = 0;
@@ -353,16 +371,31 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       };
     }
 
-    // 表示されている承認済みシフトのみを対象に計算
-    const approvedShifts = shifts.filter(
-      (shift) => shift.status === "approved" || shift.status === "completed"
-    );
+    // 選択中の年月を取得
+    const selectedYear = selectedDate.getFullYear();
+    const selectedMonth = selectedDate.getMonth() + 1; // JavaScriptは0から始まるため+1
 
+    // 選択された月に含まれる承認済みと承認待ちシフトを対象に計算
+    const targetShifts = shifts.filter((shift) => {
+      // シフトの日付から年月を抽出
+      const shiftDate = new Date(shift.date);
+      const shiftYear = shiftDate.getFullYear();
+      const shiftMonth = shiftDate.getMonth() + 1;
+
+      // 選択された月のシフトかつ承認済み、承認待ち、または完了済みシフトをフィルタリング
+      return (
+        shiftYear === selectedYear &&
+        shiftMonth === selectedMonth &&
+        (shift.status === "approved" ||
+          shift.status === "pending" ||
+          shift.status === "completed")
+      );
+    });
     console.log(
-      `計算対象: 全シフト ${shifts.length}件中、承認済み ${approvedShifts.length}件`
+      `計算対象: 全シフト ${shifts.length}件中、選択月(${selectedYear}年${selectedMonth}月)の承認済み・承認待ち ${targetShifts.length}件`
     );
 
-    approvedShifts.forEach((shift) => {
+    targetShifts.forEach((shift) => {
       // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
       const user = users.find((u) => u.uid === shift.userId);
       // 時給が設定されていない場合は1,100円をデフォルト値として使用
