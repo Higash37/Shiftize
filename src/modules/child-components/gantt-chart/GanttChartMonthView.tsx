@@ -598,9 +598,17 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         statusConfigs={statusConfigs}
         isLoading={isLoading}
         styles={styles}
-        onChange={(field, value) =>
-          setNewShiftData({ ...newShiftData, [field]: value })
-        }
+        onChange={(field, value) => {
+          if (field === "userData") {
+            setNewShiftData({
+              ...newShiftData,
+              userId: value.userId,
+              nickname: value.nickname,
+            });
+          } else {
+            setNewShiftData({ ...newShiftData, [field]: value });
+          }
+        }}
         onClose={() => setShowAddModal(false)}
         onSave={handleSaveShift}
       />

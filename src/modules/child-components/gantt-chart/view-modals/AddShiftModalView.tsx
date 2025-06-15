@@ -61,13 +61,11 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
                 selectedValue={newShiftData.userId}
                 onValueChange={(itemValue) => {
                   const user = users.find((u) => u.uid === itemValue);
-                  onChange("userId", itemValue);
-                  onChange("nickname", user ? user.nickname : "");
-                  console.log("Selected User ID:", itemValue);
-                  console.log(
-                    "Updated User Nickname:",
-                    user ? user.nickname : ""
-                  );
+                  onChange("userData", {
+                    userId: itemValue,
+                    nickname: user ? user.nickname : "",
+                  });
+                  console.log("Selected User:", user);
                 }}
                 style={styles.picker}
               >
