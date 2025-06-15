@@ -55,11 +55,11 @@ function RootLayoutNav() {
       <SafeAreaView
         style={{
           flex: 1,
-          backgroundColor: "#FFFFFF", // 青色から白色に変更
+          backgroundColor: "#F2F2F7", // 青色から白色に変更
           height: "100%",
           width: "100%",
         }}
-        edges={["top", "left", "right"]} // bottomを削除してフッターとの重複を避ける
+        edges={["top", "left", "right", "bottom"]} // bottomを追加してセーフエリア全体を考慮
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -79,7 +79,7 @@ function RootLayoutNav() {
           {/* セーフエリア考慮したフッター - 位置調整済み */}
           <View
             style={{
-              paddingBottom: insets.bottom / 2, // 半分の高さに調整
+              paddingBottom: insets.bottom, // セーフエリアの高さを正確に反映
               width: "100%",
               backgroundColor: colors.primary,
               alignItems: "center",
