@@ -59,7 +59,7 @@ function RootLayoutNav() {
           height: "100%",
           width: "100%",
         }}
-        edges={["top", "left", "right", "bottom"]} // bottomを追加してセーフエリア全体を考慮
+        edges={["top", "left", "right"]} // Removed 'bottom' to avoid extra space
       >
         <View style={{ flex: 1, backgroundColor: colors.background }}>
           <ScrollView
