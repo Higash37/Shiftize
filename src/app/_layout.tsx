@@ -55,16 +55,22 @@ function RootLayoutNav() {
       <SafeAreaView
         style={{
           flex: 1,
-          backgroundColor: "#F2F2F7", // 青色から白色に変更
-          height: "100%",
-          width: "100%",
+          backgroundColor: "#F2F2F7",
         }}
-        edges={["top", "left", "right"]} // Removed 'bottom' to avoid extra space
+        edges={["top", "left", "right", "bottom"]} // ✅ bottom を含める
       >
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: colors.background,
+            paddingBottom: insets.bottom || (Platform.OS === "web" ? 20 : 0),
+          }}
+        >
           <ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{
+              flexGrow: 1,
+            }}
           >
             <Stack screenOptions={{ headerShown: false }}>
               <Slot />
