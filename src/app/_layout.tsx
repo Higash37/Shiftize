@@ -55,15 +55,15 @@ function RootLayoutNav() {
       <SafeAreaView
         style={{
           flex: 1,
-          backgroundColor: "#F2F2F7",
+          backgroundColor: "#ffffff",
         }}
         edges={["top", "left", "right", "bottom"]} // ✅ bottom を含める
       >
         <View
           style={{
             flex: 1,
-            backgroundColor: colors.background,
-            paddingBottom: insets.bottom || (Platform.OS === "web" ? 20 : 0),
+            backgroundColor: "#F2F2F7",
+            paddingBottom: insets.bottom || (Platform.OS === "web" ? 1 : 0),
           }}
         >
           <ScrollView
