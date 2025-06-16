@@ -55,7 +55,7 @@ function RootLayoutNav() {
       <SafeAreaView
         style={{
           flex: 1,
-          backgroundColor: "#ffffff",
+          backgroundColor: "#F2F2F7",
         }}
         edges={["top", "left", "right", "bottom"]} // ✅ bottom を含める
       >
