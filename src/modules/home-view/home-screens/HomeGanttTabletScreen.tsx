@@ -1,5 +1,6 @@
 import React from "react";
 import { View, ScrollView, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../home-types/home-view-types";
 import { GanttHeaderRowTablet } from "../home-components/home-gantt/GanttHeaderRowTablet";
@@ -35,6 +36,8 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
   onCellPress,
 }) => {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets(); // Add SafeAreaInsets
+
   const cellWidth = Math.max(CELL_WIDTH, MIN_CELL_WIDTH);
   const timeRowCount = timesFirst.length;
   const cellHeight = Math.max(
@@ -44,6 +47,7 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
         ? windowHeight -
           HEADER_HEIGHT -
           FOOTER_HEIGHT -
+          insets.bottom - // Adjust for SafeAreaInsets
           TABBAR_HEIGHT -
           VERTICAL_MARGIN
         : 400) / timeRowCount
@@ -53,7 +57,9 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
   const times = showFirst ? timesFirst : timesSecond;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, paddingBottom: insets.bottom }}>
+      {" "}
+      {/* Add paddingBottom */}
       <ScrollView
         horizontal
         style={{ flex: 1 }}
