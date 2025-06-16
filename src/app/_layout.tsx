@@ -59,24 +59,16 @@ function RootLayoutNav() {
         }}
         edges={["top", "left", "right", "bottom"]} // ✅ bottom を含める
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "#F2F2F7",
-            paddingBottom: insets.bottom || (Platform.OS === "web" ? 1 : 0),
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            flexGrow: 1,
           }}
         >
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              flexGrow: 1,
-            }}
-          >
-            <Stack screenOptions={{ headerShown: false }}>
-              <Slot />
-            </Stack>
-          </ScrollView>
-        </View>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Slot />
+          </Stack>
+        </ScrollView>
       </SafeAreaView>
     </>
   );
