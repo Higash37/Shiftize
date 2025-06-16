@@ -61,35 +61,16 @@ function RootLayoutNav() {
         }}
         edges={["top", "left", "right", "bottom"]} // bottomを追加してセーフエリア全体を考慮
       >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
-          <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <ScrollView
-              style={{ flex: 1 }}
-              contentContainerStyle={{ flexGrow: 1 }}
-            >
-              <Stack screenOptions={{ headerShown: false }}>
-                <Slot />
-              </Stack>
-            </ScrollView>
-          </View>
-
-          {/* セーフエリア考慮したフッター - 位置調整済み */}
-          <View
-            style={{
-              paddingBottom: insets.bottom, // セーフエリアの高さを正確に反映
-              width: "100%",
-              backgroundColor: colors.primary,
-              alignItems: "center",
-            }}
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ flexGrow: 1 }}
           >
-            <View style={{ maxWidth: 600, paddingHorizontal: 12 }}>
-              {/* <SlotFooter /> */}
-            </View>
-          </View>
-        </KeyboardAvoidingView>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Slot />
+            </Stack>
+          </ScrollView>
+        </View>
       </SafeAreaView>
     </>
   );
