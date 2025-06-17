@@ -514,11 +514,13 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
               return;
             }
           } else if (batchModal.type === "delete") {
-            const targets = shifts.filter((s) => s.status === "deleted");
+            const targets = shifts.filter(
+              (s) => s.status === "deletion_requested"
+            );
             try {
               for (const shift of targets) {
                 await updateDoc(doc(db, "shifts", shift.id), {
-                  status: "purged",
+                  status: "deleted",
                   updatedAt: serverTimestamp(),
                 });
               }

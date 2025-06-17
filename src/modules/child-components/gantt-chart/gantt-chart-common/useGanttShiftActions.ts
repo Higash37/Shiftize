@@ -106,6 +106,21 @@ export function useGanttShiftActions({
           console.error("ユーザー情報取得エラー:", error);
         }
 
+        console.log("ユーザーリスト:", users);
+        if (!selectedUserId) {
+          console.error("選択されたユーザーIDが存在しません。");
+        } else {
+          const selectedUser = users.find((u) => u.uid === selectedUserId);
+          if (!selectedUser) {
+            console.error("選択されたユーザーがユーザーリストに存在しません。");
+          } else {
+            console.log(
+              "選択されたユーザーのニックネーム:",
+              selectedUser.nickname
+            );
+          }
+        }
+
         await addDoc(collection(db, "shifts"), {
           ...newShiftData,
           status: newShiftData.status, // newShiftData.statusを尊重

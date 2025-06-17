@@ -6,8 +6,14 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import Header from "@/common/common-ui/ui-layout/LayoutHeader";
 
 export default function ShiftCreateScreen() {
-  const { mode, shiftId, date, startTime, endTime, classes } =
-    useLocalSearchParams();
+  const {
+    mode = "create",
+    shiftId = "",
+    date,
+    startTime,
+    endTime,
+    classes,
+  } = useLocalSearchParams();
 
   return (
     <>

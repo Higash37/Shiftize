@@ -195,7 +195,13 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     setShowCalendar(false);
   };
 
+  const MAX_CLASSES = 7;
+
   const addClass = () => {
+    if (shiftData.classes.length >= MAX_CLASSES) {
+      setErrorMessage("13:00~17:00のようにまとめてください");
+      return;
+    }
     const defaultStartTime = selectedStartTime;
     const defaultEndTime = selectedEndTime;
     const newClass = {
@@ -280,6 +286,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         status: isEditMode ? existingShift?.status || "pending" : "pending",
         classes: shiftData.classes,
         updatedAt: serverTimestamp(),
+        nickname: user.nickname || "Unknown", // ニックネームを追加
       };
 
       if (!isEditMode) {
@@ -311,7 +318,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       // 一定時間後に前の画面に戻る
       setTimeout(() => {
         router.back();
-      }, 1500);
+      }, 10);
     } catch (error) {
       console.error("Error creating/updating shift:", error);
       setIsLoading(false);
@@ -320,30 +327,34 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   };
 
   const handleDeleteShift = async () => {
+    console.log("initialShiftId:", initialShiftId);
     if (!isEditMode || !initialShiftId) return;
 
-    Alert.alert("シフトを削除", "このシフトを削除しますか？", [
-      {
-        text: "キャンセル",
-        style: "cancel",
-      },
-      {
-        text: "削除",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            setIsLoading(true);
-            await markShiftAsDeleted(initialShiftId);
-            setIsLoading(false);
-            router.back();
-          } catch (error) {
-            console.error("Error deleting shift:", error);
-            setIsLoading(false);
-            setErrorMessage("シフトの削除中にエラーが発生しました");
-          }
-        },
-      },
-    ]);
+    try {
+      setIsLoading(true);
+      await updateDoc(doc(db, "shifts", initialShiftId), {
+        status: "deletion_requested",
+        updatedAt: serverTimestamp(),
+      });
+      console.log("Firestore update successful for shiftId:", initialShiftId);
+
+      // Firestoreの更新結果を確認
+      const updatedShiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
+      if (updatedShiftDoc.exists()) {
+        console.log("Updated shift status:", updatedShiftDoc.data().status);
+      } else {
+        console.error("Shift document not found after update.");
+      }
+
+      setIsLoading(false);
+      router.back();
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      console.error("Error deleting shift:", error);
+      console.error("Firestore update failed for shiftId:", initialShiftId);
+      setIsLoading(false);
+      setErrorMessage("シフトの削除中にエラーが発生しました: " + errorMessage);
+    }
   };
   if (isLoading) {
     return (
@@ -359,6 +370,13 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       </View>
     );
   }
+
+  const handleCreateShift = () => {
+    if (!selectedDate || !selectedStartTime || !selectedEndTime) {
+      setErrorMessage("未選択の箇所があります。");
+      return;
+    }
+  };
 
   return (
     <>
@@ -459,6 +477,17 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
                         />
                       </View>
                     </View>
+                    {/* 最後の授業カードの下にのみ「授業を追加」ボタンを表示 */}
+                    {index === shiftData.classes.length - 1 &&
+                      shiftData.classes.length < MAX_CLASSES && (
+                        <TouchableOpacity
+                          style={styles.addButton}
+                          onPress={addClass}
+                        >
+                          <AntDesign name="plus" size={18} color="white" />
+                          <Text style={styles.addButtonText}>授業を追加</Text>
+                        </TouchableOpacity>
+                      )}
                   </View>
                 ))}
               </View>
