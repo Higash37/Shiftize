@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   Animated,
   Alert,
+  useWindowDimensions,
+  FlexAlignType,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import {
@@ -84,6 +86,17 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     }
     return [];
   });
+
+  const { width } = useWindowDimensions();
+  const isWideScreen = width >= 1024; // PC判定
+
+  const containerStyle = isWideScreen
+    ? {
+        ...styles.container,
+        width: width * 0.8,
+        alignSelf: "center" as FlexAlignType,
+      } // PC用スタイル
+    : styles.container; // その他のデバイス用スタイル
 
   // ユーザーデータを取得
   useEffect(() => {
@@ -348,13 +361,17 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <Header
-        title={isEditMode ? "シフト編集" : "シフト作成"}
-        showBackButton
-        onBack={() => router.back()}
-      />
-      <ScrollView style={styles.scrollView}>
+    <>
+      <View style={{ width: "100%" }}>
+        <Header title="シフト作成" />
+      </View>
+      <ScrollView
+        style={containerStyle}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        {" "}
+        {/* スクロールバーを非表示 */}
         <View style={styles.formContainer}>
           {/* 日付選択 */}
           <View style={styles.formSection}>
@@ -509,6 +526,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           </Text>
         </Animated.View>
       )}
-    </View>
+    </>
   );
 };
