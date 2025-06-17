@@ -10,6 +10,15 @@
     "not opera <= 117"
   ],
   "hints": {
-    "manifest-file-extension": "off"
+    "manifest-file-extension": "off",
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "overscroll-behavior",
+          "overscroll-behavior: none"
+        ]
+      }
+    ]
   }
 }
