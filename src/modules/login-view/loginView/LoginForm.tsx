@@ -133,6 +133,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
           </TouchableOpacity>
         </View>
       </View>
+      <Text style={{ textAlign: "center", marginTop: 1, color: "#555" }}>
+        管理者はPCでログインしてください。
+      </Text>
+      <Text style={{ textAlign: "center", marginTop: 1, color: "#555" }}>
+        ipad版は現在対応中です。ログインは出来ますが使いづらいです。
+      </Text>
+      <Text style={{ textAlign: "center", marginTop: 1, color: "#555" }}>
+        パスワード変更の際は管理者（教室長）までお問い合わせください。
+      </Text>
     </View>
   );
 };

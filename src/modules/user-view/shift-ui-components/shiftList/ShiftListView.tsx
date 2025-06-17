@@ -9,6 +9,7 @@ import {
   Pressable,
   TextInput,
   FlexAlignType,
+  useWindowDimensions,
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
@@ -52,6 +53,8 @@ export const UserShiftList = () => {
   const [picker, setPicker] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const shiftRefs = useRef<{ [key: string]: any }>({}).current;
+  const { width, height } = useWindowDimensions();
+  const isTablet = width >= 768 && width < 1024; // タブレット判定
 
   // 画面がフォーカスされた時にデータを更新
   useEffect(() => {
@@ -268,9 +271,17 @@ export const UserShiftList = () => {
     setTaskModalVisible(false);
   };
 
+  const containerStyle = isTablet
+    ? {
+        width: width * 0.8,
+        height: height * 0.8,
+        alignSelf: "center" as FlexAlignType,
+      } // タブレット用スタイル
+    : { flex: 1 }; // スマホやPC用スタイル
+
   return (
     <>
-      <View style={styles.container}>
+      <View style={containerStyle}>
         <View style={styles.calendarContainer}>
           <ShiftCalendar
             shifts={monthlyShifts}
