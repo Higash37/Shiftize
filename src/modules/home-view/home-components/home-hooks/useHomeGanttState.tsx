@@ -160,5 +160,6 @@ export function useHomeGanttState() {
       window.innerWidth >= 768 &&
       window.innerWidth <= 1024,
     isWide: typeof window !== "undefined" && window.innerWidth >= 768,
+    loading,
   };
 }

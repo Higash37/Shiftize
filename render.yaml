@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: shiftee-pwa
+    name: Shiftize-pwa
     buildCommand: expo export:web
     staticPublishPath: dist
     routes:

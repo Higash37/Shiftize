@@ -38,4 +38,29 @@ export const YoutubeSkeleton: React.FC = () => (
   </View>
 );
 
+export const GanttSkeleton: React.FC<{
+  rows: number;
+  columns: number;
+  cellWidth: number;
+  cellHeight: number;
+}> = ({ rows, columns, cellWidth, cellHeight }) => (
+  <View style={{ flexDirection: "column", padding: 16 }}>
+    {Array.from({ length: rows }).map((_, rowIndex) => (
+      <View
+        key={`row-${rowIndex}`}
+        style={{ flexDirection: "row", marginBottom: 8 }}
+      >
+        {Array.from({ length: columns }).map((_, colIndex) => (
+          <SkeletonBox
+            key={`cell-${rowIndex}-${colIndex}`}
+            width={cellWidth}
+            height={cellHeight}
+            style={{ marginRight: 8 }}
+          />
+        ))}
+      </View>
+    ))}
+  </View>
+);
+
 const styles = StyleSheet.create({});

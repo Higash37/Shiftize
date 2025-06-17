@@ -14,6 +14,7 @@ import { HomeGanttTabletScreen } from "./HomeGanttTabletScreen";
 import { GanttHalfSwitch } from "../home-components/home-gantt/GanttHalfSwitch"; // 追加
 import { UserDayGanttModal } from "../home-components/home-gantt/UserDayGanttModal";
 import { useHomeGanttState } from "../home-components/home-hooks/useHomeGanttState";
+import { GanttSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader";
 // import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 // import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { DateNavBar } from "../home-components/home-nav/DateNavBar";
@@ -42,6 +43,14 @@ export default function HomeCommonScreen() {
   );
 
   console.log("Filtered schedule:", gantt.scheduleForSelectedDate); // デバッグ用ログ
+
+  if (gantt.loading) {
+    return (
+      <View style={[styles.container, { flex: 1 }]}>
+        <GanttSkeleton rows={10} columns={5} cellWidth={80} cellHeight={40} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { flex: 1 }]}>

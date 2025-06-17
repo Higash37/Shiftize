@@ -8,6 +8,7 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { loginFormStyles } from "./LoginForm.styles";
 import type { LoginFormProps } from "./LoginForm.types";
 import { YoutubeSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader";
@@ -18,6 +19,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
   const isWideScreen = width >= 768;
@@ -28,13 +30,24 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
 
   const handleLogin = async () => {
     if (!username || !password) {
-      Alert.alert("エラー", "ニックネームとパスワードを入力してください");
+      setErrorMessage("ニックネームとパスワードを入力してください");
       return;
     }
     if (onLogin) {
-      await onLogin(username, password, rememberMe);
+      try {
+        await onLogin(username, password, rememberMe);
+        setErrorMessage("");
+      } catch (error) {
+        setErrorMessage("ログインに失敗しました。再度お試しください。");
+      }
     }
   };
+
+  const inputStyle = (focused: boolean) => [
+    loginFormStyles.input,
+    focused && { borderColor: "#1565C0", borderWidth: 2 },
+    errorMessage ? { borderColor: "red", borderWidth: 2 } : {},
+  ];
 
   if (loading) {
     return <YoutubeSkeleton />;
@@ -47,16 +60,24 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
         isWideScreen && loginFormStyles.formWrapperWeb,
       ]}
     >
+      {errorMessage ? (
+        <Text style={{ color: "red", textAlign: "center", marginBottom: 10 }}>
+          {errorMessage}
+        </Text>
+      ) : null}
       <View style={loginFormStyles.formContainer}>
         <Text style={loginFormStyles.loginTitle}>ログイン</Text>
         <View style={loginFormStyles.form}>
           <View style={loginFormStyles.inputGroup}>
+            <MaterialIcons
+              name="person-outline"
+              size={24}
+              color="#1565C0"
+              style={{ marginRight: 8 }}
+            />
             <Text style={loginFormStyles.label}>ニックネーム</Text>
             <TextInput
-              style={[
-                loginFormStyles.input,
-                usernameFocused && { borderColor: "#1565C0", borderWidth: 2 },
-              ]}
+              style={inputStyle(usernameFocused)}
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
@@ -65,12 +86,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
             />
           </View>
           <View style={loginFormStyles.inputGroup}>
+            <MaterialIcons
+              name="lock"
+              size={24}
+              color="#1565C0"
+              style={{ marginRight: 8 }}
+            />
             <Text style={loginFormStyles.label}>パスワード</Text>
             <TextInput
-              style={[
-                loginFormStyles.input,
-                passwordFocused && { borderColor: "#1565C0", borderWidth: 2 },
-              ]}
+              style={inputStyle(passwordFocused)}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -109,9 +133,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
           </TouchableOpacity>
         </View>
       </View>
-      <Text style={loginFormStyles.maintenanceText}>
-        午前2:00～5:00の間、サーバーメンテナンスのためサービスの利用ができなくなる場合があります。
-      </Text>
     </View>
   );
 };
