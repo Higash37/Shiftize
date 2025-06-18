@@ -3,7 +3,7 @@
   "short_name": "Shiftize",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F2F2F7",
+  "background_color": "#ffffff",
   "theme_color": "#1565C0",
   "description": "Shiftize - あなたのシフト管理をスマートに。効率的で直感的なスケジューリング体験を提供します。",
   "keywords": [

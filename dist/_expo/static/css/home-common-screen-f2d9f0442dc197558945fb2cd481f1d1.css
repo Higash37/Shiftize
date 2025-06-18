@@ -1,0 +1,1 @@
+body{cursor:default;-webkit-user-select:none;user-select:none;min-height:var(--app-height);background-color:#1565c0;flex-direction:column;margin:0;padding:0;display:flex}.date-nav-bar,.gantt-half-switch,.time-label{cursor:pointer;-webkit-user-select:none;user-select:none}html{height:100%}#root{flex-direction:column;flex:1;display:flex}

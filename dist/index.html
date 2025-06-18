@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
     />
-    <title>%WEB_TITLE%</title>
+    <title>Shiftize</title>
 
     <!-- PWA 設定 -->
     <meta name="mobile-web-app-capable" content="yes" />
@@ -52,6 +52,18 @@
         font-size: 24px;
         margin: 0;
       }
+      #splash-loader {
+        margin-top: 20px;
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: #1565c0; /* 白色から青色に変更 */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
     </style>
 
     <!-- その他のスタイルとスクリプト -->
@@ -80,7 +92,8 @@
         height: calc(var(--vh, 1vh) * 100);
       }
     </style>
-  </head>
+  <meta name="theme-color" content="#1565C0">
+<link rel="preload" href="/_expo\static\css\home-common-screen-f2d9f0442dc197558945fb2cd481f1d1.css" as="style"><link rel="stylesheet" href="/_expo\static\css\home-common-screen-f2d9f0442dc197558945fb2cd481f1d1.css"></head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     
@@ -88,6 +101,7 @@
     <div id="splash-screen">
       <img src="/PWAIcon192x192.png" alt="シフト管理アプリ" />
       <h1>Shiftize</h1>
+   
     </div>
     
     <div id="root"></div>
@@ -139,6 +153,15 @@
       window.addEventListener('resize', setAppHeight);
       window.addEventListener('orientationchange', setAppHeight);
       setAppHeight();
+
+      function adjustHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      }
+
+      window.addEventListener('resize', adjustHeight);
+      window.addEventListener('load', adjustHeight);
     </script>
-  </body>
+  <script src="/_expo/static/js/web/entry-b81cb23361cae2f103fcf8e78302beea.js" defer></script>
+</body>
 </html>
