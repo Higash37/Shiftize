@@ -256,12 +256,20 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
                       ))}
                       <Picker.Item label="完了" value="completed" />
                     </Picker>
+                    <Text
+                      style={[
+                        styles.formLabel,
+                        { color: "#FF4444", fontWeight: "bold", fontSize: 12 },
+                      ]}
+                    >
+                      ・講師を変える場合は新しく追加しなおした後このシフトを削除してください。
+                    </Text>
                   </View>
                 </View>
               )}
 
               <TouchableOpacity
-                style={{ marginTop: 20, alignSelf: "center" }}
+                style={{ marginBottom: 10, alignSelf: "center" }}
                 onPress={() => setIsAddingClassTime(true)}
               >
                 <Text style={{ color: "#4A90E2", fontWeight: "bold" }}>
