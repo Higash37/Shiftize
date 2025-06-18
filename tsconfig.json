@@ -1,0 +1,21 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["src/common/common-ui/*"],
+      "@utils/*": ["src/common/common-utils/*"],
+      "@types/*": ["src/common/common-models/*"],
+      "@services/*": ["./src/services/*"],
+      "@providers/*": ["./src/providers/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "src/common/common-utils/util-shift/useShift"
+  ]
+}
