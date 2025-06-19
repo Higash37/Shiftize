@@ -33,19 +33,6 @@ const user_TABS: TabItem[] = [
     isUnderDevelopment: false,
   },
   {
-    name: "tasks",
-    label: "タスク",
-    path: "/user/tasks",
-    icon: (active: boolean) => (
-      <MaterialIcons
-        name="assignment"
-        size={IS_SMALL_DEVICE ? 20 : 24}
-        color={active ? colors.primary : colors.text.secondary}
-      />
-    ),
-    isUnderDevelopment: true,
-  },
-  {
     name: "create",
     label: "シフト追加",
     path: "/user/shifts/create",
@@ -68,19 +55,6 @@ const user_TABS: TabItem[] = [
       />
     ),
     isUnderDevelopment: false,
-  },
-  {
-    name: "info",
-    label: "情報",
-    path: "/user/info",
-    icon: (active: boolean) => (
-      <Ionicons
-        name="information-circle"
-        size={IS_SMALL_DEVICE ? 20 : 24}
-        color={active ? colors.primary : colors.text.secondary}
-      />
-    ),
-    isUnderDevelopment: true,
   },
 ];
 
