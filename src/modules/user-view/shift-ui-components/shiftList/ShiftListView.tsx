@@ -27,10 +27,10 @@ import { ViewStyle } from "react-native";
 import { ShiftService } from "@/services/firebase/firebase-shift";
 import { ShiftRuleValuePicker } from "@/modules/master-view/settings/ShiftRuleValuePicker";
 import { getTasks } from "@/services/firebase/firebase-task";
-import { modalStyles } from "./styles/ModalStyles";
-import ShiftModal from "./components/ShiftModal";
-import ShiftReportModal from "./components/ShiftReportModal";
-import TaskModal from "./components/TaskModal";
+import { modalStyles } from "../ListModal/ModalStyles";
+import ShiftModal from "../ListModal/ShiftModal";
+import ShiftReportModal from "../ListModal/ShiftReportModal";
+import TaskModal from "../ListModal/TaskModal";
 
 export const UserShiftList = () => {
   const router = useRouter();

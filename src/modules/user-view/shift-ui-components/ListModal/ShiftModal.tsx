@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Pressable, Modal } from "react-native";
-import { modalStyles } from "../styles/ModalStyles";
+import { modalStyles } from "./ModalStyles";
 
 const ShiftModal = ({
   isModalVisible,

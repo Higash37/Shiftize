@@ -7,8 +7,8 @@ import {
   Pressable,
   Modal,
 } from "react-native";
-import { modalStyles } from "../styles/ModalStyles";
-import { ShiftService } from "../../../../../services/firebase/firebase-shift";
+import { modalStyles } from "./ModalStyles";
+import { ShiftService } from "../../../../services/firebase/firebase-shift";
 
 type TaskCounts = {
   [key: string]: {
