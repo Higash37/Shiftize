@@ -66,7 +66,8 @@ import { MonthSelectorBar } from "./gantt-chart-common/MonthSelectorBar";
 import { GanttHeader } from "./gantt-chart-common/GanttHeader";
 import { GanttChartBody } from "./gantt-chart-common/GanttChartBody";
 import { useGanttShiftActions } from "./gantt-chart-common/useGanttShiftActions";
-import { ConfirmBatchModalView } from "./view-modals/ConfirmBatchModalView";
+import BatchConfirmModal from "./view-modals/BatchConfirmModal";
+import LoadingOverlay from "./gantt-chart-common/LoadingOverlay";
 
 export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   shifts,
@@ -471,78 +472,15 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         onClose={() => setShowYearMonthPicker(false)}
         onSelect={handleDateSelect}
       />
-      {/* --- バッチ確認モーダル --- */}
-      <ConfirmBatchModalView
+      {/* バッチ確認モーダル */}
+      <BatchConfirmModal
         visible={batchModal.visible}
-        title={
-          batchModal.type === "approve"
-            ? "一括承認"
-            : batchModal.type === "delete"
-            ? "完全削除"
-            : ""
-        }
-        description={
-          batchModal.type === "approve"
-            ? (() => {
-                const targets = shifts.filter((s) => s.status === "pending");
-                return `${targets.length}件の未承認シフトを一括で承認します。本当によろしいですか？`;
-              })()
-            : batchModal.type === "delete"
-            ? (() => {
-                const targets = shifts.filter((s) => s.status === "deleted");
-                return `${targets.length}件の削除済みシフトを画面から消します。本当によろしいですか？`;
-              })()
-            : ""
-        }
+        type={batchModal.type}
+        shifts={shifts}
         isLoading={isLoading}
         styles={styles}
-        onCancel={() => setBatchModal({ visible: false, type: null })}
-        onConfirm={async () => {
-          setIsLoading(true);
-          if (batchModal.type === "approve") {
-            const targets = shifts.filter((s) => s.status === "pending");
-            try {
-              for (const shift of targets) {
-                await updateDoc(doc(db, "shifts", shift.id), {
-                  status: "approved",
-                  updatedAt: serverTimestamp(),
-                });
-              }
-            } catch (error) {
-              setIsLoading(false);
-              setBatchModal({ visible: false, type: null });
-              return;
-            }
-          } else if (batchModal.type === "delete") {
-            const targets = shifts.filter(
-              (s) => s.status === "deletion_requested"
-            );
-            try {
-              for (const shift of targets) {
-                await updateDoc(doc(db, "shifts", shift.id), {
-                  status: "deleted",
-                  updatedAt: serverTimestamp(),
-                });
-              }
-            } catch (error) {
-              setIsLoading(false);
-              setBatchModal({ visible: false, type: null });
-              return;
-            }
-          }
-          setIsLoading(false);
-          setBatchModal({ visible: false, type: null });
-          if (typeof window !== "undefined" && window.location) {
-            window.location.reload();
-          } else if (Platform.OS !== "web") {
-            try {
-              const { AppRegistry } = require("react-native");
-              if (AppRegistry && AppRegistry.reload) {
-                AppRegistry.reload();
-              }
-            } catch (e) {}
-          }
-        }}
+        setBatchModal={setBatchModal}
+        setIsLoading={setIsLoading}
       />
       {/* 横スクロール全体をCustomScrollViewでラップ */}
       <CustomScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -614,25 +552,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         onClose={() => setShowAddModal(false)}
         onSave={handleSaveShift}
       />
-      {/* 画面全体ローディングオーバーレイ */}
-      {isLoading && (
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.25)",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 9999,
-          }}
-          pointerEvents="auto"
-        >
-          <ActivityIndicator size="large" color="#1976D2" />
-        </View>
-      )}
+      <LoadingOverlay isLoading={isLoading} />
     </View>
   );
 };
