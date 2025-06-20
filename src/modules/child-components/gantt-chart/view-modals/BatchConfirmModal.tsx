@@ -1,7 +1,15 @@
 import React from "react";
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 interface BatchConfirmModalProps {
   visible: boolean;
@@ -14,6 +22,7 @@ interface BatchConfirmModalProps {
     type: "approve" | "delete" | null;
   }) => void;
   setIsLoading: (loading: boolean) => void;
+  onReload: () => void;
 }
 
 const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
@@ -24,7 +33,11 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
   styles,
   setBatchModal,
   setIsLoading,
+  onReload,
 }) => {
+  const navigation = useNavigation();
+  const route = useRoute();
+
   if (!visible) return null;
 
   const title =
@@ -76,32 +89,42 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
     }
     setIsLoading(false);
     setBatchModal({ visible: false, type: null });
+    onReload(); // Call the reload function after batch actions
   };
 
   return (
-    <Modal transparent animationType="fade" visible={visible}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>{title}</Text>
-          <Text style={styles.modalDescription}>{description}</Text>
-          <View style={styles.modalActions}>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setBatchModal({ visible: false, type: null })}
-              disabled={isLoading}
-            >
-              <Text style={styles.modalButtonText}>キャンセル</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={handleConfirm}
-              disabled={isLoading}
-            >
-              <Text style={styles.modalButtonText}>確認</Text>
-            </TouchableOpacity>
+    <Modal
+      transparent
+      animationType="fade"
+      visible={visible}
+      onRequestClose={() => setBatchModal({ visible: false, type: null })} // モーダル外を押した際に閉じる
+    >
+      <TouchableWithoutFeedback
+        onPress={() => setBatchModal({ visible: false, type: null })} // モーダル外を押した際に閉じる
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{title}</Text>
+            <Text style={styles.modalDescription}>{description}</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleConfirm}
+                disabled={isLoading}
+              >
+                <Text style={styles.modalButtonText}>確認</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setBatchModal({ visible: false, type: null })}
+                disabled={isLoading}
+              >
+                <Text style={styles.modalButtonText}>キャンセル</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

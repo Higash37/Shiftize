@@ -14,7 +14,8 @@ export default function GanttEditScreen() {
 
   const [currentYearMonth, setCurrentYearMonth] = React.useState(() => {
     const today = new Date();
-    return { year: today.getFullYear(), month: today.getMonth() };
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1);
+    return { year: nextMonth.getFullYear(), month: nextMonth.getMonth() };
   });
 
   const handleMonthChange = async (year: number, month: number) => {

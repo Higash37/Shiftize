@@ -481,6 +481,18 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         styles={styles}
         setBatchModal={setBatchModal}
         setIsLoading={setIsLoading}
+        onReload={() => {
+          if (typeof window !== "undefined" && window.location) {
+            window.location.reload();
+          } else if (Platform.OS !== "web") {
+            try {
+              const { AppRegistry } = require("react-native");
+              if (AppRegistry && AppRegistry.reload) {
+                AppRegistry.reload();
+              }
+            } catch (e) {}
+          }
+        }}
       />
       {/* 横スクロール全体をCustomScrollViewでラップ */}
       <CustomScrollView horizontal showsHorizontalScrollIndicator={false}>
