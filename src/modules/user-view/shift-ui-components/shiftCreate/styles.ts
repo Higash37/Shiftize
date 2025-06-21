@@ -41,7 +41,7 @@ export const shiftCreateFormStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 12,
+    padding: 10,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,

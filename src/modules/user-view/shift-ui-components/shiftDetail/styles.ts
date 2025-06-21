@@ -13,7 +13,6 @@ export const shiftDetailsViewStyles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 8,
     padding: IS_SMALL_DEVICE ? 8 : 12,
-    marginTop: -8,
     marginBottom: 8,
     alignSelf: "center",
     borderWidth: 1,

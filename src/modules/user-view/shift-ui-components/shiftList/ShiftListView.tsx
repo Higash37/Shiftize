@@ -99,13 +99,19 @@ export const UserShiftList = () => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
 
-    // 現在のユーザーのシフトのみをフィルタリング（削除済みを除外）
+    // 月の最後の日を週末まで拡張
+    const adjustedLastDay = new Date(lastDay);
+    adjustedLastDay.setDate(
+      adjustedLastDay.getDate() + (7 - adjustedLastDay.getDay())
+    );
+
     return shifts
       .filter((shift) => {
         const shiftDate = new Date(shift.date);
         return (
           shiftDate >= firstDay &&
-          shiftDate <= lastDay &&
+          shiftDate <= adjustedLastDay &&
+          shiftDate.getMonth() === month && // 次の月の日付を除外
           shift.userId === user.uid &&
           shift.status !== "deleted" && // 削除済みシフトを除外
           shift.status !== "purged" // 完全非表示シフトを除外

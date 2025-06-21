@@ -1,48 +1,30 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
   Animated,
-  Alert,
+  ActivityIndicator,
   useWindowDimensions,
-  FlexAlignType,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import {
-  query,
-  where,
-  getDocs,
-  setDoc,
-  getFirestore,
-  addDoc,
-  collection,
   doc,
   getDoc,
   updateDoc,
   serverTimestamp,
+  collection,
+  addDoc,
 } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
-import { AntDesign } from "@expo/vector-icons";
-import TimeSelect from "@/modules/user-view/shift-ui-components/TimeSelect";
-import CalendarModal from "@/modules/child-components/calendar/calendar-components/calendar-modal/calendarModal/CalendarModal";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
-import type {
-  Shift,
-  ShiftStatus,
-  ShiftType,
-} from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
-import type { ExtendedUser } from "@/modules/child-components/user-management/user-types/components";
 import { Header } from "@/common/common-ui/ui-layout";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
-import { getUserData, type UserData } from "@/services/firebase/firebase";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import type { ShiftData, ShiftCreateFormProps } from "./types";
 import { shiftCreateFormStyles as styles } from "./styles";
+import ShiftCreateFormContent from "./ShiftCreateFormContent";
+import type { UserData } from "@/services/firebase/firebase";
+import type { Shift } from "@/common/common-models/ModelIndex";
+import type { FlexAlignType } from "react-native";
 
 export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   initialMode,
@@ -186,12 +168,12 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     }
   };
 
-  const handleDateSelect = (date: string) => {
+  const handleDateSelect = (dates: string[]) => {
     setShiftData((prev) => ({
       ...prev,
-      dates: [date],
+      dates,
     }));
-    setSelectedDate(date);
+    setSelectedDate(dates[0]); // 最初の日付を選択状態に設定
     setShowCalendar(false);
   };
 
@@ -278,31 +260,30 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     try {
       setIsLoading(true);
 
-      const shiftObject: any = {
-        userId: user.uid,
-        date: selectedDate,
-        startTime: shiftData.startTime,
-        endTime: shiftData.endTime,
-        status: isEditMode ? existingShift?.status || "pending" : "pending",
-        classes: shiftData.classes,
-        updatedAt: serverTimestamp(),
-        nickname: user.nickname || "Unknown", // ニックネームを追加
-      };
+      const shiftsCollectionRef = collection(db, "shifts");
 
-      if (!isEditMode) {
-        shiftObject.createdAt = serverTimestamp();
-      }
+      for (const date of shiftData.dates) {
+        const shiftObject: any = {
+          userId: user.uid,
+          date,
+          startTime: shiftData.startTime,
+          endTime: shiftData.endTime,
+          status: isEditMode ? existingShift?.status || "pending" : "pending",
+          classes: shiftData.classes,
+          updatedAt: serverTimestamp(),
+          nickname: user.nickname || "Unknown",
+        };
 
-      let result;
-      if (isEditMode && initialShiftId) {
-        // 更新
-        const shiftRef = doc(db, "shifts", initialShiftId);
-        await updateDoc(shiftRef, shiftObject);
-        result = { id: initialShiftId };
-      } else {
-        // 新規作成
-        const shiftsCollectionRef = collection(db, "shifts");
-        result = await addDoc(shiftsCollectionRef, shiftObject);
+        if (!isEditMode) {
+          shiftObject.createdAt = serverTimestamp();
+        }
+
+        if (isEditMode && initialShiftId) {
+          const shiftRef = doc(db, "shifts", initialShiftId);
+          await updateDoc(shiftRef, shiftObject);
+        } else {
+          await addDoc(shiftsCollectionRef, shiftObject);
+        }
       }
 
       setIsLoading(false);
@@ -332,18 +313,36 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 
     try {
       setIsLoading(true);
-      await updateDoc(doc(db, "shifts", initialShiftId), {
-        status: "deletion_requested",
-        updatedAt: serverTimestamp(),
-      });
-      console.log("Firestore update successful for shiftId:", initialShiftId);
 
-      // Firestoreの更新結果を確認
-      const updatedShiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
-      if (updatedShiftDoc.exists()) {
-        console.log("Updated shift status:", updatedShiftDoc.data().status);
+      const shiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
+      if (shiftDoc.exists()) {
+        const shiftData = shiftDoc.data();
+
+        if (shiftData.status === "pending") {
+          // 承認待ちの場合は即時削除
+          await updateDoc(doc(db, "shifts", initialShiftId), {
+            status: "deleted",
+            updatedAt: serverTimestamp(),
+          });
+          console.log("Shift immediately deleted for status: pending");
+        } else {
+          // それ以外は削除申請
+          await updateDoc(doc(db, "shifts", initialShiftId), {
+            status: "deletion_requested",
+            updatedAt: serverTimestamp(),
+          });
+          console.log("Deletion requested for shiftId:", initialShiftId);
+        }
+
+        // Firestoreの更新結果を確認
+        const updatedShiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
+        if (updatedShiftDoc.exists()) {
+          console.log("Updated shift status:", updatedShiftDoc.data().status);
+        } else {
+          console.error("Shift document not found after update.");
+        }
       } else {
-        console.error("Shift document not found after update.");
+        console.error("Shift document not found.");
       }
 
       setIsLoading(false);
@@ -351,7 +350,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     } catch (error) {
       const errorMessage = (error as Error).message;
       console.error("Error deleting shift:", error);
-      console.error("Firestore update failed for shiftId:", initialShiftId);
       setIsLoading(false);
       setErrorMessage("シフトの削除中にエラーが発生しました: " + errorMessage);
     }
@@ -371,190 +369,28 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     );
   }
 
-  const handleCreateShift = () => {
-    if (!selectedDate || !selectedStartTime || !selectedEndTime) {
-      setErrorMessage("未選択の箇所があります。");
-      return;
-    }
-  };
-
   return (
     <>
       <View style={{ width: "100%" }}>
         <Header title="シフト作成" />
       </View>
-      <ScrollView
-        style={containerStyle}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
-        {" "}
-        {/* スクロールバーを非表示 */}
-        <View style={styles.formContainer}>
-          {/* 日付選択 */}
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>日付</Text>
-            <TouchableOpacity
-              style={styles.dateSelectButton}
-              onPress={() => setShowCalendar(true)}
-            >
-              <Text style={styles.dateSelectText}>
-                {selectedDate
-                  ? format(new Date(selectedDate), "yyyy年M月d日(E)", {
-                      locale: ja,
-                    })
-                  : "日付を選択"}
-              </Text>
-              <AntDesign name="calendar" size={24} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-          {/* 時間選択 */}
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>時間</Text>
-            <View style={styles.timeContainer}>
-              <View style={styles.timeSelectContainer}>
-                <Text style={styles.timeLabel}>開始</Text>
-                <TimeSelect
-                  value={shiftData.startTime}
-                  onChange={(value) => handleTimeChange("start", value)}
-                />
-              </View>{" "}
-              <Text style={styles.timeSeparator}>～</Text>
-              <View style={styles.timeSelectContainer}>
-                <Text style={styles.timeLabel}>終了</Text>
-                <TimeSelect
-                  value={shiftData.endTime}
-                  onChange={(value) => handleTimeChange("end", value)}
-                />
-              </View>
-            </View>
-          </View>
-          {/* 授業設定 */}
-          <View style={styles.formSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>授業</Text>
-              <TouchableOpacity style={styles.addButton} onPress={addClass}>
-                <AntDesign name="plus" size={18} color="white" />
-                <Text style={styles.addButtonText}>授業を追加</Text>
-              </TouchableOpacity>
-            </View>
-
-            {shiftData.classes.length > 0 ? (
-              <View style={styles.classesList}>
-                {shiftData.classes.map((classItem, index) => (
-                  <View key={index} style={styles.classItem}>
-                    <View style={styles.classHeader}>
-                      <Text style={styles.classTitle}>授業 {index + 1}</Text>
-                      <TouchableOpacity
-                        style={styles.removeButton}
-                        onPress={() => removeClass(index)}
-                      >
-                        <AntDesign
-                          name="close"
-                          size={18}
-                          color={colors.error}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.classTimeContainer}>
-                      <View style={styles.timeSelectContainer}>
-                        <Text style={styles.timeLabel}>開始</Text>
-                        <TimeSelect
-                          value={classItem.startTime}
-                          onChange={(value) =>
-                            handleTimeChange("classStart", value, index)
-                          }
-                        />
-                      </View>
-                      <Text style={styles.timeSeparator}>～</Text>
-                      <View style={styles.timeSelectContainer}>
-                        <Text style={styles.timeLabel}>終了</Text>
-                        <TimeSelect
-                          value={classItem.endTime}
-                          onChange={(value) =>
-                            handleTimeChange("classEnd", value, index)
-                          }
-                        />
-                      </View>
-                    </View>
-                    {/* 最後の授業カードの下にのみ「授業を追加」ボタンを表示 */}
-                    {index === shiftData.classes.length - 1 &&
-                      shiftData.classes.length < MAX_CLASSES && (
-                        <TouchableOpacity
-                          style={styles.addButton}
-                          onPress={addClass}
-                        >
-                          <AntDesign name="plus" size={18} color="white" />
-                          <Text style={styles.addButtonText}>授業を追加</Text>
-                        </TouchableOpacity>
-                      )}
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <View style={styles.noClassContainer}>
-                <Text style={styles.noClassText}>
-                  授業がありません。追加してください。
-                </Text>
-              </View>
-            )}
-          </View>
-          {/* エラーメッセージ */}
-          {errorMessage ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{errorMessage}</Text>
-            </View>
-          ) : null}
-          {/* 送信ボタン */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleCreateOrUpdateShift}
-            >
-              <Text style={styles.submitButtonText}>
-                {isEditMode ? "更新する" : "作成する"}
-              </Text>
-            </TouchableOpacity>
-
-            {/* 編集モードの場合のみ削除ボタンを表示 */}
-            {isEditMode && (
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={handleDeleteShift}
-              >
-                <Text style={styles.deleteButtonText}>削除</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </ScrollView>
-      {/* 日付選択モーダル */}
-      <CalendarModal
-        visible={showCalendar}
-        onClose={() => setShowCalendar(false)}
-        onConfirm={(dates: string[]) => {
-          if (dates.length > 0) {
-            handleDateSelect(dates[0]);
-          }
-        }}
-        initialDates={selectedDate ? [selectedDate] : []}
+      <ShiftCreateFormContent
+        containerStyle={containerStyle}
+        selectedDate={selectedDate}
+        setShowCalendar={setShowCalendar}
+        handleDateSelect={handleDateSelect}
+        shiftData={shiftData}
+        handleTimeChange={handleTimeChange}
+        addClass={addClass}
+        removeClass={removeClass}
+        errorMessage={errorMessage}
+        handleCreateOrUpdateShift={handleCreateOrUpdateShift}
+        handleDeleteShift={handleDeleteShift}
+        isEditMode={isEditMode}
+        showCalendar={showCalendar}
+        showSuccess={showSuccess}
+        fadeAnim={fadeAnim}
       />
-      {/* 成功メッセージ */}
-      {showSuccess && (
-        <Animated.View
-          style={[
-            styles.successContainer,
-            {
-              opacity: fadeAnim,
-            },
-          ]}
-        >
-          <AntDesign name="checkcircle" size={48} color="white" />
-          <Text style={styles.successText}>
-            {isEditMode ? "更新しました" : "作成しました"}
-          </Text>
-        </Animated.View>
-      )}
     </>
   );
 };
