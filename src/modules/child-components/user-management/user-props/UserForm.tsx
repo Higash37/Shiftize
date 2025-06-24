@@ -122,15 +122,6 @@ export const UserForm: React.FC<UserFormProps> = ({
       )}
 
       <Input
-        label="メールアドレス"
-        value={email}
-        onChangeText={setEmail}
-        placeholder="example@email.com"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        error={!email ? "メールアドレスを入力してください" : undefined}
-      />
-      <Input
         label="ニックネーム"
         value={nickname}
         onChangeText={setNickname}
