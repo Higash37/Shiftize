@@ -24,10 +24,19 @@ export const UserService = {
   /**
    * 全ユーザーの一覧を取得します
    */
-  getUsers: async (): Promise<(User & { currentPassword?: string })[]> => {
+  getUsers: async (
+    storeId?: string
+  ): Promise<(User & { currentPassword?: string })[]> => {
     try {
       const usersRef = collection(db, "users");
-      const snapshot = await getDocs(usersRef);
+      let q = query(usersRef);
+
+      // storeIdが指定されている場合はフィルタリング
+      if (storeId) {
+        q = query(usersRef, where("storeId", "==", storeId));
+      }
+
+      const snapshot = await getDocs(q);
       return snapshot.docs.map((doc) => {
         const data = doc.data();
         return {
@@ -35,6 +44,7 @@ export const UserService = {
           role: data.role || "user",
           nickname: data.nickname || "",
           color: data.color, // 追加
+          storeId: data.storeId || "", // storeIdを追加
           currentPassword: data.currentPassword,
         };
       });

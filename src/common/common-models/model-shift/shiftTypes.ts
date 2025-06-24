@@ -92,6 +92,7 @@ export type ShiftType = "user" | "class" | "staff" | "deleted";
 export interface BaseShift {
   id: string;
   userId: string;
+  storeId: string;
   date: string;
   startTime: string;
   endTime: string;
@@ -172,6 +173,7 @@ export interface ShiftData {
 export interface ShiftItem {
   id: string;
   userId: string;
+  storeId: string;
   nickname: string;
   date: string;
   startTime: string;

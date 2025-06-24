@@ -8,13 +8,15 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { db } from "@/services/firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { useAuth } from "@/services/auth/useAuth";
 
 interface UserFormData {
   email: string;
   password?: string;
   nickname: string;
   role: "master" | "user";
-  color?: string; // 追加
+  color?: string;
+  storeId?: string;
 }
 
 interface UserWithPassword extends User {
@@ -22,7 +24,10 @@ interface UserWithPassword extends User {
 }
 
 export default function UsersScreen() {
-  const { users, loading, error, addUser, editUser, removeUser } = useUser();
+  const { user: currentUser } = useAuth();
+  const { users, loading, error, addUser, editUser, removeUser } = useUser(
+    currentUser?.storeId
+  );
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(
     null
@@ -43,7 +48,8 @@ export default function UsersScreen() {
         data.password,
         data.nickname,
         data.role,
-        data.color // 追加
+        data.color,
+        data.storeId
       );
 
       if (newUser) {
@@ -71,7 +77,8 @@ export default function UsersScreen() {
         nickname: data.nickname,
         role: data.role,
         ...(data.password ? { password: data.password } : {}),
-        color: data.color, // 追加
+        color: data.color,
+        storeId: data.storeId,
       });
 
       // パスワードが更新された場合、新しいパスワードを保存
@@ -181,5 +188,7 @@ const styles = StyleSheet.create({
     maxWidth: 600,
     minWidth: 260,
     width: "70%",
+    maxHeight: "100%",
+    overflow: "hidden",
   },
 });

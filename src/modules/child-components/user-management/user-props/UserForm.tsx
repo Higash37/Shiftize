@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import ErrorMessage from "@/common/common-ui/ui-feedback/FeedbackError";
@@ -8,6 +8,7 @@ import { styles } from "./UserForm.styles";
 import { UserFormProps } from "../user-types/components";
 import ColorPicker from "@/common/common-ui/ui-forms/FormColorPicker";
 import { PRESET_COLORS } from "@/common/common-ui/ui-forms/FormColorPicker/constants";
+import { useAuth } from "@/services/auth/useAuth";
 
 /**
  * ユーザー情報入力フォームコンポーネント
@@ -22,6 +23,7 @@ export const UserForm: React.FC<UserFormProps> = ({
   mode = "add",
   currentPassword,
 }) => {
+  const { user: currentUser } = useAuth(); // 現在のユーザー情報を取得
   const [email, setEmail] = useState(initialData?.nickname ?? "");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState(initialData?.nickname ?? "");
@@ -78,6 +80,12 @@ export const UserForm: React.FC<UserFormProps> = ({
       return;
     }
 
+    // 現在のユーザーのstoreIdが設定されているかチェック
+    if (!currentUser?.storeId) {
+      setError("店舗IDが設定されていません");
+      return;
+    }
+
     try {
       setError(null);
       await onSubmit({
@@ -86,6 +94,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         nickname,
         role: isMasterEdit ? "master" : role,
         color,
+        storeId: currentUser.storeId, // 現在のユーザーのstoreIdを自動設定
         hourlyWage: hourlyWage ? parseFloat(hourlyWage) : undefined,
       });
 
@@ -102,13 +111,25 @@ export const UserForm: React.FC<UserFormProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      {mode === "edit" && currentPassword && (
-        <View style={styles.passwordCard}>
-          <Text style={styles.passwordLabel}>現在のパスワード</Text>
-          <Text style={styles.passwordValue}>{currentPassword}</Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* 警告メッセージ（新規追加時のみ表示） */}
+      {mode === "add" && (
+        <View style={styles.warningContainer}>
+          <Text style={styles.warningText}>
+            追加後ログイン画面に戻ります。申し訳ございません。
+          </Text>
         </View>
-      )}{" "}
+      )}
+
+      <Input
+        label="メールアドレス"
+        value={email}
+        onChangeText={setEmail}
+        placeholder="example@email.com"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        error={!email ? "メールアドレスを入力してください" : undefined}
+      />
       <Input
         label="ニックネーム"
         value={nickname}
@@ -209,6 +230,6 @@ export const UserForm: React.FC<UserFormProps> = ({
           style={styles.button}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 };

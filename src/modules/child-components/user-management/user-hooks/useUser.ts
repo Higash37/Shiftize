@@ -17,7 +17,7 @@ import {
 } from "@/services/firebase/firebase-user";
 import { createUser, updateUser } from "@/services/firebase/firebase-auth";
 
-export const useUser = () => {
+export const useUser = (storeId?: string) => {
   const [users, setUsers] = useState<(User & { currentPassword?: string })[]>(
     []
   );
@@ -26,11 +26,11 @@ export const useUser = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [storeId]);
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const userData = await getUsersService();
+      const userData = await getUsersService(storeId);
       setUsers(userData);
       setError(null);
     } catch (err) {
@@ -49,7 +49,8 @@ export const useUser = () => {
     password: string,
     nickname: string,
     role: "master" | "user",
-    color?: string
+    color?: string,
+    storeId?: string
   ) => {
     try {
       setLoading(true);
@@ -60,6 +61,9 @@ export const useUser = () => {
       }
       if (password.length < 6) {
         throw new Error("パスワードは6文字以上で入力してください");
+      }
+      if (!storeId) {
+        throw new Error("店舗IDを入力してください");
       }
 
       if (role === "master") {
@@ -77,7 +81,7 @@ export const useUser = () => {
           throw new Error("このニックネームは既に使用されています");
         }
       }
-      const newUser = await createUser(userEmail, password, color);
+      const newUser = await createUser(userEmail, password, color, storeId);
 
       await fetchUsers();
       return newUser;
@@ -104,6 +108,7 @@ export const useUser = () => {
       password?: string;
       role?: "master" | "user";
       color?: string;
+      storeId?: string;
     }
   ): Promise<User | undefined> => {
     try {

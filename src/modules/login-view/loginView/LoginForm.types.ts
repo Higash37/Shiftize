@@ -2,7 +2,7 @@ export interface LoginFormProps {
   onLogin?: (
     username: string,
     password: string,
-    rememberMe: boolean
+    storeId: string
   ) => Promise<void>;
   loading?: boolean;
 }

@@ -21,17 +21,33 @@ export default function Login() {
   const handleLogin = async (
     username: string,
     password: string,
-    rememberMe: boolean
+    storeId: string
   ) => {
     setLoading(true);
     setErrorMessage("");
     try {
+      console.log("ログイン試行:", { username, storeId });
       const email = `${username}@example.com`;
-      await signIn(email, password);
-      // rememberMeの処理は必要に応じて追加
-    } catch (error) {
+      await signIn(email, password, storeId);
+      console.log("ログイン成功");
+    } catch (error: any) {
       console.error("Login error:", error);
-      setErrorMessage("ニックネームまたはパスワードが違います");
+
+      // エラーメッセージを詳細化
+      let errorMsg = "ログインに失敗しました。";
+      if (error.message) {
+        if (error.message.includes("店舗IDが一致しません")) {
+          errorMsg = "店舗IDが正しくありません。";
+        } else if (error.message.includes("ユーザーが存在しません")) {
+          errorMsg = "ユーザーが見つかりません。";
+        } else if (error.message.includes("Firebase")) {
+          errorMsg = "ニックネームまたはパスワードが正しくありません。";
+        } else {
+          errorMsg = error.message;
+        }
+      }
+
+      setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
     }

@@ -12,6 +12,7 @@ import useTaskManagementHook from "./task-hooks/useTaskManagementHook";
 import TaskManagementStyles from "./task-styles/TaskManagementStyles";
 import { generateTaskId, formatTaskDescription } from "./task-utils/TaskUtils";
 import { getTasks, deleteTask } from "../../../services/firebase/firebase-task";
+import { useAuth } from "../../../services/auth/useAuth";
 
 interface Task {
   id: string;
@@ -19,6 +20,7 @@ interface Task {
   frequency: string;
   timePerTask: string;
   description: string;
+  storeId?: string;
 }
 
 const TaskManagementView: React.FC = () => {
@@ -28,21 +30,22 @@ const TaskManagementView: React.FC = () => {
     editTask,
     completeTask,
   } = useTaskManagementHook();
+  const { user } = useAuth();
 
-  const [tasks, setTasks] = useState<Task[]>([]); // 初期値を空配列に修正
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskFrequency, setNewTaskFrequency] = useState("");
   const [newTaskTimePerTask, setNewTaskTimePerTask] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const reloadTasks = async () => {
-    const updatedTasks = await getTasks();
-    setTasks(updatedTasks); // Firebaseから取得したタスクを正しく設定
+    const updatedTasks = await getTasks(user?.storeId);
+    setTasks(updatedTasks);
   };
 
   useEffect(() => {
-    reloadTasks(); // コンポーネントの初回レンダリング時にタスクをロード
-  }, []);
+    reloadTasks();
+  }, [user?.storeId]);
 
   const handleAddTask = async () => {
     if (!newTaskTitle || !newTaskFrequency || !newTaskTimePerTask) {
@@ -56,20 +59,21 @@ const TaskManagementView: React.FC = () => {
       frequency: newTaskFrequency,
       timePerTask: newTaskTimePerTask,
       description: "",
+      storeId: user?.storeId || "",
     };
 
-    setIsSubmitting(true); // ボタンを無効化
+    setIsSubmitting(true);
 
     try {
       await addTask(newTask);
       setNewTaskTitle("");
       setNewTaskFrequency("");
       setNewTaskTimePerTask("");
-      await reloadTasks(); // Firebase送信後に画面をリロード
+      await reloadTasks();
     } catch (error) {
       console.error("タスクの追加中にエラーが発生しました: ", error);
     } finally {
-      setIsSubmitting(false); // ボタンを再度有効化
+      setIsSubmitting(false);
     }
   };
 
@@ -90,8 +94,8 @@ const TaskManagementView: React.FC = () => {
         tasks={tasks}
         onAddTask={addTask}
         onEditTask={handleEditTask}
-        handleDeleteTask={handleDeleteTask} // 削除処理を渡す
-        reloadTasks={reloadTasks} // リロード処理を渡す
+        handleDeleteTask={handleDeleteTask}
+        reloadTasks={reloadTasks}
       />
     </View>
   );

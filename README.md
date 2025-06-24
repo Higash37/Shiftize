@@ -31,11 +31,13 @@ get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "ma
 ## 今後の追加要件
 
 ### 基本機能の改善
+
 1. レスポンシブ対応の調整
 2. 動作速度の向上
 3. セキュリティ対策
 
 ### 新機能の追加
+
 4. タスク管理機能
    - タスクの作成・編集・削除
    - タスクの完了状態管理
@@ -54,6 +56,7 @@ get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "ma
    - タスク完了の通知
 
 ### 実装済み機能
+
 - シフトのガントチャート表示機能
 - ユーザー用のシフト追加機能
 - ユーザー認証と権限管理
@@ -62,4 +65,4 @@ get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "ma
 - シフト変更の即時同期
 - 通知機能の基本実装
 - アクセスログと変更履歴の記録・管理
-- PDF出力機能の基本実装
+- PDF 出力機能の基本実装

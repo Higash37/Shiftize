@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,31 +13,88 @@ import { loginFormStyles } from "./LoginForm.styles";
 import type { LoginFormProps } from "./LoginForm.types";
 import { YoutubeSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader";
 import { useAutoReloadOnLayoutBug } from "@/common/common-ui/ui-loading/useAutoReloadOnLayoutBug";
+import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   useAutoReloadOnLayoutBug();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [saveStoreId, setSaveStoreId] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [storeIdAndUsername, setStoreIdAndUsername] = useState(""); // 店舗ID+ニックネーム
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
   const isWideScreen = width >= 768;
 
   // フォーカスの状態を管理
-  const [usernameFocused, setUsernameFocused] = useState(false);
+  const [storeIdAndUsernameFocused, setStoreIdAndUsernameFocused] =
+    useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
+  // コンポーネントマウント時に保存された店舗IDを読み込み
+  useEffect(() => {
+    const loadSavedStoreId = async () => {
+      try {
+        const savedStoreId = await StoreIdStorage.getStoreId();
+        if (savedStoreId) {
+          setStoreIdAndUsername(savedStoreId); // 保存された店舗IDを初期値に設定
+          setSaveStoreId(true);
+          console.log("保存された店舗IDを読み込みました:", savedStoreId);
+        }
+      } catch (error) {
+        console.error("保存された店舗IDの読み込みに失敗しました:", error);
+      }
+    };
+
+    loadSavedStoreId();
+  }, []);
+
+  // 入力文字列から店舗IDとニックネームを分離
+  const parseStoreIdAndUsername = (input: string) => {
+    if (input.length < 4) {
+      return { storeId: input, username: "" };
+    }
+    const storeId = input.substring(0, 4);
+    const username = input.substring(4);
+    return { storeId, username };
+  };
+
   const handleLogin = async () => {
-    if (!username || !password) {
-      setErrorMessage("ニックネームとパスワードを入力してください");
+    const { storeId, username } = parseStoreIdAndUsername(storeIdAndUsername);
+
+    if (!username || !password || !storeId) {
+      setErrorMessage(
+        "店舗ID（4桁）+ ニックネーム・パスワードを入力してください"
+      );
       return;
     }
+
+    // storeIdの形式チェック（4桁の数字）
+    if (!/^\d{4}$/.test(storeId)) {
+      setErrorMessage("店舗IDは4桁の数字で入力してください");
+      return;
+    }
+
     if (onLogin) {
       try {
-        await onLogin(username, password, rememberMe);
+        console.log("ログインフォームから送信:", {
+          username,
+          storeId,
+          saveStoreId,
+        });
+        await onLogin(username, password, storeId);
+
+        // 店舗ID保存の設定に応じて処理
+        if (saveStoreId) {
+          await StoreIdStorage.saveStoreId(storeId);
+        } else {
+          await StoreIdStorage.clearStoreId();
+        }
+
         setErrorMessage("");
       } catch (error) {
+        console.error("ログインフォームエラー:", error);
         setErrorMessage("ログインに失敗しました。再度お試しください。");
       }
     }
@@ -70,19 +127,21 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
         <View style={loginFormStyles.form}>
           <View style={loginFormStyles.inputGroup}>
             <MaterialIcons
-              name="person-outline"
+              name="store"
               size={24}
               color="#1565C0"
               style={{ marginRight: 8 }}
             />
-            <Text style={loginFormStyles.label}>ニックネーム</Text>
+            <Text style={loginFormStyles.label}>店舗ID + ニックネーム</Text>
             <TextInput
-              style={inputStyle(usernameFocused)}
-              value={username}
-              onChangeText={setUsername}
+              style={inputStyle(storeIdAndUsernameFocused)}
+              value={storeIdAndUsername}
+              onChangeText={setStoreIdAndUsername}
               autoCapitalize="none"
-              onFocus={() => setUsernameFocused(true)}
-              onBlur={() => setUsernameFocused(false)}
+              onFocus={() => setStoreIdAndUsernameFocused(true)}
+              onBlur={() => setStoreIdAndUsernameFocused(false)}
+              placeholder="例: 1234山田太郎"
+              keyboardType="default"
             />
           </View>
           <View style={loginFormStyles.inputGroup}>
@@ -102,22 +161,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
               onBlur={() => setPasswordFocused(false)}
             />
           </View>
+
           <TouchableOpacity
             style={loginFormStyles.rememberMe}
-            onPress={() => setRememberMe(!rememberMe)}
+            onPress={() => setSaveStoreId(!saveStoreId)}
           >
             <View
               style={[
                 loginFormStyles.checkbox,
-                rememberMe && loginFormStyles.checkboxChecked,
+                saveStoreId && loginFormStyles.checkboxChecked,
               ]}
             >
-              {rememberMe && <Text style={loginFormStyles.checkmark}>✓</Text>}
+              {saveStoreId && <Text style={loginFormStyles.checkmark}>✓</Text>}
             </View>
-            <Text style={loginFormStyles.rememberMeText}>
-              ニックネームを保存する
-            </Text>
+            <Text style={loginFormStyles.rememberMeText}>店舗IDを保存する</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[
               loginFormStyles.loginButton,
@@ -141,6 +200,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
       </Text>
       <Text style={{ textAlign: "center", marginTop: 1, color: "#555" }}>
         パスワード変更の際は管理者（教室長）までお問い合わせください。
+      </Text>
+      <Text
+        style={{
+          textAlign: "center",
+          marginTop: 8,
+          color: "#666",
+          fontSize: 12,
+        }}
+      >
+        入力例: 1234山田太郎（店舗ID4桁 + ニックネーム）
       </Text>
     </View>
   );

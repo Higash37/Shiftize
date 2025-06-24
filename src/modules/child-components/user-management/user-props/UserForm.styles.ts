@@ -4,7 +4,9 @@ import { typography } from "../../../../common/common-theme/ThemeTypography";
 
 export const styles = StyleSheet.create({
   container: {
-    gap: 1,
+    gap: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
   },
   roleContainer: {
     flexDirection: "row",
@@ -25,7 +27,8 @@ export const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     gap: 8,
-    marginTop: 8,
+    marginTop: 16,
+    paddingBottom: 16,
   },
   button: {
     flex: 1,
@@ -48,10 +51,37 @@ export const styles = StyleSheet.create({
     color: colors.text.primary,
     fontWeight: "500",
   },
+  storeIdCard: {
+    backgroundColor: colors.background,
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 8,
+  },
+  storeIdLabel: {
+    fontSize: typography.fontSize.small,
+    color: colors.text.secondary,
+    marginBottom: 4,
+  },
+  storeIdValue: {
+    fontSize: typography.fontSize.medium,
+    color: colors.text.primary,
+    fontWeight: "500",
+  },
+  warningContainer: {
+    backgroundColor: colors.error + "10",
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
   warningText: {
     color: colors.error,
     fontSize: typography.fontSize.small,
     textAlign: "center",
+    fontWeight: "500",
   },
   colorPreview: {
     width: 32,

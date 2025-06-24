@@ -72,10 +72,11 @@ export const AuthService = {
   createUser: async (
     email: string,
     password: string,
-    color?: string
+    color?: string,
+    storeId?: string
   ): Promise<User> => {
     try {
-      console.log("Creating user with email:", email);
+      console.log("Creating user with email:", email, "storeId:", storeId);
 
       // 1. まずFirebase Authenticationでユーザーを作成
       const userCredential = await createUserWithEmailAndPassword(
@@ -108,6 +109,7 @@ export const AuthService = {
         createdAt: new Date(),
       };
       if (color) userData.color = color;
+      if (storeId) userData.storeId = storeId;
 
       await setDoc(userRef, userData).catch((error) => {
         console.error("Firestore save error:", error);
@@ -122,6 +124,7 @@ export const AuthService = {
         nickname: email.split("@")[0],
         role: email.startsWith("master@") ? "master" : "user",
         color: color,
+        storeId: storeId,
       };
     } catch (error) {
       console.error("ユーザー作成エラー:", error);
@@ -139,6 +142,7 @@ export const AuthService = {
       password?: string;
       role?: "master" | "user";
       color?: string;
+      storeId?: string;
     }
   ): Promise<User | undefined> => {
     try {
@@ -152,6 +156,7 @@ export const AuthService = {
       if (updates.role) updateData.role = updates.role;
       if (updates.password) updateData.currentPassword = updates.password;
       if (updates.color) updateData.color = updates.color;
+      if (updates.storeId) updateData.storeId = updates.storeId;
 
       await updateDoc(userRef, updateData);
 
@@ -196,6 +201,7 @@ export const AuthService = {
           role: data.role as "master" | "user",
           nickname: data.nickname || "",
           color: data.color,
+          storeId: data.storeId,
         };
       }
       return undefined;

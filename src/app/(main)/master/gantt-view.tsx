@@ -2,10 +2,12 @@ import React from "react";
 import { GanttViewView } from "@/modules/master-view/ganttView/GanttViewView";
 import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
+import { useAuth } from "@/services/auth/useAuth";
 
 export default function GanttViewScreen() {
-  const { shifts, fetchShiftsByMonth } = useShifts();
-  const { users } = useUsers();
+  const { user } = useAuth();
+  const { shifts, fetchShiftsByMonth } = useShifts(user?.storeId);
+  const { users } = useUsers(user?.storeId);
 
   const [currentYearMonth, setCurrentYearMonth] = React.useState(() => {
     const today = new Date();

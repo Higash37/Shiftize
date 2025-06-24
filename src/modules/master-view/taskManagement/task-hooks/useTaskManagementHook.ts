@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getTasks } from "../../../../services/firebase/firebase-task";
-import { TaskService } from "../../../../services/firebase/firebase-task"; // TaskServiceをインポート
+import { TaskService } from "../../../../services/firebase/firebase-task";
+import { useAuth } from "../../../../services/auth/useAuth";
 
 interface Task {
   id: string;
@@ -8,20 +9,23 @@ interface Task {
   frequency: string;
   timePerTask: string;
   description: string;
+  storeId?: string;
 }
 
 const useTaskManagementHook = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const fetchedTasks = (await getTasks()).map((task) => ({
+        const fetchedTasks = (await getTasks(user?.storeId)).map((task) => ({
           id: task.id,
           title: task.title || "",
           frequency: task.frequency || "",
           timePerTask: task.timePerTask || "",
           description: task.description || "",
+          storeId: task.storeId || "",
         }));
         setTasks(fetchedTasks);
       } catch (error) {
@@ -30,12 +34,16 @@ const useTaskManagementHook = () => {
     };
 
     fetchTasks();
-  }, []);
+  }, [user?.storeId]);
 
   const addTask = async (newTask: Task) => {
     try {
-      const taskId = await TaskService.addTask(newTask);
-      setTasks([...tasks, { ...newTask, id: taskId }]);
+      const taskWithStoreId = {
+        ...newTask,
+        storeId: user?.storeId || "",
+      };
+      const taskId = await TaskService.addTask(taskWithStoreId);
+      setTasks([...tasks, { ...taskWithStoreId, id: taskId }]);
     } catch (error) {
       console.error("タスクの追加中にエラーが発生しました: ", error);
     }

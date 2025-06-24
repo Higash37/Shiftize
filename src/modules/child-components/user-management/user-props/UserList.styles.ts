@@ -71,6 +71,11 @@ export const styles = StyleSheet.create({
     color: colors.text.secondary,
     fontWeight: "500",
   },
+  storeId: {
+    fontSize: 11,
+    color: colors.text.secondary,
+    fontWeight: "400",
+  },
   passwordContainer: {
     alignItems: "flex-end",
   },

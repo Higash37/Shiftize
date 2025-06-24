@@ -3,7 +3,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { ShiftItem, ShiftStatus } from "@/common/common-models/ModelIndex";
 
-export const useShifts = () => {
+export const useShifts = (storeId?: string) => {
   const [shifts, setShifts] = useState<ShiftItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -13,7 +13,13 @@ export const useShifts = () => {
     setLoading(true);
     try {
       const shiftsRef = collection(db, "shifts");
-      const q = query(shiftsRef);
+      let q = query(shiftsRef);
+
+      // storeIdが指定されている場合はフィルタリング
+      if (storeId) {
+        q = query(shiftsRef, where("storeId", "==", storeId));
+      }
+
       const querySnapshot = await getDocs(q);
 
       const shiftsData = querySnapshot.docs.map((doc) => {
@@ -23,6 +29,7 @@ export const useShifts = () => {
         return {
           id: doc.id,
           userId: data.userId || "",
+          storeId: data.storeId || "", // storeIdを追加
           nickname: data.nickname,
           date: data.date,
           startTime: data.startTime,
@@ -51,7 +58,7 @@ export const useShifts = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [storeId]); // storeIdを依存配列に追加
 
   // 特定の月のシフトデータを取得する関数
   const fetchShiftsByMonth = useCallback(

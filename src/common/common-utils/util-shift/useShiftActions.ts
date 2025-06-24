@@ -12,7 +12,7 @@ import {
   ShiftStatus,
 } from "@/common/common-models/ModelIndex";
 
-export const useShift = () => {
+export const useShift = (storeId?: string) => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +23,7 @@ export const useShift = () => {
 
     try {
       setLoading(true);
-      const allShifts = await getShifts();
+      const allShifts = await getShifts(storeId);
       const filteredShifts =
         role === "master"
           ? allShifts
@@ -40,12 +40,18 @@ export const useShift = () => {
   // ユーザー情報やroleが変更された時にデータを再取得
   useEffect(() => {
     fetchShifts();
-  }, [user, role]);
+  }, [user, role, storeId]);
 
   const createShift = async (shiftData: Omit<Shift, "id">) => {
     try {
-      console.log("シフトデータを送信:", shiftData); // デバッグ用ログ
-      await addShift(shiftData);
+      // storeIdが指定されていない場合はユーザーのstoreIdを使用
+      const shiftWithStoreId = {
+        ...shiftData,
+        storeId: shiftData.storeId || user?.storeId || "",
+      };
+
+      console.log("シフトデータを送信:", shiftWithStoreId); // デバッグ用ログ
+      await addShift(shiftWithStoreId);
       await fetchShifts(); // データを即時更新
     } catch (error) {
       console.error("シフトの追加に失敗しました:", error);

@@ -197,4 +197,29 @@ export const loginFormStyles = StyleSheet.create({
       maxWidth: "80%",
     }),
   },
+  storeIdContainer: {
+    marginBottom: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  storeIdDisplay: {
+    fontSize: 16,
+    color: "#1565C0",
+    fontWeight: "bold",
+    textDecorationLine: "underline",
+  },
+  confirmButton: {
+    marginLeft: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: "#1565C0",
+    borderRadius: 4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
 });

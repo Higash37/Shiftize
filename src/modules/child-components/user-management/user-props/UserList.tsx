@@ -93,6 +93,10 @@ export const UserList: React.FC<UserListProps> = ({
         <Text style={styles.userRole}>
           {item.role === "master" ? "マスター" : "一般ユーザー"}
         </Text>
+        {/* storeIdを表示 */}
+        {item.storeId && (
+          <Text style={styles.storeId}>店舗ID: {item.storeId}</Text>
+        )}
       </View>
       <View style={styles.rightSection}>
         {userPasswords[item.uid] && (

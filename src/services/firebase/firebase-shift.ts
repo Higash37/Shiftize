@@ -15,6 +15,7 @@ import {
   getDoc,
   orderBy,
   serverTimestamp,
+  where,
 } from "firebase/firestore";
 
 import { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
@@ -28,14 +29,25 @@ export const ShiftService = {
   /**
    * シフト一覧を取得します
    */
-  getShifts: async (): Promise<Shift[]> => {
+  getShifts: async (storeId?: string): Promise<Shift[]> => {
     try {
       const shiftsRef = collection(db, "shifts");
-      const q = query(
+      let q = query(
         shiftsRef,
         orderBy("date", "asc"),
         orderBy("startTime", "asc")
       );
+
+      // storeIdが指定されている場合はフィルタリング
+      if (storeId) {
+        q = query(
+          shiftsRef,
+          where("storeId", "==", storeId),
+          orderBy("date", "asc"),
+          orderBy("startTime", "asc")
+        );
+      }
+
       const querySnapshot = await getDocs(q);
 
       return querySnapshot.docs.map((doc) => {
@@ -43,6 +55,7 @@ export const ShiftService = {
         return {
           id: doc.id,
           userId: data.userId || "",
+          storeId: data.storeId || "",
           nickname: data.nickname || "",
           date: data.date || "",
           startTime: data.startTime || "",

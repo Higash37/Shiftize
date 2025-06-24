@@ -16,3 +16,6 @@ export * from "./util-types";
 
 // バリデーション関連ユーティリティ
 export * from "./util-validation";
+
+// ストレージ関連ユーティリティ
+export * from "./util-storage/StoreIdStorage";

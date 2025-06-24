@@ -15,7 +15,7 @@ import {
 } from "@/common/common-models/ModelIndex";
 
 export interface UseGanttShiftActionsProps {
-  user: { uid: string } | null;
+  user: { uid: string; storeId?: string } | null;
   users?: Array<{ uid: string; color?: string; nickname?: string }>;
   onShiftUpdate?: () => Promise<void> | void;
 }
@@ -123,6 +123,7 @@ export function useGanttShiftActions({
 
         await addDoc(collection(db, "shifts"), {
           ...newShiftData,
+          storeId: user?.storeId || "",
           status: newShiftData.status, // newShiftData.statusを尊重
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),

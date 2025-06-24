@@ -3,6 +3,7 @@ export interface User {
   nickname: string;
   role: "master" | "user";
   email?: string;
+  storeId?: string; // Store IDを追加
 }
 
 export interface AuthContextType {
