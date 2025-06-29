@@ -1,5 +1,7 @@
 import { StyleSheet } from "react-native";
 import { theme } from "../../../common-theme/ThemeDefinition";
+import { layout } from "../../../common-constants/LayoutConstants";
+import { shadows } from "../../../common-constants/ShadowConstants";
 import { InputStyleName } from "./types";
 
 /**
@@ -7,29 +9,31 @@ import { InputStyleName } from "./types";
  */
 export const styles = StyleSheet.create({
   container: {
-    marginBottom: theme.spacing.md,
+    marginBottom: layout.padding.medium,
   },
   label: {
     fontSize: theme.typography.fontSize.medium,
     color: theme.colors.text?.secondary,
-    marginBottom: theme.spacing.sm,
+    marginBottom: layout.padding.small,
   },
   input: {
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+    borderRadius: layout.components.input,
+    padding: layout.padding.medium,
     fontSize: theme.typography.fontSize.medium,
     color: theme.colors.text?.primary,
+    // 影は削除（よりクリーンな見た目）
   },
   inputError: {
     borderColor: theme.colors.error,
+    borderWidth: 2,
   },
   helperText: {
     fontSize: theme.typography.fontSize.small,
     color: theme.colors.text?.secondary,
-    marginTop: theme.spacing.sm,
+    marginTop: layout.padding.small,
   },
   errorText: {
     color: theme.colors.error,

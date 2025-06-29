@@ -59,16 +59,9 @@ function RootLayoutNav() {
         }}
         edges={["top", "left", "right", "bottom"]} // ✅ bottom を含める
       >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            flexGrow: 1,
-          }}
-        >
-          <Stack screenOptions={{ headerShown: false }}>
-            <Slot />
-          </Stack>
-        </ScrollView>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Slot />
+        </Stack>
       </SafeAreaView>
     </>
   );

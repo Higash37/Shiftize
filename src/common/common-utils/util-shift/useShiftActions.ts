@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getShifts,
   addShift,
@@ -18,16 +18,28 @@ export const useShift = (storeId?: string) => {
   const [error, setError] = useState<string | null>(null);
   const { user, role } = useAuth();
 
-  const fetchShifts = async () => {
-    if (!user) return;
+  const fetchShifts = useCallback(async () => {
+    if (!user) {
+      console.log("fetchShifts: no user");
+      return;
+    }
 
     try {
       setLoading(true);
-      const allShifts = await getShifts(storeId);
+      console.log("fetchShifts called with:", {
+        storeId,
+        userUid: user?.uid,
+        role,
+      });
+      const allShifts = await getShifts(storeId || user?.storeId);
       const filteredShifts =
         role === "master"
           ? allShifts
           : allShifts.filter((shift: Shift) => shift.userId === user?.uid);
+      console.log("fetchShifts result:", {
+        allShiftsCount: allShifts.length,
+        filteredShiftsCount: filteredShifts.length,
+      });
       setShifts(filteredShifts);
     } catch (error) {
       console.error("シフトの取得に失敗しました:", error);
@@ -35,12 +47,12 @@ export const useShift = (storeId?: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.uid, user?.storeId, role, storeId]); // 必要な依存関係のみ
 
   // ユーザー情報やroleが変更された時にデータを再取得
   useEffect(() => {
     fetchShifts();
-  }, [user, role, storeId]);
+  }, [fetchShifts]);
 
   const createShift = async (shiftData: Omit<Shift, "id">) => {
     try {

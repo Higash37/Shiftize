@@ -1,43 +1,58 @@
 import React, { useState, useEffect } from "react";
-import { Alert } from "react-native";
-import { db } from "@/services/firebase/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { Alert, View } from "react-native";
+import {
+  useSettings,
+  validateAppearanceSettings,
+} from "@/common/common-utils/settings";
 import { ShiftAppearanceSettingsView } from "@/modules/master-view/settings/shiftAppearanceSettingsView/ShiftAppearanceSettingsView";
-import type { ShiftAppSettings } from "@/modules/master-view/settings/shiftAppearanceSettingsView/ShiftAppearanceSettingsView.types";
-
-const DEFAULT_SETTINGS: ShiftAppSettings = {
-  darkMode: false,
-};
+import { MasterHeader } from "@/common/common-ui/ui-layout";
+import type { ShiftAppearanceSettings } from "@/common/common-utils/settings";
 
 export default function ShiftAppearanceSettingsScreen() {
-  const [settings, setSettings] = useState<ShiftAppSettings>(DEFAULT_SETTINGS);
-  const [loading, setLoading] = useState(true);
+  const { settings, loading, updateAppearanceSettings } = useSettings();
+  const [localSettings, setLocalSettings] = useState<ShiftAppearanceSettings>(
+    settings.appearance
+  );
 
+  // settingsが変更されたときにlocalSettingsを同期
   useEffect(() => {
-    (async () => {
-      const ref = doc(db, "settings", "shiftApp");
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        setSettings((prev) => ({ ...prev, ...snap.data() }));
-      }
-      setLoading(false);
-    })();
-  }, []);
+    if (settings.appearance) {
+      setLocalSettings(settings.appearance);
+    }
+  }, [settings.appearance]);
 
+  // ローカル設定を更新（保存前の一時的な変更）
+  const handleSettingsChange = (newSettings: ShiftAppearanceSettings) => {
+    setLocalSettings(newSettings);
+  };
+
+  // 設定を保存
   const saveSettings = async () => {
-    setLoading(true);
-    const ref = doc(db, "settings", "shiftApp");
-    await setDoc(ref, settings, { merge: true });
-    setLoading(false);
-    Alert.alert("保存しました");
+    // バリデーション実行
+    const validationErrors = validateAppearanceSettings(localSettings);
+    if (validationErrors.length > 0) {
+      Alert.alert("入力エラー", validationErrors.join("\n"), [{ text: "OK" }]);
+      return;
+    }
+
+    try {
+      await updateAppearanceSettings(localSettings);
+      Alert.alert("保存完了", "外観設定を保存しました");
+    } catch (error) {
+      console.error("設定保存エラー:", error);
+      Alert.alert("エラー", "設定の保存に失敗しました");
+    }
   };
 
   return (
-    <ShiftAppearanceSettingsView
-      settings={settings}
-      loading={loading}
-      onChange={setSettings}
-      onSave={saveSettings}
-    />
+    <View style={{ flex: 1 }}>
+      <MasterHeader title="外観設定" />
+      <ShiftAppearanceSettingsView
+        settings={localSettings}
+        loading={loading}
+        onChange={handleSettingsChange}
+        onSave={saveSettings}
+      />
+    </View>
   );
 }

@@ -55,8 +55,14 @@ export type GanttChartGridProps = {
   getStatusConfig: (status: string) => ShiftStatusConfig;
   onShiftPress?: (shift: ShiftItem) => void;
   onBackgroundPress?: (x: number) => void;
+  onTimeChange?: (
+    shiftId: string,
+    newStartTime: string,
+    newEndTime: string
+  ) => void;
   styles: any;
   userColorsMap: Record<string, string>;
+  getTimeWidth?: (time: string) => number; // 動的幅計算用
 };
 export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   shifts,
@@ -67,14 +73,95 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   getStatusConfig,
   onShiftPress,
   onBackgroundPress,
+  onTimeChange,
   styles,
   userColorsMap,
+  getTimeWidth,
 }) => {
-  // 時間位置の計算
+  // 動的時間位置の計算
   function timeToPosition(time: string): number {
-    const [hours, minutes] = time.split(":").map(Number);
-    return hours - 9 + minutes / 60;
+    let position = 0;
+    const [targetHour, targetMin] = time.split(":").map(Number);
+    const targetMinutes = targetHour * 60 + targetMin;
+
+    for (let i = 0; i < halfHourLines.length; i++) {
+      const [hour, min] = halfHourLines[i].split(":").map(Number);
+      const currentMinutes = hour * 60 + min;
+
+      if (currentMinutes >= targetMinutes) {
+        // 目標時間に到達または超えた場合
+        if (currentMinutes === targetMinutes) {
+          return position; // 正確に一致
+        } else {
+          // 前の時間からの補間計算
+          const prevMinutes =
+            i > 0
+              ? (() => {
+                  const [prevHour, prevMin] = halfHourLines[i - 1]
+                    .split(":")
+                    .map(Number);
+                  return prevHour * 60 + prevMin;
+                })()
+              : currentMinutes;
+          const ratio =
+            (targetMinutes - prevMinutes) / (currentMinutes - prevMinutes);
+          const prevPosition =
+            i > 0
+              ? position -
+                (getTimeWidth ? getTimeWidth(halfHourLines[i]) : cellWidth)
+              : 0;
+          return (
+            prevPosition +
+            ratio * (getTimeWidth ? getTimeWidth(halfHourLines[i]) : cellWidth)
+          );
+        }
+      }
+      position += getTimeWidth ? getTimeWidth(halfHourLines[i]) : cellWidth;
+    }
+    return position;
   }
+
+  // 位置から時間への逆変換関数
+  function positionToTime(position: number): string {
+    let currentPosition = 0;
+
+    for (let i = 0; i < halfHourLines.length; i++) {
+      const currentWidth = getTimeWidth
+        ? getTimeWidth(halfHourLines[i])
+        : cellWidth;
+      const nextPosition = currentPosition + currentWidth;
+
+      if (position <= nextPosition) {
+        // この時間範囲内に位置がある
+        const [hour, min] = halfHourLines[i].split(":").map(Number);
+        const baseMinutes = hour * 60 + min;
+
+        if (position <= currentPosition) {
+          // 現在の時間ポイント
+          return halfHourLines[i];
+        } else {
+          // 時間範囲内での補間
+          const ratio = (position - currentPosition) / currentWidth;
+          const intervalMinutes = 30; // 30分間隔
+          const additionalMinutes = Math.round(ratio * intervalMinutes);
+          const totalMinutes = baseMinutes + additionalMinutes;
+
+          const newHour = Math.floor(totalMinutes / 60);
+          const newMin = totalMinutes % 60;
+
+          return `${newHour.toString().padStart(2, "0")}:${newMin
+            .toString()
+            .padStart(2, "0")}`;
+        }
+      }
+
+      currentPosition = nextPosition;
+    }
+
+    // 範囲外の場合は最後の時間を返す
+    return halfHourLines[halfHourLines.length - 1];
+  }
+
   return (
     <View
       style={[styles.ganttCell, { width: ganttColumnWidth, height: "100%" }]}
@@ -91,19 +178,23 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         activeOpacity={0.7}
       />
       <View style={styles.ganttBgRow}>
-        {halfHourLines.map((t, i) => (
-          <View
-            key={t}
-            style={[
-              styles.ganttBgCell,
-              isClassTime(t) && styles.classTimeCell,
-              {
-                width: cellWidth,
-                borderRightWidth: i % 2 === 0 ? 0.5 : 1,
-              },
-            ]}
-          />
-        ))}
+        {halfHourLines.map((t, i) => {
+          const currentWidth = getTimeWidth ? getTimeWidth(t) : cellWidth;
+          const isHourMark = t.endsWith(":00");
+          return (
+            <View
+              key={t}
+              style={[
+                styles.ganttBgCell,
+                isClassTime(t) && styles.classTimeCell,
+                {
+                  width: currentWidth,
+                  borderRightWidth: isHourMark ? 1 : 0.5,
+                },
+              ]}
+            />
+          );
+        })}
       </View>
       {/* 授業時間バー（クラスバー）を先に描画し、zIndexでシフトバーより上に */}
       {shifts.map((shift, index) => {
@@ -112,9 +203,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         return classes.map((classTime, cidx) => {
           const startPos = timeToPosition(classTime.startTime);
           const endPos = timeToPosition(classTime.endTime);
-          const startCell = Math.floor(startPos * 2);
-          const endCell = Math.ceil(endPos * 2);
-          const cellSpan = Math.max(endCell - startCell, 2);
+          const barWidth = endPos - startPos;
           const totalShifts = shifts.length;
           const cellHeight = 65;
           let singleBarHeight;
@@ -132,8 +221,8 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
               style={[
                 styles.classBar,
                 {
-                  left: startCell * cellWidth,
-                  width: cellSpan * cellWidth,
+                  left: startPos,
+                  width: Math.max(barWidth, 20), // 最小幅20px
                   height: singleBarHeight,
                   top: barVerticalOffset,
                 },
@@ -147,9 +236,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         const statusConfig = getStatusConfig(shift.status);
         const startPos = timeToPosition(shift.startTime);
         const endPos = timeToPosition(shift.endTime);
-        const startCell = Math.floor(startPos * 2);
-        const endCell = Math.ceil(endPos * 2);
-        const cellSpan = Math.max(endCell - startCell, 2);
+        const barWidth = endPos - startPos;
         const totalShifts = shifts.length;
         const cellHeight = 65;
         let singleBarHeight;
@@ -163,14 +250,16 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         }
         // ユーザー色を取得（なければステータス色）
         const userColor = userColorsMap?.[shift.userId] || statusConfig.color;
+
+        // 従来のタッチ可能なシフトバー（読み取り専用）
         return (
           <TouchableOpacity
             key={shift.id}
             style={[
               styles.shiftBar,
               {
-                left: startCell * cellWidth,
-                width: cellSpan * cellWidth,
+                left: startPos,
+                width: Math.max(barWidth, 30), // 最小幅30px
                 height: singleBarHeight,
                 top: barVerticalOffset,
                 backgroundColor: userColor,
@@ -335,6 +424,7 @@ export type EmptyCellProps = {
   isClassTime: (time: string) => boolean;
   styles: Record<string, any>; // より厳密な型
   handleEmptyCellClick: (date: string, position: number) => void;
+  getTimeWidth?: (time: string) => number; // 動的幅計算用
 };
 export const EmptyCell: React.FC<EmptyCellProps> = ({
   date,
@@ -344,12 +434,28 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
   isClassTime,
   styles,
   handleEmptyCellClick,
+  getTimeWidth,
 }) => {
-  // タップ位置から30分単位のセル位置を算出
+  // タップ位置から動的セル位置を算出
   const handlePress = (event: GestureResponderEvent) => {
     const x = event.nativeEvent.locationX;
-    // GanttChartGridと同じ計算式に統一
-    const position = (x / width) * ((halfHourLines.length - 1) / 2);
+    // 動的幅を考慮した位置計算
+    let position = 0;
+    let currentX = 0;
+
+    for (let i = 0; i < halfHourLines.length - 1; i++) {
+      const currentWidth = getTimeWidth
+        ? getTimeWidth(halfHourLines[i])
+        : cellWidth;
+      if (x >= currentX && x < currentX + currentWidth) {
+        // このセル内でクリックされた
+        const ratio = (x - currentX) / currentWidth;
+        position = i + ratio;
+        break;
+      }
+      currentX += currentWidth;
+    }
+
     handleEmptyCellClick(date, position);
   };
   return (
@@ -360,19 +466,23 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
         activeOpacity={0.7}
       />
       <View style={styles.ganttBgRow}>
-        {halfHourLines.map((t, i) => (
-          <View
-            key={t}
-            style={[
-              styles.ganttBgCell,
-              isClassTime(t) && styles.classTimeCell,
-              {
-                width: cellWidth,
-                borderRightWidth: i % 2 === 0 ? 0.5 : 1,
-              },
-            ]}
-          />
-        ))}
+        {halfHourLines.map((t, i) => {
+          const currentWidth = getTimeWidth ? getTimeWidth(t) : cellWidth;
+          const isHourMark = t.endsWith(":00");
+          return (
+            <View
+              key={t}
+              style={[
+                styles.ganttBgCell,
+                isClassTime(t) && styles.classTimeCell,
+                {
+                  width: currentWidth,
+                  borderRightWidth: isHourMark ? 1 : 0.5,
+                },
+              ]}
+            />
+          );
+        })}
       </View>
     </View>
   );

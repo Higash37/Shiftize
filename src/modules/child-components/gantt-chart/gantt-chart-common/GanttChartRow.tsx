@@ -24,6 +24,11 @@ interface GanttChartRowProps {
   getStatusConfig: (status: string) => ShiftStatusConfig;
   handleShiftPress: (shift: ShiftItem) => void;
   handleEmptyCellClick: (date: string, position: number) => void;
+  onTimeChange?: (
+    shiftId: string,
+    newStartTime: string,
+    newEndTime: string
+  ) => void;
   styles: any;
   userColorsMap: Record<string, string>;
   statusStyles?: (status: ShiftStatus) => {
@@ -44,6 +49,7 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
   getStatusConfig,
   handleShiftPress,
   handleEmptyCellClick,
+  onTimeChange,
   styles,
   userColorsMap,
   statusStyles,
@@ -70,6 +76,7 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
               (x / ganttColumnWidth) * ((halfHourLines.length - 1) / 2);
             handleEmptyCellClick(date, position);
           }}
+          onTimeChange={onTimeChange}
           styles={styles}
           userColorsMap={userColorsMap}
         />

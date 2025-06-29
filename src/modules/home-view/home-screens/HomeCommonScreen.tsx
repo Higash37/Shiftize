@@ -18,7 +18,7 @@ import { GanttSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader";
 // import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 // import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { DateNavBar } from "../home-components/home-nav/DateNavBar";
-import "./home-common-screen.css";
+// import "./home-common-screen.css"; // CSS インポートを削除
 
 export default function HomeCommonScreen() {
   const gantt = useHomeGanttState();

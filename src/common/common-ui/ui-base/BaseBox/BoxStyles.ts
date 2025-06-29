@@ -1,5 +1,7 @@
 import { StyleSheet } from "react-native";
 import { theme } from "../../../common-theme/ThemeDefinition";
+import { layout } from "../../../common-constants/LayoutConstants";
+import { shadows } from "../../../common-constants/ShadowConstants";
 import { BoxStyleName } from "./BoxTypes";
 
 /**
@@ -7,7 +9,7 @@ import { BoxStyleName } from "./BoxTypes";
  */
 export const styles = StyleSheet.create({
   base: {
-    borderRadius: theme.borderRadius.md,
+    borderRadius: layout.borderRadius.medium,
   },
   default: {
     backgroundColor: theme.colors.background,
@@ -22,37 +24,42 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    borderRadius: layout.components.card,
+    ...shadows.card,
   },
   outlined: {
     backgroundColor: theme.colors.background,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    borderRadius: layout.borderRadius.medium,
+    ...shadows.small,
   },
   outline: {
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: theme.colors.border,
+    borderRadius: layout.borderRadius.medium,
   },
   padding_small: {
-    padding: theme.spacing.sm,
+    padding: layout.padding.small,
   },
   padding_medium: {
-    padding: theme.spacing.md,
+    padding: layout.padding.medium,
   },
   padding_large: {
-    padding: theme.spacing.lg,
+    padding: layout.padding.large,
   },
   padding_none: {
     padding: 0,
   },
   margin_small: {
-    margin: theme.spacing.sm,
+    margin: layout.padding.small,
   },
   margin_medium: {
-    margin: theme.spacing.md,
+    margin: layout.padding.medium,
   },
   margin_large: {
-    margin: theme.spacing.lg,
+    margin: layout.padding.large,
   },
   margin_none: {
     margin: 0,

@@ -1,6 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
+import { designSystem } from "@/common/common-constants/DesignSystem";
+import { colors } from "@/common/common-constants/ColorConstants";
+import { typography } from "@/common/common-constants/TypographyConstants";
 
 interface TaskCardProps {
   title: string;
@@ -17,15 +20,15 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
 }) => {
   console.log("Rendering TaskCardComponent with title:", title);
   return (
-    <TouchableOpacity onPress={onPress}>
+    <TouchableOpacity onPress={onPress} style={styles.touchable}>
       <Box
         variant="card"
-        padding="medium"
+        padding="large"
         margin="small"
-        shadow="small"
+        shadow="medium"
         style={styles.taskCard}
       >
-        <Text style={[styles.titleText]}>{title}</Text>
+        <Text style={styles.titleText}>{title}</Text>
         <Text style={styles.taskText}>
           {frequency} | {timePerTask}
         </Text>
@@ -35,29 +38,24 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-  taskCard: {
-    marginBottom: 16,
-    padding: 20,
-    backgroundColor: "#fff",
-    borderRadius: 12,
+  touchable: {
     width: "70%",
     alignSelf: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
-  taskText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
+  taskCard: {
+    // Boxコンポーネントのスタイルを使用するため、重複を避ける
   },
   titleText: {
-    textAlign: "left",
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: typography.fontSize.large,
+    fontWeight: typography.fontWeight.bold as any,
+    color: colors.text.primary,
     marginBottom: 8,
+    textAlign: "left",
+  },
+  taskText: {
+    fontSize: typography.fontSize.medium,
+    fontWeight: typography.fontWeight.medium as any,
+    color: colors.text.secondary,
   },
 });
 

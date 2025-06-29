@@ -4,6 +4,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
+import { SettingsProvider } from "@/common/common-utils/settings";
 
 export default function MainLayout() {
   const { user, role, loading } = useAuth();
@@ -47,12 +48,8 @@ export default function MainLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <SettingsProvider>
       <Slot />
-    </Stack>
+    </SettingsProvider>
   );
 }

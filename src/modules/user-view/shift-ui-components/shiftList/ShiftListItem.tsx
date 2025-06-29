@@ -2,10 +2,14 @@ import React from "react";
 import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-theme/ThemeColors";
+import { designSystem } from "@/common/common-constants/DesignSystem";
+import { layout } from "@/common/common-constants/LayoutConstants";
+import { shadows } from "@/common/common-constants/ShadowConstants";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ShiftListItemProps } from "./types";
 import { shiftListItemStyles as styles } from "./styles";
+import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");

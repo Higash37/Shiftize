@@ -6,8 +6,16 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { User } from "./auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../firebase/firebase";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "../firebase/firebase-core";
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
 
 export const useAuth = () => {
@@ -22,51 +30,55 @@ export const useAuth = () => {
     setAuthError(null);
 
     try {
+      // Firestoreからユーザー情報を取得
+      const usersRef = collection(db, "users");
+      const userQuery = query(usersRef, where("email", "==", email));
+      const userSnapshot = await getDocs(userQuery);
+
+      console.log("Firestoreクエリ結果:", {
+        isEmpty: userSnapshot.empty,
+        docCount: userSnapshot.docs.length,
+      });
+
+      if (userSnapshot.empty) {
+        throw new Error("ユーザーが見つかりません");
+      }
+
+      const userData = userSnapshot.docs[0].data();
+      console.log("取得したユーザーデータ:", userData);
+
+      // 削除フラグを確認
+      if (userData.deleted) {
+        throw new Error("このユーザーは削除されています");
+      }
+
+      // storeIdの一致を確認
+      if (userData.storeId !== storeId) {
+        console.error("店舗IDが一致しません。", {
+          expected: userData.storeId,
+          received: storeId,
+        });
+        throw new Error("店舗IDが一致しません");
+      }
+
+      // currentPasswordと入力されたパスワードを照合
+      console.log("パスワード照合:", {
+        inputPassword: password,
+        currentPassword: userData.currentPassword,
+      });
+
+      if (userData.currentPassword !== password) {
+        throw new Error("パスワードが正しくありません");
+      }
+
+      // Firebase Authでのログイン（入力されたパスワードを使用）
+      console.log("Firebase Auth認証開始");
       const userCredential = await signInWithEmailAndPassword(
         getAuth(),
         email,
         password
       );
-      console.log("Firebase認証成功", userCredential);
-
-      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-      console.log("Firestoreから取得したユーザーデータ", userDoc);
-
-      let userData = userDoc.data();
-      if (!userData) {
-        console.error("ユーザーが存在しません。Firestoreのデータが空です。");
-        await getAuth().signOut();
-        setAuthError("ユーザーが存在しません。");
-        throw new Error("ユーザーが存在しません。");
-      }
-
-      console.log("ユーザーデータの詳細:", {
-        nickname: userData.nickname,
-        role: userData.role,
-        storeId: userData.storeId,
-        inputStoreId: storeId,
-        storeIdMatch: userData.storeId === storeId,
-      });
-
-      if (!userData.storeId) {
-        console.error("ユーザーデータにstoreIdが設定されていません。");
-        await getAuth().signOut();
-        setAuthError("ユーザーデータにstoreIdが設定されていません。");
-        throw new Error("ユーザーデータにstoreIdが設定されていません。");
-      }
-
-      if (userData.storeId !== storeId) {
-        console.error("店舗IDが一致しません。", {
-          expected: userData.storeId,
-          received: storeId,
-          match: userData.storeId === storeId,
-        });
-        await getAuth().signOut();
-        setAuthError("店舗IDが一致しません。");
-        throw new Error("店舗IDが一致しません。");
-      }
-
-      console.log("storeId認証成功:", storeId);
+      console.log("Firebase Auth認証成功", userCredential);
 
       setUser({
         uid: userCredential.user.uid,
@@ -79,14 +91,12 @@ export const useAuth = () => {
       setStoreId(userData.storeId);
       setAuthError(null);
       console.log("ユーザー情報が設定されました", { userData });
-    } catch (error) {
+    } catch (error: any) {
       console.error("signIn関数内でエラーが発生しました", error);
       setUser(null);
       setRole(null);
       setStoreId(null);
-      if (!authError) {
-        setAuthError("認証に失敗しました。");
-      }
+      setAuthError(error.message || "認証に失敗しました");
       throw error;
     }
   };
@@ -94,10 +104,11 @@ export const useAuth = () => {
   const signOut = async () => {
     try {
       await getAuth().signOut();
-      // ログアウト時に店舗IDを削除
-      await StoreIdStorage.clearStoreId();
+      // ログアウト時は店舗IDを保持する（ユーザーが明示的にログアウトした場合のみクリア）
       setUser(null);
       setRole(null);
+      setStoreId(null);
+      setAuthError(null);
     } catch (error) {
       console.error("ログアウトに失敗しました:", error);
       throw error;
@@ -106,39 +117,37 @@ export const useAuth = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(getAuth(), async (firebaseUser) => {
-      console.log("onAuthStateChanged triggered:", {
-        hasUser: !!firebaseUser,
-        uid: firebaseUser?.uid,
-        currentStoreId: storeId,
-      });
+      // デバッグ時のみログを出力
+      if (__DEV__) {
+        console.log("onAuthStateChanged triggered:", {
+          hasUser: !!firebaseUser,
+          uid: firebaseUser?.uid,
+          currentStoreId: storeId,
+        });
+      }
 
       if (firebaseUser) {
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
         const userData = userDoc.data();
 
-        console.log("Firestore user data:", userData);
+        if (__DEV__) {
+          console.log("Firestore user data:", userData);
+        }
 
         if (userData) {
-          // storeIdが設定されている場合のみチェック
-          if (storeId && (!userData.storeId || userData.storeId !== storeId)) {
-            console.error(
-              "ユーザーに店舗IDが設定されていないか、一致しません。",
-              {
-                userStoreId: userData.storeId,
-                currentStoreId: storeId,
-                match: userData.storeId === storeId,
-              }
-            );
-            // Firebase認証をログアウト
+          // 削除フラグを確認
+          if (userData.deleted) {
+            console.error("削除されたユーザーです");
             await getAuth().signOut();
             setUser(null);
             setRole(null);
             setStoreId(null);
-            setAuthError("店舗IDが一致しません。");
+            setAuthError("このユーザーは削除されています。");
             return;
           }
 
-          // storeIdが設定されていない場合は、ユーザーデータから取得
+          // storeIdが設定されている場合のみチェック（ログイン時のみ）
+          // 既に認証済みの場合は、再度チェックしない
           const userStoreId = userData.storeId || storeId;
 
           setUser({
@@ -166,7 +175,10 @@ export const useAuth = () => {
           setAuthError("ユーザー情報が見つかりません。");
         }
       } else {
-        console.log("ユーザーがログアウトしました");
+        // ログアウト時のログは初回のみ表示
+        if (user) {
+          console.log("ユーザーがログアウトしました");
+        }
         setUser(null);
         setRole(null);
         setStoreId(null);
@@ -176,7 +188,7 @@ export const useAuth = () => {
     });
 
     return () => unsubscribe();
-  }, [storeId]);
+  }, []); // 依存関係を空にして、初回のみ実行
 
   return {
     user,

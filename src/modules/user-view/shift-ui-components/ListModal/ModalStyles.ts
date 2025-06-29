@@ -1,4 +1,5 @@
-import { StyleSheet, ViewStyle } from "react-native";
+import { StyleSheet, ViewStyle, Platform } from "react-native";
+import { shadows } from "@/common/common-constants/ShadowConstants";
 
 export const modalStyles = StyleSheet.create({
   modalOverlay: {
@@ -14,11 +15,7 @@ export const modalStyles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     alignItems: "center" as const,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    ...shadows.modal,
   },
   modalTitle: {
     fontSize: 18,

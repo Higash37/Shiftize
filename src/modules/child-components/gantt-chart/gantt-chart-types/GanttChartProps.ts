@@ -23,5 +23,10 @@ export interface GanttChartMonthViewProps {
   onShiftPress?: (shift: ShiftItem) => void;
   onShiftUpdate?: () => void;
   onMonthChange?: (year: number, month: number) => void;
+  onTimeChange?: (
+    shiftId: string,
+    newStartTime: string,
+    newEndTime: string
+  ) => void;
   classTimes?: { start: string; end: string }[];
 }

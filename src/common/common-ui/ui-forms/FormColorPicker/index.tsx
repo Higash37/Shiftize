@@ -8,6 +8,10 @@ import {
   ScrollView,
 } from "react-native";
 import { theme } from "../../../common-theme/ThemeDefinition";
+import { designSystem } from "../../../common-constants/DesignSystem";
+import { colors } from "../../../common-constants/ColorConstants";
+import { shadows } from "../../../common-constants/ShadowConstants";
+import { layout } from "../../../common-constants/LayoutConstants";
 import { PRESET_COLORS } from "./constants";
 import type { ColorPickerProps } from "./types";
 
@@ -65,23 +69,17 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
 
 const styles = StyleSheet.create({
   modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    ...designSystem.modal.overlay,
   },
   modalContent: {
-    backgroundColor: theme.colors.surface || "#fff",
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+    ...designSystem.modal.modal,
     width: "80%",
     maxHeight: "80%",
   },
   title: {
-    fontSize: theme.typography.fontSize.large,
-    fontWeight: "700", // Bold
-    marginBottom: theme.spacing.md,
-    textAlign: "center",
+    ...designSystem.text.welcomeText,
+    fontSize: 18,
+    marginBottom: layout.padding.medium,
   },
   colorList: {
     maxHeight: 300,
@@ -90,28 +88,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: theme.spacing.sm,
+    gap: layout.padding.small,
   },
   colorItem: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: layout.borderRadius.full,
     margin: 4,
+    ...shadows.small,
   },
   selectedColor: {
     borderWidth: 3,
-    borderColor: "#000",
+    borderColor: colors.primary,
+    ...shadows.medium,
   },
   closeButton: {
-    marginTop: theme.spacing.md,
-    padding: theme.spacing.sm,
-    backgroundColor: "#f5f5f5",
-    borderRadius: theme.borderRadius.sm,
-    alignItems: "center",
+    ...designSystem.button.outline,
+    marginTop: layout.padding.medium,
   },
   closeButtonText: {
-    color: theme.colors.text?.primary || "#333",
-    fontSize: theme.typography.fontSize.medium,
+    ...designSystem.text.outlineButtonText,
   },
 });
 

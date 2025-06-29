@@ -58,7 +58,6 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
 
   return (
     <View style={{ flex: 1, paddingBottom: insets.bottom }}>
-      {" "}
       {/* Add paddingBottom */}
       <ScrollView
         horizontal

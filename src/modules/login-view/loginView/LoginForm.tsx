@@ -7,6 +7,8 @@ import {
   Alert,
   Platform,
   useWindowDimensions,
+  StyleSheet,
+  TextStyle,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { loginFormStyles } from "./LoginForm.styles";
@@ -14,6 +16,10 @@ import type { LoginFormProps } from "./LoginForm.types";
 import { YoutubeSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader";
 import { useAutoReloadOnLayoutBug } from "@/common/common-ui/ui-loading/useAutoReloadOnLayoutBug";
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
+import { designSystem } from "@/common/common-constants/DesignSystem";
+import { colors } from "@/common/common-constants/ColorConstants";
+import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
+import Button from "@/common/common-ui/ui-forms/FormButton";
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   useAutoReloadOnLayoutBug();
@@ -25,7 +31,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   const [storeIdAndUsername, setStoreIdAndUsername] = useState(""); // 店舗ID+ニックネーム
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
-  const isWideScreen = width >= 768;
+  const isTablet = width >= 768 && width < 1024; // タブレットサイズ
+  const isPC = width >= 1024; // PC以上
+  const isTabletOrDesktop = width >= 768; // タブレット以上（既存ロジック維持）
 
   // フォーカスの状態を管理
   const [storeIdAndUsernameFocused, setStoreIdAndUsernameFocused] =
@@ -100,10 +108,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
     }
   };
 
-  const inputStyle = (focused: boolean) => [
-    loginFormStyles.input,
-    focused && { borderColor: "#1565C0", borderWidth: 2 },
-    errorMessage ? { borderColor: "red", borderWidth: 2 } : {},
+  const inputStyle = (focused: boolean, hasError: boolean = false) => [
+    styles.input,
+    focused && styles.inputFocused,
+    hasError && styles.inputError,
   ];
 
   if (loading) {
@@ -112,105 +120,191 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
 
   return (
     <View
-      style={[
-        loginFormStyles.formWrapper,
-        isWideScreen && loginFormStyles.formWrapperWeb,
-      ]}
+      style={[styles.container, isTabletOrDesktop && styles.containerTablet]}
     >
-      {errorMessage ? (
-        <Text style={{ color: "red", textAlign: "center", marginBottom: 10 }}>
-          {errorMessage}
-        </Text>
-      ) : null}
-      <View style={loginFormStyles.formContainer}>
-        <Text style={loginFormStyles.loginTitle}>ログイン</Text>
-        <View style={loginFormStyles.form}>
-          <View style={loginFormStyles.inputGroup}>
-            <MaterialIcons
-              name="store"
-              size={24}
-              color="#1565C0"
-              style={{ marginRight: 8 }}
-            />
-            <Text style={loginFormStyles.label}>店舗ID + ニックネーム</Text>
-            <TextInput
-              style={inputStyle(storeIdAndUsernameFocused)}
-              value={storeIdAndUsername}
-              onChangeText={setStoreIdAndUsername}
-              autoCapitalize="none"
-              onFocus={() => setStoreIdAndUsernameFocused(true)}
-              onBlur={() => setStoreIdAndUsernameFocused(false)}
-              placeholder="例: 1234山田太郎"
-              keyboardType="default"
-            />
-          </View>
-          <View style={loginFormStyles.inputGroup}>
-            <MaterialIcons
-              name="lock"
-              size={24}
-              color="#1565C0"
-              style={{ marginRight: 8 }}
-            />
-            <Text style={loginFormStyles.label}>パスワード</Text>
-            <TextInput
-              style={inputStyle(passwordFocused)}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={loginFormStyles.rememberMe}
-            onPress={() => setSaveStoreId(!saveStoreId)}
-          >
-            <View
-              style={[
-                loginFormStyles.checkbox,
-                saveStoreId && loginFormStyles.checkboxChecked,
-              ]}
-            >
-              {saveStoreId && <Text style={loginFormStyles.checkmark}>✓</Text>}
-            </View>
-            <Text style={loginFormStyles.rememberMeText}>店舗IDを保存する</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              loginFormStyles.loginButton,
-              loading && loginFormStyles.loginButtonDisabled,
-            ]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.75}
-          >
-            <Text style={loginFormStyles.loginButtonText}>
-              {loading ? "ログイン中..." : "ログイン"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <Text style={{ textAlign: "center", marginTop: 1, color: "#555" }}>
-        管理者はPCでログインしてください。
-      </Text>
-      <Text style={{ textAlign: "center", marginTop: 1, color: "#555" }}>
-        ipad版は現在対応中です。ログインは出来ますが使いづらいです。
-      </Text>
-      <Text style={{ textAlign: "center", marginTop: 1, color: "#555" }}>
-        パスワード変更の際は管理者（教室長）までお問い合わせください。
-      </Text>
-      <Text
-        style={{
-          textAlign: "center",
-          marginTop: 8,
-          color: "#666",
-          fontSize: 12,
-        }}
+      {/* メインフォームカード */}
+      <Box
+        variant="card"
+        style={[
+          styles.formCard,
+          isTablet && styles.formCardTablet,
+          isPC && styles.formCardPC,
+        ]}
       >
-        入力例: 1234山田太郎（店舗ID4桁 + ニックネーム）
-      </Text>
+        <Text style={designSystem.text.welcomeText}>ログイン</Text>
+
+        {/* エラーメッセージ */}
+        {errorMessage && (
+          <Box variant="outlined" style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </Box>
+        )}
+
+        {/* 店舗ID + ニックネーム入力 */}
+        <View style={styles.inputGroup}>
+          <View style={styles.labelContainer}>
+            <MaterialIcons name="store" size={20} color={colors.primary} />
+            <Text style={styles.label}>店舗ID + ニックネーム</Text>
+          </View>
+          <TextInput
+            style={inputStyle(storeIdAndUsernameFocused, !!errorMessage)}
+            value={storeIdAndUsername}
+            onChangeText={setStoreIdAndUsername}
+            autoCapitalize="none"
+            onFocus={() => setStoreIdAndUsernameFocused(true)}
+            onBlur={() => setStoreIdAndUsernameFocused(false)}
+            placeholder="例: 1234山田太郎"
+            keyboardType="default"
+            placeholderTextColor={colors.text.disabled}
+          />
+        </View>
+
+        {/* パスワード入力 */}
+        <View style={styles.inputGroup}>
+          <View style={styles.labelContainer}>
+            <MaterialIcons name="lock" size={20} color={colors.primary} />
+            <Text style={styles.label}>パスワード</Text>
+          </View>
+          <TextInput
+            style={inputStyle(passwordFocused, !!errorMessage)}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => setPasswordFocused(false)}
+            placeholder="パスワードを入力"
+            placeholderTextColor={colors.text.disabled}
+          />
+        </View>
+
+        {/* 店舗ID保存チェックボックス */}
+        <TouchableOpacity
+          style={styles.checkboxContainer}
+          onPress={() => setSaveStoreId(!saveStoreId)}
+        >
+          <View
+            style={[styles.checkbox, saveStoreId && styles.checkboxChecked]}
+          >
+            {saveStoreId && (
+              <MaterialIcons name="check" size={16} color={colors.text.white} />
+            )}
+          </View>
+          <Text style={styles.checkboxLabel}>店舗IDを保存する</Text>
+        </TouchableOpacity>
+
+        {/* ログインボタン */}
+        <Button
+          title={loading ? "ログイン中..." : "ログイン"}
+          onPress={handleLogin}
+          variant="primary"
+          size="compact"
+          fullWidth
+          disabled={loading}
+          style={styles.loginButton}
+        />
+      </Box>
+
+      {/* フッター情報 */}
+      <Box variant="default" style={styles.footerInfo}>
+        <Text style={designSystem.text.footerText}>
+          パスワード変更の際は管理者（教室長）までお問い合わせください。
+        </Text>
+        <Text style={styles.exampleText}>
+          入力例: 1234山田太郎（店舗ID4桁 + ニックネーム）
+        </Text>
+      </Box>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  containerTablet: {
+    alignItems: "center", // タブレット以上で中央寄せ
+  },
+  formCard: {
+    marginBottom: 2,
+  },
+  formCardTablet: {
+    width: "80%", // タブレットで幅を80%に変更
+    maxWidth: 600, // 最大幅も調整
+  },
+  formCardPC: {
+    width: "60%", // PC以上では60%を維持
+    maxWidth: 500, // PC用の最大幅
+  },
+  errorContainer: {
+    backgroundColor: colors.error + "10",
+    borderColor: colors.error,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: colors.error,
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  labelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    gap: 8,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: colors.text.primary,
+  },
+  input: {
+    ...designSystem.input.input,
+  },
+  inputFocused: {
+    ...designSystem.input.inputFocused,
+  },
+  inputError: {
+    ...designSystem.input.inputError,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    gap: 12,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: colors.text.primary,
+  },
+  loginButton: {
+    marginTop: 8,
+  },
+  footerInfo: {
+    backgroundColor: "transparent",
+  },
+  exampleText: {
+    fontSize: 12,
+    fontStyle: "italic",
+    marginTop: 12,
+    textAlign: "center",
+    color: colors.text.disabled,
+  } as TextStyle,
+});

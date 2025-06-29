@@ -4,7 +4,7 @@ import { colors } from "@/common/common-theme/ThemeColors";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: "#FFFFFF", // 白色背景に変更
     justifyContent: "flex-start",
     alignItems: "stretch",
   },

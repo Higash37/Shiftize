@@ -1,4 +1,5 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
+import { shadows } from "@/common/common-constants/ShadowConstants";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_TABLET = SCREEN_WIDTH >= 768 && SCREEN_WIDTH < 1000;
@@ -13,11 +14,7 @@ export const loginFormStyles = StyleSheet.create({
     width: "100%",
     ...(IS_TABLET && {
       paddingVertical: 40,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 6,
-      elevation: 10,
+      ...shadows.header,
     }),
   },
   headerContent: {
@@ -34,9 +31,6 @@ export const loginFormStyles = StyleSheet.create({
     fontWeight: "bold",
     ...(IS_TABLET && {
       letterSpacing: 1.5,
-      textShadowColor: "rgba(0,0,0,0.3)",
-      textShadowOffset: { width: 0, height: 2 },
-      textShadowRadius: 3,
     }),
   },
   contentContainer: {
@@ -65,14 +59,7 @@ export const loginFormStyles = StyleSheet.create({
     borderRadius: IS_TABLET ? 20 : 12,
     padding: IS_TABLET ? 56 : 24,
     width: "100%",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: IS_TABLET ? 6 : 2,
-    },
-    shadowOpacity: IS_TABLET ? 0.2 : 0.15,
-    shadowRadius: IS_TABLET ? 16 : 4,
-    elevation: IS_TABLET ? 12 : 3,
+    ...(IS_TABLET ? shadows.large : shadows.medium),
     ...(IS_TABLET && {
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.8)",

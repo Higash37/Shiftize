@@ -35,8 +35,8 @@ import TaskModal from "../ListModal/TaskModal";
 export const UserShiftList = () => {
   const router = useRouter();
   const navigation = useNavigation();
-  const { shifts, loading: shiftsLoading, fetchShifts } = useShift();
   const { user } = useAuth();
+  const { shifts, loading: shiftsLoading, fetchShifts } = useShift(); // storeIdを削除
   const [selectedDate, setSelectedDate] = useState("");
   const [currentMonth, setCurrentMonth] = useState(() => {
     const today = new Date();
@@ -71,6 +71,11 @@ export const UserShiftList = () => {
 
   // 初回マウント時にデータを取得
   useEffect(() => {
+    console.log("UserShiftList debug:", {
+      userStoreId: user?.storeId,
+      userUid: user?.uid,
+      shiftsCount: shifts.length,
+    });
     fetchShifts();
   }, []);
 
@@ -89,7 +94,13 @@ export const UserShiftList = () => {
 
   // 月ごとにシフトをグループ化
   const monthlyShifts = useMemo(() => {
-    if (!displayMonth || !user) return [];
+    if (!displayMonth || !user) {
+      console.log("monthlyShifts: no displayMonth or user", {
+        displayMonth,
+        userUid: user?.uid,
+      });
+      return [];
+    }
 
     const displayMonthDate = new Date(displayMonth);
     const year = displayMonthDate.getFullYear();
@@ -105,17 +116,18 @@ export const UserShiftList = () => {
       adjustedLastDay.getDate() + (7 - adjustedLastDay.getDay())
     );
 
-    return shifts
+    const filteredShifts = shifts
       .filter((shift) => {
         const shiftDate = new Date(shift.date);
-        return (
+        const isInDateRange =
           shiftDate >= firstDay &&
           shiftDate <= adjustedLastDay &&
-          shiftDate.getMonth() === month && // 次の月の日付を除外
-          shift.userId === user.uid &&
-          shift.status !== "deleted" && // 削除済みシフトを除外
-          shift.status !== "purged" // 完全非表示シフトを除外
-        );
+          shiftDate.getMonth() === month;
+        const isUserShift = shift.userId === user.uid;
+        const isNotDeleted =
+          shift.status !== "deleted" && shift.status !== "purged";
+
+        return isInDateRange && isUserShift && isNotDeleted;
       })
       .sort((a, b) => {
         const dateCompare =
@@ -128,6 +140,16 @@ export const UserShiftList = () => {
         }
         return dateCompare;
       });
+
+    console.log("monthlyShifts debug:", {
+      displayMonth,
+      totalShifts: shifts.length,
+      userShifts: shifts.filter((s) => s.userId === user.uid).length,
+      filteredShifts: filteredShifts.length,
+      firstShift: filteredShifts[0],
+    });
+
+    return filteredShifts;
   }, [shifts, displayMonth, user]);
 
   if (shiftsLoading) {

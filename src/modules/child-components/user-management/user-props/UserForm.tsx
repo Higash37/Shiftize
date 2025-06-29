@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  useWindowDimensions,
+} from "react-native";
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import ErrorMessage from "@/common/common-ui/ui-feedback/FeedbackError";
@@ -24,7 +30,8 @@ export const UserForm: React.FC<UserFormProps> = ({
   currentPassword,
 }) => {
   const { user: currentUser } = useAuth(); // 現在のユーザー情報を取得
-  const [email, setEmail] = useState(initialData?.nickname ?? "");
+  const { width } = useWindowDimensions();
+  const [email, setEmail] = useState(""); // メールアドレスは自動生成するため初期値は空
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState(initialData?.nickname ?? "");
   const [role, setRole] = useState<"master" | "user">(
@@ -37,6 +44,10 @@ export const UserForm: React.FC<UserFormProps> = ({
     initialData?.hourlyWage?.toString() || ""
   );
   const [colorPickerVisible, setColorPickerVisible] = useState(false);
+
+  // レスポンシブ設定
+  const isTablet = width >= 768;
+  const isDesktop = width >= 1024;
 
   const isMasterEdit = mode === "edit" && initialData?.role === "master";
   // マスターユーザーの存在チェック
@@ -57,14 +68,15 @@ export const UserForm: React.FC<UserFormProps> = ({
   // 初期データが変更された時の更新
   useEffect(() => {
     if (initialData) {
-      setEmail(initialData.nickname ?? "");
+      // 店舗ID + ニックネームの形式でemailを設定（編集時用）
+      setEmail(`${currentUser?.storeId}${initialData.nickname}@example.com`);
       setNickname(initialData.nickname ?? "");
       setRole(initialData.role);
       setPassword("");
       setColor(initialData.color || PRESET_COLORS[0]);
       setHourlyWage(initialData.hourlyWage?.toString() || "");
     }
-  }, [initialData]);
+  }, [initialData, currentUser?.storeId]);
 
   const handleSubmit = async () => {
     // パスワードのバリデーション
@@ -89,7 +101,7 @@ export const UserForm: React.FC<UserFormProps> = ({
     try {
       setError(null);
       await onSubmit({
-        email: nickname,
+        email: `${currentUser.storeId}${nickname}@example.com`, // 店舗ID + ニックネーム + @example.com の形式
         password: password || undefined,
         nickname,
         role: isMasterEdit ? "master" : role,
@@ -111,104 +123,133 @@ export const UserForm: React.FC<UserFormProps> = ({
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* 警告メッセージ（新規追加時のみ表示） */}
-      {mode === "add" && (
-        <View style={styles.warningContainer}>
-          <Text style={styles.warningText}>
-            追加後ログイン画面に戻ります。申し訳ございません。
-          </Text>
-        </View>
-      )}
+    <View
+      style={[
+        styles.container,
+        isTablet && styles.containerTablet,
+        isDesktop && styles.containerDesktop,
+      ]}
+    >
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.formContent}
+      >
+        {/* 警告メッセージ（新規追加時のみ表示） */}
+        {mode === "add" && (
+          <View style={styles.warningContainer}>
+            <Text style={styles.warningText}>
+              追加後ログイン画面に戻ります。申し訳ございません。
+            </Text>
+          </View>
+        )}
 
-      <Input
-        label="ニックネーム"
-        value={nickname}
-        onChangeText={setNickname}
-        placeholder="山田 太郎"
-        error={!nickname ? "ニックネームを入力してください" : undefined}
-      />
-      <Input
-        label="時給（円）"
-        value={hourlyWage}
-        onChangeText={(text) => {
-          // 数字のみ許可
-          const numericValue = text.replace(/[^0-9]/g, "");
-          setHourlyWage(numericValue);
-        }}
-        placeholder="1000"
-        keyboardType="numeric"
-      />
-      {/* 講師色選択ボタン */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Text>色</Text>
-        <TouchableOpacity
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            backgroundColor: color,
-            borderWidth: 2,
-            borderColor: "#888",
+        <Input
+          label="ニックネーム"
+          value={nickname}
+          onChangeText={setNickname}
+          placeholder="山田 太郎"
+          error={!nickname ? "ニックネームを入力してください" : undefined}
+        />
+
+        <Input
+          label="時給（円）"
+          value={hourlyWage}
+          onChangeText={(text) => {
+            // 数字のみ許可
+            const numericValue = text.replace(/[^0-9]/g, "");
+            setHourlyWage(numericValue);
           }}
-          onPress={() => setColorPickerVisible(true)}
+          placeholder="1000"
+          keyboardType="numeric"
         />
-        <Button
-          title="色を選択"
-          onPress={() => setColorPickerVisible(true)}
-          variant="outline"
-          size="small"
-          style={{ marginLeft: 8 }}
-        />
-      </View>
-      <ColorPicker
-        visible={colorPickerVisible}
-        onClose={() => setColorPickerVisible(false)}
-        onSelectColor={(c) => setColor(c)}
-        initialColor={color}
-      />
-      <Input
-        label={
-          mode === "edit"
-            ? "新しいパスワード（変更する場合のみ）"
-            : "パスワード（6文字以上）"
-        }
-        value={password}
-        onChangeText={setPassword}
-        placeholder="新しいパスワードを入力"
-        secureTextEntry
-        error={
-          mode === "add" && (!password || password.length < 6)
-            ? "パスワードは6文字以上で入力してください"
-            : undefined
-        }
-      />
-      {!isMasterEdit && (
-        <View style={styles.roleContainer}>
-          <Button
-            title="一般ユーザー"
-            onPress={() => setRole("user")}
-            variant={role === "user" ? "primary" : "outline"}
-            style={styles.roleButton}
-          />
-          <Button
-            title="マスター"
-            onPress={() => setRole("master")}
-            variant={role === "master" ? "secondary" : "outline"}
-            style={[
-              styles.roleButton,
-              role === "master" && styles.masterRoleButton,
-            ]}
-            disabled={hasMaster && role !== "master"}
-          />
+
+        {/* 講師色選択セクション */}
+        <View style={styles.colorSection}>
+          <Text style={styles.colorLabel}>カラー</Text>
+          <View style={styles.colorContainer}>
+            <TouchableOpacity
+              style={[styles.colorPreview, { backgroundColor: color }]}
+              onPress={() => setColorPickerVisible(true)}
+            />
+            <Button
+              title="色を選択"
+              onPress={() => setColorPickerVisible(true)}
+              variant="outline"
+              size="small"
+              style={styles.colorButton}
+            />
+          </View>
         </View>
-      )}
-      {hasMaster && role !== "master" && (
-        <Text style={styles.warningText}>マスターユーザーは既に存在します</Text>
-      )}
-      {errorMessage && <ErrorMessage message={errorMessage} />}
-      <View style={styles.buttonContainer}>
-        <Button title="キャンセル" onPress={onCancel} variant="outline" />
+
+        <Input
+          label={
+            mode === "edit"
+              ? "新しいパスワード（変更する場合のみ）"
+              : "パスワード（6文字以上）"
+          }
+          value={password}
+          onChangeText={setPassword}
+          placeholder="新しいパスワードを入力"
+          secureTextEntry
+          error={
+            mode === "add" && (!password || password.length < 6)
+              ? "パスワードは6文字以上で入力してください"
+              : undefined
+          }
+        />
+
+        {!isMasterEdit && (
+          <View style={styles.roleSection}>
+            <Text style={styles.roleLabel}>ユーザー権限</Text>
+            <View style={styles.roleContainer}>
+              <Button
+                title="一般ユーザー"
+                onPress={() => setRole("user")}
+                variant={role === "user" ? "primary" : "outline"}
+                style={styles.roleButton}
+              />
+              <Button
+                title="マスター"
+                onPress={() => setRole("master")}
+                variant={role === "master" ? "secondary" : "outline"}
+                style={[
+                  styles.roleButton,
+                  role === "master" && styles.masterRoleButton,
+                ]}
+                disabled={hasMaster && role !== "master"}
+              />
+            </View>
+            {hasMaster && role !== "master" && (
+              <Text style={styles.roleDisabledText}>
+                マスターユーザーは既に存在します
+              </Text>
+            )}
+          </View>
+        )}
+
+        {errorMessage && <ErrorMessage message={errorMessage} />}
+      </ScrollView>
+
+      {/* ボタンを固定位置に配置 */}
+      <View
+        style={[
+          styles.buttonContainer,
+          isTablet && styles.buttonContainerTablet,
+          isDesktop && styles.buttonContainerDesktop,
+        ]}
+      >
+        <Button
+          title="キャンセル"
+          onPress={onCancel}
+          variant="outline"
+          size={isTablet ? "medium" : "small"}
+          style={[
+            styles.button,
+            isTablet && styles.buttonTablet,
+            isDesktop && styles.buttonDesktop,
+          ]}
+        />
         <Button
           title={mode === "edit" ? "更新" : "追加"}
           onPress={handleSubmit}
@@ -218,9 +259,21 @@ export const UserForm: React.FC<UserFormProps> = ({
             (!password && mode === "add") ||
             (role === "master" && hasMaster && role !== initialData?.role)
           }
-          style={styles.button}
+          size={isTablet ? "medium" : "small"}
+          style={[
+            styles.button,
+            isTablet && styles.buttonTablet,
+            isDesktop && styles.buttonDesktop,
+          ]}
         />
       </View>
-    </ScrollView>
+
+      <ColorPicker
+        visible={colorPickerVisible}
+        onClose={() => setColorPickerVisible(false)}
+        onSelectColor={(c) => setColor(c)}
+        initialColor={color}
+      />
+    </View>
   );
 };

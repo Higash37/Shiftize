@@ -5,8 +5,13 @@
  */
 
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { Platform } from "react-native";
 
 /**
  * Firebase初期化とコア設定
@@ -22,15 +27,29 @@ const FirebaseCore = (() => {
     appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
   };
 
+  console.log("Firebase設定確認:", {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    hasApiKey: !!firebaseConfig.apiKey,
+  });
+
   // アプリ初期化
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // Web環境での認証永続化設定
+  if (Platform.OS === "web") {
+    setPersistence(auth, browserLocalPersistence).catch((error) => {
+      console.error("認証永続化の設定に失敗しました:", error);
+    });
+  }
+
   return {
     app,
     auth,
     db,
+    firebaseConfig,
   };
 })();
 
@@ -38,3 +57,4 @@ const FirebaseCore = (() => {
 export const auth = FirebaseCore.auth;
 export const db = FirebaseCore.db;
 export const app = FirebaseCore.app;
+export const firebaseConfig = FirebaseCore.firebaseConfig;

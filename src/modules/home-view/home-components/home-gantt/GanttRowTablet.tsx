@@ -68,7 +68,9 @@ export const GanttRowTablet: React.FC<GanttRowTabletProps> = ({
             ]}
             onTouchEnd={() => onCellPress && onCellPress(name)}
           >
-            {slot && <Text style={styles.taskText}>{slot.task}</Text>}
+            {slot && slot.task && (
+              <Text style={styles.taskText}>{slot.task}</Text>
+            )}
           </View>
         );
       })}

@@ -58,15 +58,17 @@ export default function userLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack
-        screenOptions={{
-          gestureEnabled: true,
-          animation: "slide_from_right",
-          headerShown: false, // デフォルトのWebヘッダーを非表示
-        }}
-      >
-        <Slot />
-      </Stack>
+      <View style={{ flex: 1 }}>
+        <Stack
+          screenOptions={{
+            gestureEnabled: true,
+            animation: "slide_from_right",
+            headerShown: false, // デフォルトのWebヘッダーを非表示
+          }}
+        >
+          <Slot />
+        </Stack>
+      </View>
       <Footer />
       <Toast />
     </View>

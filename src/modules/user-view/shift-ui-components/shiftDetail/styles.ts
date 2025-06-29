@@ -1,5 +1,6 @@
-import { StyleSheet, Dimensions } from "react-native";
+import { StyleSheet, Dimensions, Platform } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
+import { shadows } from "@/common/common-constants/ShadowConstants";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -18,14 +19,7 @@ export const shiftDetailsViewStyles = StyleSheet.create({
     borderWidth: 1,
     borderTopWidth: 0,
     borderColor: colors.border,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    ...shadows.small,
   },
 });
 

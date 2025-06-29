@@ -19,6 +19,11 @@ interface GanttChartBodyProps {
   getStatusConfig: (status: string) => ShiftStatusConfig;
   handleShiftPress: (shift: ShiftItem) => void;
   handleEmptyCellClick: (date: string, position: number) => void;
+  onTimeChange?: (
+    shiftId: string,
+    newStartTime: string,
+    newEndTime: string
+  ) => void;
   styles: any;
   userColorsMap: Record<string, string>;
   statusStyles?: (status: string) => { borderColor: string; color: string };
@@ -41,6 +46,7 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
   getStatusConfig,
   handleShiftPress,
   handleEmptyCellClick,
+  onTimeChange,
   styles,
   userColorsMap,
   statusStyles,
@@ -77,6 +83,7 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
           getStatusConfig={getStatusConfig}
           handleShiftPress={handleShiftPress}
           handleEmptyCellClick={handleEmptyCellClick}
+          onTimeChange={onTimeChange}
           styles={styles}
           userColorsMap={userColorsMap}
           statusStyles={statusStyles}

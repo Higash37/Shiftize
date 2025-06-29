@@ -77,6 +77,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   onShiftPress,
   onShiftUpdate,
   onMonthChange,
+  onTimeChange,
   classTimes = [],
 }) => {
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
@@ -516,6 +517,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             getStatusConfig={getStatusConfig}
             handleShiftPress={handleShiftPress}
             handleEmptyCellClick={handleEmptyCellClick}
+            onTimeChange={onTimeChange}
             styles={styles}
             userColorsMap={userColorsMap}
           />

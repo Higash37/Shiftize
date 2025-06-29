@@ -6,7 +6,7 @@ import { ViewStyle, TextStyle } from "react-native";
 /**
  * サイズバリエーション
  */
-export type Size = "small" | "medium" | "large";
+export type Size = "small" | "medium" | "large" | "compact";
 
 /**
  * スタイルバリエーション

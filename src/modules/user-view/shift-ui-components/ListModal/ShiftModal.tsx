@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Pressable, Modal } from "react-native";
 import { modalStyles } from "./ModalStyles";
+import { designSystem } from "@/common/common-constants/DesignSystem";
+import Button from "@/common/common-ui/ui-forms/FormButton";
 
 const ShiftModal = ({
   isModalVisible,
@@ -16,23 +18,28 @@ const ShiftModal = ({
       onRequestClose={() => setModalVisible(false)}
     >
       <Pressable
-        style={modalStyles.modalOverlay}
+        style={designSystem.modal.overlay}
         onPress={() => setModalVisible(false)}
       >
-        <View style={modalStyles.modalContent}>
-          <Text style={modalStyles.modalTitle}>シフト操作</Text>
-          <TouchableOpacity
-            style={modalStyles.modalButton}
+        <View style={designSystem.modal.modal}>
+          <Text style={designSystem.text.welcomeText}>シフト操作</Text>
+
+          <Button
+            title="シフト報告をする"
             onPress={handleReportShift}
-          >
-            <Text style={modalStyles.modalButtonText}>シフト報告をする</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={modalStyles.modalButton}
+            variant="primary"
+            size="large"
+            fullWidth
+            style={{ marginBottom: 12 }}
+          />
+
+          <Button
+            title="シフト変更をする"
             onPress={handleEditShift}
-          >
-            <Text style={modalStyles.modalButtonText}>シフト変更をする</Text>
-          </TouchableOpacity>
+            variant="secondary"
+            size="large"
+            fullWidth
+          />
         </View>
       </Pressable>
     </Modal>

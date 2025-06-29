@@ -15,8 +15,6 @@ import {
   getDocs,
   setDoc,
   getFirestore,
-  addDoc,
-  collection,
   doc,
   getDoc,
   updateDoc,
@@ -190,21 +188,32 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
 
       // シフトを各日付に登録
       const createPromises = shiftData.dates.map(async (date) => {
+        // 時間の差を計算（duration）
+        const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
+        const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
+        const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
+        const durationHours =
+          Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+
         const newShift = {
           userId: selectedUserId,
+          storeId: user?.storeId || "", // storeIdを追加
           nickname: nickname,
           date,
           startTime: shiftData.startTime,
           endTime: shiftData.endTime,
-          type: shiftData.hasClass ? "class" : "user",
+          type: shiftData.hasClass ? ("class" as const) : ("user" as const),
+          subject: "", // subjectフィールドを追加
+          isCompleted: false, // isCompletedフィールドを追加
+          duration: durationHours, // durationフィールドを追加
           classes: shiftData.classes,
           status: selectedStatus, // マスターが選択したステータス
           createdAt: new Date(),
           updatedAt: new Date(),
         };
 
-        const shiftsRef = collection(db, "shifts");
-        await addDoc(shiftsRef, newShift);
+        // useShiftのcreateShiftメソッドを使用
+        await createShift(newShift);
       });
 
       await Promise.all(createPromises);
@@ -262,13 +271,24 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       setIsLoading(true);
       setErrorMessage("");
 
+      // 時間の差を計算（duration）
+      const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
+      const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
+      const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
+      const durationHours =
+        Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+
       const updatedShift = {
         userId: selectedUserId || existingShift.userId,
+        storeId: user?.storeId || existingShift.storeId || "", // storeIdを追加
         nickname: selectedUserNickname || existingShift.nickname,
         date: shiftData.dates[0], // 編集では最初の日付のみ使用
         startTime: shiftData.startTime,
         endTime: shiftData.endTime,
-        type: shiftData.hasClass ? "class" : "user",
+        type: shiftData.hasClass ? ("class" as const) : ("user" as const),
+        subject: existingShift.subject || "", // 既存のsubjectを保持
+        isCompleted: existingShift.isCompleted || false, // 既存のisCompletedを保持
+        duration: durationHours, // 計算されたdurationを設定
         classes: shiftData.classes,
         status: selectedStatus,
         updatedAt: new Date(),

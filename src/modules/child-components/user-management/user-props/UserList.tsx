@@ -6,11 +6,14 @@ import {
   TextInput,
   FlatList,
   ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import { User } from "@/common/common-models/model-user/UserModel";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { colors } from "@/common/common-theme/ThemeColors";
+import { colors } from "@/common/common-constants/ColorConstants";
+import { layout } from "@/common/common-constants/LayoutConstants";
+import { shadows } from "@/common/common-constants/ShadowConstants";
 import { styles } from "./UserList.styles";
 import { UserListProps } from "../user-types/components";
 
@@ -26,9 +29,15 @@ export const UserList: React.FC<UserListProps> = ({
   loading = false,
   userPasswords = {},
 }) => {
+  const { width } = useWindowDimensions();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // レスポンシブ設定
+  const isTablet = width >= 768;
+  const isDesktop = width >= 1024;
+  const numColumns = isDesktop ? 4 : isTablet ? 2 : 1;
 
   const filteredUserList =
     userList?.filter((user) => {
@@ -66,76 +75,83 @@ export const UserList: React.FC<UserListProps> = ({
 
   const renderItem = ({ item }: { item: User }) => (
     <TouchableOpacity
-      style={styles.userCard}
+      style={[
+        styles.userCard,
+        isTablet && styles.userCardTablet,
+        isDesktop && styles.userCardDesktop,
+      ]}
       activeOpacity={0.8}
       onPress={() => onEdit(item)}
     >
-      <View style={styles.leftSection}>
+      <View style={styles.cardHeader}>
         <View style={styles.iconContainer}>
           <MaterialCommunityIcons
             name="account-circle"
-            size={40}
+            size={isTablet ? 36 : 32}
             color={item.role === "master" ? colors.secondary : colors.primary}
           />
         </View>
-      </View>
-      <View style={styles.middleSection}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Text style={styles.userName}>{item.nickname || "名前なし"}</Text>
-          {/* 名前の右横に色マークを表示。未設定時はグレー */}
-          <View
-            style={[
-              styles.colorMark,
-              { backgroundColor: item.color || "#ccc" },
-            ]}
-          />
-        </View>
-        <Text style={styles.userRole}>
-          {item.role === "master" ? "マスター" : "一般ユーザー"}
-        </Text>
-        {/* storeIdを表示 */}
-        {item.storeId && (
-          <Text style={styles.storeId}>店舗ID: {item.storeId}</Text>
-        )}
-      </View>
-      <View style={styles.rightSection}>
-        {userPasswords[item.uid] && (
-          <View style={styles.passwordContainer}>
-            <Text style={styles.passwordLabel}>パスワード</Text>
-            <Text style={styles.passwordValue}>{userPasswords[item.uid]}</Text>
+        <View style={styles.userInfo}>
+          <View style={styles.nameContainer}>
+            <Text style={[styles.userName, isTablet && styles.userNameLarge]}>
+              {item.nickname || "名前なし"}
+            </Text>
+            <View
+              style={[
+                styles.colorMark,
+                { backgroundColor: item.color || colors.text.disabled },
+              ]}
+            />
           </View>
-        )}
-        <View style={styles.actions}>
-          {/* 編集ボタンは非表示に（カード全体タップで編集） */}
-          <Button
-            title="削除"
-            onPress={() => handleDeletePress(item)}
-            variant="outline"
-            size="small"
-            style={{
-              minWidth: 80,
-              borderColor: colors.error,
-            }}
-          />
+          <Text style={styles.userRole}>
+            {item.role === "master" ? "マスター" : "一般ユーザー"}
+          </Text>
+          {item.storeId && (
+            <Text style={styles.storeId}>店舗ID: {item.storeId}</Text>
+          )}
         </View>
+      </View>
+
+      {userPasswords[item.uid] && (
+        <View style={styles.passwordSection}>
+          <Text style={styles.passwordLabel}>パスワード</Text>
+          <Text style={styles.passwordValue}>{userPasswords[item.uid]}</Text>
+        </View>
+      )}
+
+      <View style={styles.cardActions}>
+        <Button
+          title="削除"
+          onPress={() => handleDeletePress(item)}
+          variant="outline"
+          size="small"
+          style={styles.deleteButton}
+        />
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          isTablet && styles.headerTablet,
+          isDesktop && styles.headerDesktop,
+        ]}
+      >
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, isTablet && styles.searchInputTablet]}
           placeholder="ユーザーを検索..."
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
         <Button
-          title="ユーザーを追加"
+          title={isTablet ? "ユーザーを追加" : "追加"}
           onPress={onAdd}
           variant="primary"
-          size="medium"
+          size={isTablet ? "medium" : "small"}
+          style={[styles.addButton, isTablet && styles.addButtonTablet]}
         />
       </View>
       <FlatList
@@ -143,69 +159,46 @@ export const UserList: React.FC<UserListProps> = ({
         renderItem={renderItem}
         keyExtractor={(user: User) => user.uid}
         contentContainerStyle={styles.list}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
+        numColumns={numColumns}
+        columnWrapperStyle={
+          numColumns > 1
+            ? isDesktop
+              ? styles.columnWrapperDesktop
+              : styles.columnWrapper
+            : undefined
+        }
+        key={numColumns} // numColumnsが変わった時の再レンダリング用
         ListEmptyComponent={
-          <View>
-            <View>
-              <Text style={styles.emptyText}>
-                {searchQuery
-                  ? "検索結果が見つかりません"
-                  : "ユーザーが登録されていません"}
-              </Text>
-            </View>
+          <View style={styles.centerContainer}>
+            <Text style={styles.emptyText}>
+              {searchQuery
+                ? "検索結果が見つかりません"
+                : "ユーザーが登録されていません"}
+            </Text>
           </View>
         }
       />
       {showDeleteModal && deleteTarget && (
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.3)",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 9999,
-          }}
-        >
+        <View style={styles.modalOverlay}>
           <View
-            style={{
-              backgroundColor: "#fff",
-              padding: 24,
-              borderRadius: 12,
-              minWidth: 260,
-            }}
+            style={[styles.modalContent, isTablet && styles.modalContentTablet]}
           >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: "bold",
-                marginBottom: 16,
-              }}
-            >
-              {deleteTarget.nickname}を削除しますか？
+            <Text style={styles.modalTitle}>ユーザーを削除しますか？</Text>
+            <Text style={styles.modalMessage}>
+              {deleteTarget.nickname} を削除します。この操作は取り消せません。
             </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "flex-end",
-                gap: 12,
-              }}
-            >
+            <View style={styles.modalActions}>
               <Button
                 title="キャンセル"
                 onPress={handleDeleteCancel}
                 variant="outline"
-                style={{ flex: 1 }}
+                style={styles.modalButton}
               />
               <Button
-                title="はい"
+                title="削除"
                 onPress={handleDeleteConfirm}
                 variant="primary"
-                style={{ flex: 1 }}
+                style={[styles.modalButton, styles.deleteButtonModal]}
               />
             </View>
           </View>

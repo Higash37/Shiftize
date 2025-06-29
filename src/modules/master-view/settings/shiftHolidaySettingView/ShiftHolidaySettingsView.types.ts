@@ -1,17 +1,26 @@
+export type Holiday = {
+  id: string;
+  date: string;
+  name: string;
+  type: "national" | "custom";
+};
+
+export type SpecialDay = {
+  id: string;
+  date: string;
+  name: string;
+  type: "special" | "event";
+  workingDay?: boolean;
+};
+
 export type ShiftHolidaySettings = {
-  holidays: string[];
-  specialDays: string[];
+  holidays: Holiday[];
+  specialDays: SpecialDay[];
 };
 
 export interface ShiftHolidaySettingsViewProps {
   settings: ShiftHolidaySettings;
   loading: boolean;
-  calendarMonth: string;
-  selectedDate: string | null;
-  showDayModal: boolean;
-  setSettings: (settings: ShiftHolidaySettings) => void;
-  setCalendarMonth: (month: string) => void;
-  setSelectedDate: (date: string | null) => void;
-  setShowDayModal: (show: boolean) => void;
-  saveSettings: () => void;
+  onChange: (settings: ShiftHolidaySettings) => void;
+  onSave: () => void;
 }

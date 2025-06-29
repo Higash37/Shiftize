@@ -12,6 +12,16 @@ export * from "./common-ui";
 export { theme } from "./common-theme/ThemeDefinition";
 export { colors, typography } from "./common-constants/ThemeBridgeConstants"; // 後方互換性
 
+// デザインシステム
+export { designSystem } from "./common-constants/DesignSystem";
+export { DesignExamples } from "./common-constants/DesignExamples";
+export * from "./common-constants/ComponentStyles";
+export * from "./common-utils/util-style/StyleHelpers";
+
+// 定数
+export { layout } from "./common-constants/LayoutConstants";
+export { shadows } from "./common-constants/ShadowConstants";
+
 // コア機能 (新しい構造)
 export * from "./common-utils";
 

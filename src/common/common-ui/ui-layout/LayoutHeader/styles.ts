@@ -11,6 +11,8 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     width: "100%", // ヘッダーを画面幅いっぱいに
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
   },
   leftContainer: {
     flexDirection: "row",

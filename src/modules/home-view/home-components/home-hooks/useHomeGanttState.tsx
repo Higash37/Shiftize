@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Text } from "react-native";
 import { format } from "date-fns";
 import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
@@ -81,9 +80,7 @@ export function useHomeGanttState() {
             name,
             start,
             end,
-            task: (
-              <Text style={{ color: "black", fontWeight: "bold" }}>授業</Text>
-            ),
+            task: "授業", // Textコンポーネントを文字列に変更
             date: selectedDateStr,
             color: "#888",
             type: "class",
@@ -94,11 +91,7 @@ export function useHomeGanttState() {
             name,
             start,
             end,
-            task: (
-              <Text style={{ color: "#fff", fontWeight: "bold" }}>
-                スタッフ
-              </Text>
-            ),
+            task: "スタッフ", // Textコンポーネントを文字列に変更
             date: selectedDateStr,
             color: "#1976d2",
             type: staff.type || "user",

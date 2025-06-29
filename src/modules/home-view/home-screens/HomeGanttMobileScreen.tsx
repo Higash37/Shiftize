@@ -58,8 +58,6 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
 
   return (
     <View style={{ flex: 1, paddingBottom: insets.bottom }}>
-      {" "}
-      {/* Add paddingBottom */}
       <ScrollView
         horizontal
         style={{ flex: 1 }}

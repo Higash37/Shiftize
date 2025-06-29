@@ -137,7 +137,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
                     onPress={() => onCellPress && onCellPress(name)}
                   >
                     <Text style={styles.taskText}>
-                      {slot.task} {slot.start}~{slot.end}
+                      {slot.task || ""} {slot.start}~{slot.end}
                     </Text>
                   </Pressable>
                 );

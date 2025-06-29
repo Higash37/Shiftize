@@ -32,25 +32,18 @@ export const ShiftService = {
   getShifts: async (storeId?: string): Promise<Shift[]> => {
     try {
       const shiftsRef = collection(db, "shifts");
-      let q = query(
-        shiftsRef,
-        orderBy("date", "asc"),
-        orderBy("startTime", "asc")
-      );
+      let q;
 
       // storeIdが指定されている場合はフィルタリング
       if (storeId) {
-        q = query(
-          shiftsRef,
-          where("storeId", "==", storeId),
-          orderBy("date", "asc"),
-          orderBy("startTime", "asc")
-        );
+        q = query(shiftsRef, where("storeId", "==", storeId));
+      } else {
+        q = query(shiftsRef);
       }
 
       const querySnapshot = await getDocs(q);
 
-      return querySnapshot.docs.map((doc) => {
+      const shifts = querySnapshot.docs.map((doc) => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -69,9 +62,16 @@ export const ShiftService = {
           updatedAt: data.updatedAt?.toDate() || new Date(),
           classes: data.classes || [],
           requestedChanges: data.requestedChanges || undefined,
-          tasks: data.tasks || {},
-          comments: data.comments || "",
-        };
+        } as Shift;
+      });
+
+      // JavaScriptでソート（Firestoreクエリではなく）
+      return shifts.sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare === 0) {
+          return a.startTime.localeCompare(b.startTime);
+        }
+        return dateCompare;
       });
     } catch (error) {
       console.error("シフトの取得に失敗しました:", error);
@@ -88,7 +88,7 @@ export const ShiftService = {
       const docRef = await addDoc(shiftsRef, {
         ...shift,
         type: shift.type || "user",
-        status: "draft",
+        status: shift.status || "draft", // 渡されたstatusを優先し、なければdraftをデフォルト
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

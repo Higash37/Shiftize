@@ -74,14 +74,22 @@ export const useUser = (storeId?: string) => {
       }
 
       const userEmail =
-        role === "master" ? "master@example.com" : `${nickname}@example.com`;
+        role === "master"
+          ? "master@example.com"
+          : `${storeId}${nickname}@example.com`;
       if (role === "user") {
         const emailExists = await checkEmailExists(userEmail);
         if (emailExists) {
           throw new Error("このニックネームは既に使用されています");
         }
       }
-      const newUser = await createUser(userEmail, password, color, storeId);
+      const newUser = await createUser(
+        userEmail,
+        password,
+        nickname,
+        color,
+        storeId
+      );
 
       await fetchUsers();
       return newUser;

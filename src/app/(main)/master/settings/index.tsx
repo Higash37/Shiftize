@@ -7,7 +7,7 @@ import { View, Button } from "react-native";
 export default function MasterSettingsIndex() {
   const router = useRouter();
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <MasterHeader title="設定" />
       <SettingsIndexView
         onNavigate={(path) => {
@@ -18,6 +18,6 @@ export default function MasterSettingsIndex() {
           }
         }}
       />
-    </>
+    </View>
   );
 }

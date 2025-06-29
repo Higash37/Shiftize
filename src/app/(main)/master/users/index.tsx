@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
 import { useUser } from "@/modules/child-components/user-management/user-hooks/useUser";
 import { UserForm } from "@/modules/child-components/user-management/user-props/UserForm";
 import { UserList } from "@/modules/child-components/user-management/user-props/UserList";
 import { User } from "@/common/common-models/model-user/UserModel";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { colors } from "@/common/common-constants/ColorConstants";
+import { layout } from "@/common/common-constants/LayoutConstants";
+import { shadows } from "@/common/common-constants/ShadowConstants";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { db } from "@/services/firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -28,6 +30,7 @@ export default function UsersScreen() {
   const { users, loading, error, addUser, editUser, removeUser } = useUser(
     currentUser?.storeId
   );
+  const { width } = useWindowDimensions();
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(
     null
@@ -35,6 +38,10 @@ export default function UsersScreen() {
   const [userPasswords, setUserPasswords] = useState<Record<string, string>>(
     {}
   );
+
+  // レスポンシブ対応：画面サイズに応じてフォーム幅を調整
+  const isTablet = width >= 768;
+  const isDesktop = width >= 1024;
   const handleAddUser = async (data: UserFormData) => {
     if (!data.password) {
       console.error("パスワードは必須です");
@@ -135,7 +142,13 @@ export default function UsersScreen() {
       <MasterHeader title="ユーザー管理" />
       <View style={styles.container}>
         {selectedUser || isAddingUser ? (
-          <View style={styles.formContainer70}>
+          <View
+            style={[
+              styles.formContainer,
+              isTablet && styles.formContainerTablet,
+              isDesktop && styles.formContainerDesktop,
+            ]}
+          >
             <UserForm
               onSubmit={selectedUser ? handleEditUser : handleAddUser}
               onCancel={handleCancel}
@@ -169,26 +182,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: 16,
+    padding: layout.padding.large,
   },
   formContainer: {
-    backgroundColor: colors.background,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  formContainer70: {
-    backgroundColor: colors.background,
-    padding: 16,
-    borderRadius: 12,
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: layout.borderRadius.large,
     borderWidth: 1,
     borderColor: colors.border,
     alignSelf: "center",
+    width: "100%",
+    maxWidth: 400,
+    ...shadows.large,
+  },
+  formContainerTablet: {
     maxWidth: 600,
-    minWidth: 260,
+    width: "80%",
+  },
+  formContainerDesktop: {
+    maxWidth: 700,
     width: "70%",
-    maxHeight: "100%",
-    overflow: "hidden",
   },
 });

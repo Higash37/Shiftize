@@ -1,5 +1,7 @@
 import { StyleSheet } from "react-native";
 import { theme } from "../../../common-theme/ThemeDefinition";
+import { layout } from "../../../common-constants/LayoutConstants";
+import { shadows } from "../../../common-constants/ShadowConstants";
 import { ButtonStyleName } from "./types";
 
 /**
@@ -7,9 +9,10 @@ import { ButtonStyleName } from "./types";
  */
 export const styles = StyleSheet.create({
   base: {
-    borderRadius: theme.borderRadius.md,
+    borderRadius: layout.components.button,
     alignItems: "center",
     justifyContent: "center",
+    ...shadows.button,
   },
   primary: {
     backgroundColor: theme.colors.primary,
@@ -21,18 +24,23 @@ export const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: theme.colors.primary,
+    ...shadows.small, // アウトラインボタンにも軽いシャドウ
   },
   size_small: {
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
+    paddingVertical: layout.padding.small,
+    paddingHorizontal: layout.padding.medium,
   },
   size_medium: {
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: layout.padding.medium,
+    paddingHorizontal: layout.padding.large,
   },
   size_large: {
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: layout.padding.large,
+    paddingHorizontal: layout.padding.xlarge,
+  },
+  size_compact: {
+    paddingVertical: layout.padding.small * 2.04,
+    paddingHorizontal: layout.padding.large,
   },
   fullWidth: {
     width: "100%",
@@ -60,5 +68,8 @@ export const styles = StyleSheet.create({
   },
   text_large: {
     fontSize: theme.typography.fontSize.large,
+  },
+  text_compact: {
+    fontSize: theme.typography.fontSize.medium,
   },
 }) as Record<ButtonStyleName, any>;

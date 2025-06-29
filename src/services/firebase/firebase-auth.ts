@@ -12,12 +12,15 @@ import {
   signOut,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  Auth,
+  getAuth,
 } from "firebase/auth";
 
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { initializeApp, deleteApp } from "firebase/app";
 
 import { User } from "@/common/common-models/model-user/UserModel";
-import { auth, db } from "./firebase-core";
+import { auth, db, firebaseConfig } from "./firebase-core";
 
 /**
  * 認証関連のサービス
@@ -68,64 +71,83 @@ export const AuthService = {
 
   /**
    * 新しいユーザーを作成
+   * 管理者権限でユーザーを作成し、現在のログインセッションを維持します
    */
   createUser: async (
     email: string,
     password: string,
+    nickname?: string,
     color?: string,
     storeId?: string
   ): Promise<User> => {
     try {
       console.log("Creating user with email:", email, "storeId:", storeId);
 
-      // 1. まずFirebase Authenticationでユーザーを作成
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      ).catch((error) => {
-        console.error("Firebase Authentication error:", error);
+      // 現在のユーザー情報を保存
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("管理者としてログインしている必要があります");
+      }
+
+      // 一時的なFirebaseアプリインスタンスを作成
+      const tempApp = initializeApp(firebaseConfig, "temp-app-" + Date.now());
+      const tempAuth = getAuth(tempApp);
+
+      try {
+        // 1. 一時的なインスタンスでユーザーを作成
+        const userCredential = await createUserWithEmailAndPassword(
+          tempAuth,
+          email,
+          password
+        );
+
+        const firebaseUser = userCredential.user;
+        console.log("Firebase user created:", firebaseUser.uid);
+
+        // ニックネームを決定
+        const displayName = nickname || email.split("@")[0];
+
+        // 2. ユーザープロファイルを更新（一時的なインスタンス上で）
+        await updateProfile(firebaseUser, {
+          displayName: displayName,
+        });
+
+        // 3. Firestoreにユーザー情報を保存（メインのdbインスタンスを使用）
+        const userRef = doc(db, "users", firebaseUser.uid);
+        const userData: any = {
+          nickname: displayName,
+          role: email.startsWith("master@") ? "master" : "user",
+          currentPassword: password,
+          email: email,
+          createdAt: new Date(),
+        };
+        if (color) userData.color = color;
+        if (storeId) userData.storeId = storeId;
+
+        await setDoc(userRef, userData);
+
+        console.log("User data saved to Firestore");
+
+        // 4. 一時的なアプリを削除
+        await deleteApp(tempApp);
+
+        // 5. 作成されたユーザー情報を返す
+        return {
+          uid: firebaseUser.uid,
+          nickname: displayName,
+          role: email.startsWith("master@") ? "master" : "user",
+          color: color,
+          storeId: storeId,
+        };
+      } catch (error) {
+        // エラーが発生した場合は一時的なアプリを削除
+        try {
+          await deleteApp(tempApp);
+        } catch (deleteError) {
+          console.error("一時的なアプリの削除に失敗:", deleteError);
+        }
         throw error;
-      });
-
-      const firebaseUser = userCredential.user;
-      console.log("Firebase user created:", firebaseUser.uid);
-
-      // 2. ユーザープロファイルを更新
-      await updateProfile(firebaseUser, {
-        displayName: email.split("@")[0],
-      }).catch((error) => {
-        console.error("Update profile error:", error);
-        throw error;
-      });
-
-      // 3. Firestoreにユーザー情報を保存
-      const userRef = doc(db, "users", firebaseUser.uid);
-      const userData: any = {
-        nickname: email.split("@")[0],
-        role: email.startsWith("master@") ? "master" : "user",
-        currentPassword: password,
-        email: email,
-        createdAt: new Date(),
-      };
-      if (color) userData.color = color;
-      if (storeId) userData.storeId = storeId;
-
-      await setDoc(userRef, userData).catch((error) => {
-        console.error("Firestore save error:", error);
-        throw error;
-      });
-
-      console.log("User data saved to Firestore");
-
-      // 4. 作成されたユーザー情報を返す
-      return {
-        uid: firebaseUser.uid,
-        nickname: email.split("@")[0],
-        role: email.startsWith("master@") ? "master" : "user",
-        color: color,
-        storeId: storeId,
-      };
+      }
     } catch (error) {
       console.error("ユーザー作成エラー:", error);
       throw error;

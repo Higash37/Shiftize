@@ -1,4 +1,5 @@
 import { ShiftItem } from "@/common/common-models/ModelIndex";
+import { ShiftData } from "../ganttView/components/ShiftModal";
 
 export interface GanttEditViewProps {
   shifts: ShiftItem[];
@@ -10,4 +11,11 @@ export interface GanttEditViewProps {
   onMonthChange: (year: number, month: number) => void;
   onShiftUpdate: () => void;
   onShiftPress: (shift: ShiftItem) => void;
+  onTimeChange?: (
+    shiftId: string,
+    newStartTime: string,
+    newEndTime: string
+  ) => void;
+  onShiftSave?: (data: ShiftData) => void;
+  onShiftDelete?: (shiftId: string) => void;
 }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Alert } from "react-native";
+import { Alert, View } from "react-native";
 import { db } from "@/services/firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ShiftHolidaySettingsView } from "@/modules/master-view/settings/shiftHolidaySettingView/ShiftHolidaySettingsView";
+import { MasterHeader } from "@/common/common-ui/ui-layout";
 import type { ShiftHolidaySettings } from "@/modules/master-view/settings/shiftHolidaySettingView/ShiftHolidaySettingsView.types";
 
 const DEFAULT_SETTINGS: ShiftHolidaySettings = {
@@ -14,15 +15,6 @@ export default function ShiftHolidaySettingsScreen() {
   const [settings, setSettings] =
     useState<ShiftHolidaySettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
-  const [calendarMonth, setCalendarMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-01`;
-  });
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [showDayModal, setShowDayModal] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -44,17 +36,14 @@ export default function ShiftHolidaySettingsScreen() {
   };
 
   return (
-    <ShiftHolidaySettingsView
-      settings={settings}
-      loading={loading}
-      calendarMonth={calendarMonth}
-      selectedDate={selectedDate}
-      showDayModal={showDayModal}
-      setSettings={setSettings}
-      setCalendarMonth={setCalendarMonth}
-      setSelectedDate={setSelectedDate}
-      setShowDayModal={setShowDayModal}
-      saveSettings={saveSettings}
-    />
+    <View style={{ flex: 1 }}>
+      <MasterHeader title="祝日・特別日" />
+      <ShiftHolidaySettingsView
+        settings={settings}
+        loading={loading}
+        onChange={setSettings}
+        onSave={saveSettings}
+      />
+    </View>
   );
 }

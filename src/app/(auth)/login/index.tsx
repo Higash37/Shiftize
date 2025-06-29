@@ -6,10 +6,16 @@ import {
   Alert,
   Platform,
   useWindowDimensions,
+  SafeAreaView,
+  StyleSheet,
 } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/services/auth/useAuth";
 import { LoginForm } from "@/modules/login-view/loginView/LoginForm";
+import { designSystem } from "@/common/common-constants/DesignSystem";
+import { colors } from "@/common/common-constants/ColorConstants";
+import { layout } from "@/common/common-constants/LayoutConstants";
+import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 
 export default function Login() {
   const { signIn } = useAuth();
@@ -17,6 +23,9 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState("");
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
+  const isDesktop = isWeb && width > 1024; // PC判定
+  const isTablet = isWeb && width > 768 && width <= 1024; // タブレット判定
+  const isMobile = width <= 768; // スマホ判定
 
   const handleLogin = async (
     username: string,
@@ -26,53 +35,106 @@ export default function Login() {
     setLoading(true);
     setErrorMessage("");
     try {
-      console.log("ログイン試行:", { username, storeId });
-      const email = `${username}@example.com`;
+      const email = `${storeId}${username}@example.com`;
       await signIn(email, password, storeId);
-      console.log("ログイン成功");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error);
-
-      // エラーメッセージを詳細化
-      let errorMsg = "ログインに失敗しました。";
-      if (error.message) {
-        if (error.message.includes("店舗IDが一致しません")) {
-          errorMsg = "店舗IDが正しくありません。";
-        } else if (error.message.includes("ユーザーが存在しません")) {
-          errorMsg = "ユーザーが見つかりません。";
-        } else if (error.message.includes("Firebase")) {
-          errorMsg = "ニックネームまたはパスワードが正しくありません。";
-        } else {
-          errorMsg = error.message;
-        }
-      }
-
-      setErrorMessage(errorMsg);
+      setErrorMessage("ニックネームまたはパスワードが違います");
     } finally {
       setLoading(false);
     }
   };
 
+  // レスポンシブヘッダースタイル
+  const getHeaderStyle = () => {
+    const baseStyle = designSystem.layout.headerPrimary;
+
+    if (isDesktop) {
+      // PC: 高さをさらに小さく（30%さらに縮小）
+      return {
+        ...baseStyle,
+        paddingVertical: layout.padding.small, // 8px (さらに小さく)
+      };
+    } else if (isMobile) {
+      // スマホ: 高さをさらに小さく（30%さらに縮小）
+      return {
+        ...baseStyle,
+        paddingVertical: layout.padding.small, // 8px (さらに小さく)
+      };
+    } else {
+      // タブレット: そのまま（24px）
+      return baseStyle;
+    }
+  };
+
+  // レスポンシブテキストスタイル
+  const getHeaderTextStyle = () => {
+    if (isDesktop || isMobile) {
+      // PC・スマホ: 文字サイズをさらに小さく（30%さらに縮小）
+      return {
+        ...designSystem.text.headerTitle,
+        fontSize: 20, // 28px から さらに小さく
+      };
+    } else {
+      // タブレット: そのまま
+      return designSystem.text.headerTitle;
+    }
+  };
+
+  const getSubtitleTextStyle = () => {
+    if (isDesktop || isMobile) {
+      // PC・スマホ: サブタイトルをさらに小さく（30%さらに縮小）
+      return {
+        ...designSystem.text.subtitle,
+        fontSize: 12, // 16px から さらに小さく
+      };
+    } else {
+      // タブレット: そのまま
+      return designSystem.text.subtitle;
+    }
+  };
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
-      <View style={{ backgroundColor: "#1565C0", width: "100%" }}>
-        <View style={{ width: "100%", padding: 16 }}>
-          <TouchableOpacity
-            style={{ alignItems: "center", justifyContent: "center" }}
-            onPress={() => router.push("/(main)")}
-          >
-            <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
-              Shiftize
-            </Text>
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={designSystem.page.safeContainer}>
+      {/* Header */}
+      <Box variant="primary" style={getHeaderStyle()}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => router.push("/(main)")}
+        >
+          <Text style={getHeaderTextStyle()}>Shiftize</Text>
+          <Text style={getSubtitleTextStyle()}>ログイン</Text>
+        </TouchableOpacity>
+      </Box>
+
+      {/* Content */}
+      <View style={designSystem.page.content}>
+        <LoginForm onLogin={handleLogin} loading={loading} />
+        {errorMessage ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : null}
       </View>
-      <LoginForm onLogin={handleLogin} loading={loading} />
-      {errorMessage ? (
-        <Text style={{ color: "red", textAlign: "center", marginTop: 1 }}>
-          {errorMessage}
-        </Text>
-      ) : null}
-    </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  headerButton: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  errorContainer: {
+    ...designSystem.card.outlineCard,
+    backgroundColor: colors.error + "10", // 薄い赤背景
+    borderColor: colors.error,
+    marginTop: 16,
+  },
+  errorText: {
+    color: colors.error,
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+});

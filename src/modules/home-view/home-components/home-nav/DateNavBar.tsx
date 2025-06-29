@@ -63,15 +63,15 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
         justifyContent: "center",
       }}
     >
-      <Text style={styles.dateNavBtn} onPress={onPrevDay}>
-        {"<"}
-      </Text>
+      <Pressable onPress={onPrevDay}>
+        <Text style={styles.dateNavBtn}>{"<"}</Text>
+      </Pressable>
       <Pressable onPress={onOpenDatePicker}>
         <Text style={styles.dateLabel}>{dateLabel}</Text>
       </Pressable>
-      <Text style={styles.dateNavBtn} onPress={onNextDay}>
-        {">"}
-      </Text>
+      <Pressable onPress={onNextDay}>
+        <Text style={styles.dateNavBtn}>{">"}</Text>
+      </Pressable>
     </View>
     {/* 右端スペース調整用 */}
     <View style={{ width: 80 }} />

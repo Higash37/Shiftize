@@ -14,6 +14,8 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     width: "100%", // 画面端まで伸ばす
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
   tab: {
     flex: 1,

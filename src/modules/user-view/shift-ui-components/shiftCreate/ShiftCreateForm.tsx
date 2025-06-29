@@ -6,19 +6,13 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  serverTimestamp,
-  collection,
-  addDoc,
-} from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { useAuth } from "@/services/auth/useAuth";
 import { Header } from "@/common/common-ui/ui-layout";
 import { colors } from "@/common/common-constants/ThemeConstants";
+import { designSystem } from "@/common/common-constants/DesignSystem";
 import type { ShiftData, ShiftCreateFormProps } from "./types";
 import { shiftCreateFormStyles as styles } from "./styles";
 import ShiftCreateFormContent from "./ShiftCreateFormContent";
@@ -260,29 +254,44 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     try {
       setIsLoading(true);
 
-      const shiftsCollectionRef = collection(db, "shifts");
-
       for (const date of shiftData.dates) {
-        const shiftObject: any = {
+        // 時間の差を計算（duration）
+        const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
+        const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
+        const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
+        const durationHours =
+          Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+
+        const shiftObject = {
           userId: user.uid,
+          storeId: user.storeId || "", // userオブジェクトからstoreIdを取得
+          nickname: user.nickname || "Unknown",
           date,
           startTime: shiftData.startTime,
           endTime: shiftData.endTime,
-          status: isEditMode ? existingShift?.status || "pending" : "pending",
+          type: "user" as const,
+          subject: "", // 授業科目（初期値は空文字）
+          isCompleted: false,
+          status: isEditMode
+            ? existingShift?.status || "pending"
+            : ("pending" as const),
+          duration: durationHours, // number型として時間数を設定
           classes: shiftData.classes,
-          updatedAt: serverTimestamp(),
-          nickname: user.nickname || "Unknown",
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
 
-        if (!isEditMode) {
-          shiftObject.createdAt = serverTimestamp();
-        }
-
         if (isEditMode && initialShiftId) {
+          // 編集モードの場合は直接Firestoreを更新（useShiftのeditShiftは別のロジックのため）
           const shiftRef = doc(db, "shifts", initialShiftId);
-          await updateDoc(shiftRef, shiftObject);
+          await updateDoc(shiftRef, {
+            ...shiftObject,
+            updatedAt: serverTimestamp(),
+          });
         } else {
-          await addDoc(shiftsCollectionRef, shiftObject);
+          // 新規作成の場合はuseShiftのcreateShiftメソッドを使用
+          console.log("ShiftCreateForm: 新規シフト作成", shiftObject); // デバッグログ
+          await createShift(shiftObject);
         }
       }
 
