@@ -105,6 +105,25 @@
           width: 100vw !important;
           overflow: hidden !important;
         }
+        
+        /* PWA時のフッター位置調整 */
+        footer,
+        [data-testid*="footer"],
+        div[style*="flexDirection: row"][style*="backgroundColor"],
+        .footer-container {
+          position: fixed !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          z-index: 1000 !important;
+          margin-bottom: 0 !important;
+          padding-bottom: env(safe-area-inset-bottom, 0) !important;
+        }
+        
+        /* フッターがある場合のメインコンテンツ調整 */
+        #root > div:first-child {
+          padding-bottom: 80px !important; /* フッターの高さ分確保 */
+        }
       }
       
       /* スマホ対応 */
