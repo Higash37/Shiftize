@@ -705,7 +705,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: layout.borderRadius.medium,
     padding: layout.padding.medium,
-    fontSize: typography.fontSize.medium,
+    fontSize: Math.max(typography.fontSize.medium, 16), // ズーム防止のため16px以上
     backgroundColor: colors.background,
   },
   buttonContainer: {

@@ -229,7 +229,7 @@ export const inputStyles = {
     borderRadius: layout.components.input,
     paddingVertical: layout.padding.medium,
     paddingHorizontal: layout.padding.medium,
-    fontSize: typography.fontSize.medium,
+    fontSize: Math.max(typography.fontSize.medium, 16), // ズーム防止のため16px以上
     color: colors.text.primary,
     // 影は削除（よりクリーンな見た目）
   } as ViewStyle,

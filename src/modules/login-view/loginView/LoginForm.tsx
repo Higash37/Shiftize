@@ -263,6 +263,7 @@ const styles = StyleSheet.create({
   },
   input: {
     ...designSystem.input.input,
+    fontSize: 16, // ズーム防止のため16px以上に設定
   },
   inputFocused: {
     ...designSystem.input.inputFocused,

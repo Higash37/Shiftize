@@ -4,22 +4,12 @@
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Shiftize</title>
 
-    <!-- PWA 設定 -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="シフト管理" />
-  
-
-    <link rel="apple-touch-icon" href="/PWAIcon180x180.png" />
-    <link rel="manifest" href="/manifest.json" />
+    <!-- 通常のWebアプリ設定 -->
+    <link rel="icon" href="/favicon.ico" />
 
     <!-- スプラッシュスクリーン用スタイル -->
     <style id="expo-splash-screen">
@@ -77,8 +67,12 @@
         width: 100%;
         background-color: white;
         overscroll-behavior: none;
+        /* ズーム機能を完全に無効化 */
         touch-action: manipulation;
-        /* Removed position: fixed and overflow: hidden */
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
       }
       #root {
         display: flex;
@@ -92,12 +86,7 @@
         height: calc(var(--vh, 1vh) * 100);
       }
       
-      /* PWA時のフッター下余白調整 */
-      @media (display-mode: standalone) {
-        body {
-          padding-bottom: 20px !important; /* 80px から 20px に変更 */
-        }
-      }
+      /* PWA関連スタイルは無効化済み */
     </style>
   <meta name="theme-color" content="#1565C0">
 </head>
@@ -106,9 +95,9 @@
     
     <!-- スプラッシュスクリーン -->
     <div id="splash-screen">
-      <img src="/PWAIcon192x192.png" alt="シフト管理アプリ" />
+      <img src="/icon.png" alt="シフト管理アプリ" />
       <h1>Shiftize</h1>
-   
+      <div id="splash-loader"></div>
     </div>
     
     <div id="root"></div>
@@ -130,7 +119,7 @@
         }, 1); // 0.01秒後にスプラッシュスクリーンを非表示
       });
       
-      // タッチ操作の防止
+      // パスワード入力時のズーム防止を強化
       document.addEventListener('touchmove', function(e) {
         if (e.touches.length > 1) {
           e.preventDefault(); // ピンチジェスチャーを防止
@@ -154,6 +143,32 @@
         lastTap = now;
       }, { passive: false });
 
+      // キーボード・ホイールズームの防止
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '0')) {
+          e.preventDefault();
+        }
+      });
+
+      document.addEventListener('wheel', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      // フォーカス時のズームを防止
+      document.addEventListener('focusin', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          // フォーカス時のズームを防ぐため、font-sizeを16px以上に設定
+          if (window.getComputedStyle(e.target).fontSize.includes('px')) {
+            const fontSize = parseFloat(window.getComputedStyle(e.target).fontSize);
+            if (fontSize < 16) {
+              e.target.style.fontSize = '16px';
+            }
+          }
+        }
+      });
+
       function setAppHeight() {
         document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
       }
@@ -169,6 +184,6 @@
       window.addEventListener('resize', adjustHeight);
       window.addEventListener('load', adjustHeight);
     </script>
-  <script src="/_expo/static/js/web/entry-dbc6b8540b2c909af9c0febcf0535cc6.js" defer></script>
+  <script src="/_expo/static/js/web/entry-a2891cb2f14fce3d4126245cfc34faaa.js" defer></script>
 </body>
 </html>

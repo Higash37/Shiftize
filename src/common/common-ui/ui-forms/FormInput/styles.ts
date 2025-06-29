@@ -22,7 +22,7 @@ export const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: layout.components.input,
     padding: layout.padding.medium,
-    fontSize: theme.typography.fontSize.medium,
+    fontSize: Math.max(theme.typography.fontSize.medium, 16), // ズーム防止のため16px以上
     color: theme.colors.text?.primary,
     // 影は削除（よりクリーンな見た目）
   },
