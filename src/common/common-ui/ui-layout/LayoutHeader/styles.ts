@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
 
 export const styles = StyleSheet.create({
@@ -11,8 +11,12 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     width: "100%", // ヘッダーを画面幅いっぱいに
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    margin: 0, // PWA対応: 余白をリセット
+    borderRadius: 0, // PWA対応: 角丸をリセット
+    borderTopLeftRadius: 0, // PWA対応: 個別指定
+    borderTopRightRadius: 0, // PWA対応: 個別指定
+    borderBottomLeftRadius: 0, // PWA対応: 個別指定
+    borderBottomRightRadius: 0, // PWA対応: 個別指定
   },
   leftContainer: {
     flexDirection: "row",

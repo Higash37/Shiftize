@@ -14,8 +14,12 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     width: "100%", // 画面端まで伸ばす
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    margin: 0, // PWA対応: 余白をリセット
+    borderRadius: 0, // PWA対応: 角丸をリセット
+    borderTopLeftRadius: 0, // PWA対応: 個別指定
+    borderTopRightRadius: 0, // PWA対応: 個別指定
+    borderBottomLeftRadius: 0, // PWA対応: 個別指定
+    borderBottomRightRadius: 0, // PWA対応: 個別指定
   },
   tab: {
     flex: 1,
