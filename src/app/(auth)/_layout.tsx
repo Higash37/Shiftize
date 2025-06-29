@@ -96,16 +96,8 @@ export default function AuthLayout() {
     checkAuth();
   }, [user, role, loading, authError]);
 
-  const webContainerStyle =
-    Platform.OS === "web"
-      ? {
-          margin: 0,
-          padding: 0,
-        }
-      : {};
-
   return (
-    <View style={[{ flex: 1 }, webContainerStyle]}>
+    <View style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }}>
         <Slot />
       </Stack>

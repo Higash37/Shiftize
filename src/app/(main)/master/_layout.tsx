@@ -2,7 +2,7 @@ import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
 import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
-import { View, ActivityIndicator, Platform } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { MasterFooter } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
@@ -53,25 +53,9 @@ export default function MasterLayout() {
     return null;
   }
 
-  const webContainerStyle =
-    Platform.OS === "web"
-      ? {
-          margin: 0,
-          padding: 0,
-        }
-      : {};
-
-  const webInnerStyle =
-    Platform.OS === "web"
-      ? {
-          margin: 0,
-          padding: 0,
-        }
-      : {};
-
   return (
-    <View style={[{ flex: 1 }, webContainerStyle]}>
-      <View style={[{ flex: 1 }, webInnerStyle]}>
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <Stack
           screenOptions={{
             headerShown: false, // デフォルトヘッダーを非表示にする

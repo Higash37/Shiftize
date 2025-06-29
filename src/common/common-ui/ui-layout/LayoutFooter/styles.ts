@@ -16,13 +16,6 @@ export const styles = StyleSheet.create({
     width: "100%", // 画面端まで伸ばす
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    // PWA時の下部余白削除
-    ...(Platform.OS === "web" && {
-      marginBottom: 0,
-      paddingBottom: IS_SMALL_DEVICE ? 6 : 8,
-      position: "relative" as any,
-      bottom: 0,
-    }),
   },
   tab: {
     flex: 1,

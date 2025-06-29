@@ -3,26 +3,15 @@ import { Stack, Slot, useRouter, useSegments } from "expo-router";
 import { AuthProvider } from "@/services/auth/AuthContext";
 import { useAuth } from "@/services/auth/useAuth";
 import { StatusBar } from "expo-status-bar";
-import {
-  View,
-  AppState,
-  Platform,
-  KeyboardAvoidingView,
-  ScrollView,
-} from "react-native";
+import { View, AppState, Platform } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
-import {
-  SafeAreaProvider,
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 function RootLayoutNav() {
   const { user, role, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (loading) return;
@@ -49,37 +38,8 @@ function RootLayoutNav() {
     return () => subscription.remove();
   }, [user]);
 
-  // Web/PWA環境での適切なSafeAreaの設定
-  const getSafeAreaEdges = () => {
-    if (Platform.OS === "web") {
-      // PWA時は余白なし、Web時は最小限
-      const isPWA = window.matchMedia("(display-mode: standalone)").matches;
-      return isPWA ? [] : ["top"]; // PWAでは余白なし、Webではtopのみ
-    }
-    return ["top", "left", "right", "bottom"]; // ネイティブは全て
-  };
-
-  const getContainerStyle = () => {
-    if (Platform.OS === "web") {
-      const isPWA = window.matchMedia("(display-mode: standalone)").matches;
-      if (isPWA) {
-        // PWA時：画面全体を使用
-        return {
-          flex: 1,
-          backgroundColor: "#F2F2F7",
-          height: "100vh" as any,
-          width: "100vw" as any,
-        };
-      } else {
-        // Web時：アドレスバー分を考慮
-        return {
-          flex: 1,
-          backgroundColor: "#F2F2F7",
-          height: "calc(100vh - env(keyboard-inset-height, 0px))" as any,
-          minHeight: "100vh" as any,
-        };
-      }
-    }
+  // シンプルなWeb/PWA対応 - CSSはindex.htmlに任せる
+  const getLayoutStyle = () => {
     return {
       flex: 1,
       backgroundColor: "#F2F2F7",
@@ -89,14 +49,11 @@ function RootLayoutNav() {
   return (
     <>
       <StatusBar style="light" backgroundColor={colors.primary} />
-      <SafeAreaView
-        style={getContainerStyle()}
-        edges={getSafeAreaEdges() as any}
-      >
+      <View style={getLayoutStyle()}>
         <Stack screenOptions={{ headerShown: false }}>
           <Slot />
         </Stack>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

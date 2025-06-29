@@ -13,13 +13,6 @@ export const styles = StyleSheet.create({
     width: "100%", // ヘッダーを画面幅いっぱいに
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
-    // PWA時の上部余白削除
-    ...(Platform.OS === "web" && {
-      marginTop: 0,
-      paddingTop: 10,
-      position: "relative" as any,
-      top: 0,
-    }),
   },
   leftContainer: {
     flexDirection: "row",

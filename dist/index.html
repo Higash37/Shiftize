@@ -65,25 +65,15 @@
       }
     </style>
 
-    <!-- PWA専用のスタイル -->
+    <!-- PWAシンプルスタイル -->
     <style id="pwa-mobile-fixes">
-      /* スクロールバー非表示（全体） */
-      *::-webkit-scrollbar {
-        display: none !important;
-        width: 0 !important;
-        height: 0 !important;
-      }
-      * {
-        -ms-overflow-style: none !important;
-        scrollbar-width: none !important;
-      }
-      
-      /* Web/PWA共通設定 */
+      /* 基本設定 */
       html, body {
         margin: 0 !important;
         padding: 0 !important;
         background-color: #F2F2F7 !important;
-        /* ズーム制御 */
+        width: 100% !important;
+        height: 100% !important;
         touch-action: manipulation !important;
         -webkit-user-select: none !important;
         user-select: none !important;
@@ -93,138 +83,34 @@
       
       #root {
         background-color: #F2F2F7 !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
       
-      /* PWA専用設定（余白完全削除） */
+      /* スクロールバー非表示 */
+      *::-webkit-scrollbar {
+        display: none !important;
+      }
+      * {
+        -ms-overflow-style: none !important;
+        scrollbar-width: none !important;
+      }
+      
+      /* PWA時のみ */
       @media (display-mode: standalone) {
-        html, body {
+        html, body, #root {
+          height: 100vh !important;
+          width: 100vw !important;
           overflow: hidden !important;
-          width: 100vw !important;
-          height: 100vh !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          position: relative !important; /* fixedからrelativeに変更 */
-        }
-        
-        #root {
-          overflow: auto !important; /* hiddenからautoに変更 */
-          width: 100vw !important;
-          height: 100vh !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          position: relative !important; /* fixedからrelativeに変更 */
-        }
-        
-        /* React NativeのコンテナとSafeAreaViewの余白削除 */
-        #root > div {
-          margin: 0 !important;
-          padding: 0 !important;
-          min-height: 100vh !important; /* 高さを確保 */
-        }
-        
-        /* SafeAreaViewとコンテナ要素の余白削除 */
-        [data-testid="safe-area-view"],
-        div[style*="paddingTop"],
-        div[style*="padding-top"],
-        div[style*="marginTop"],
-        div[style*="margin-top"] {
-          padding-top: 0 !important;
-          margin-top: 0 !important;
-        }
-        
-        [data-testid="safe-area-view"],
-        div[style*="paddingBottom"],
-        div[style*="padding-bottom"],
-        div[style*="marginBottom"],
-        div[style*="margin-bottom"] {
-          padding-bottom: 0 !important;
-          margin-bottom: 0 !important;
-        }
-        
-        /* Expo Router特有の要素への対応 */
-        div[data-expo="true"],
-        div[class*="expo-"],
-        div[id*="expo-"] {
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-        
-        /* より強力な余白削除（全ての子要素） - PWA時のみ */
-        * {
-          margin: 0 !important;
-          padding: 0 !important;
-          box-sizing: border-box !important;
-        }
-        
-        /* ただし、内部コンテンツの padding は保持 */
-        button, input, textarea, select,
-        [role="button"],
-        [data-testid*="button"],
-        [class*="button"] {
-          padding: revert !important;
-        }
-        
-        /* テキスト要素のマージンも保持 */
-        p, h1, h2, h3, h4, h5, h6, span, div[class*="text"],
-        [data-testid*="text"],
-        [class*="Text"] {
-          margin: revert !important;
-          padding: revert !important;
-        }
-        
-        /* ヘッダー・フッター周りの余白削除（強化版） */
-        header, footer,
-        div[role="banner"],
-        div[role="contentinfo"],
-        [data-testid*="header"],
-        [data-testid*="footer"] {
-          margin: 0 !important;
-          padding-left: 0 !important;
-          padding-right: 0 !important;
-        }
-        
-        /* 上下の余白のみ削除（ヘッダー上部・フッター下部） */
-        header:first-child,
-        div[role="banner"]:first-child,
-        [data-testid*="header"]:first-child {
-          margin-top: 0 !important;
-          padding-top: 0 !important;
-        }
-        
-        footer:last-child,
-        div[role="contentinfo"]:last-child,
-        [data-testid*="footer"]:last-child {
-          margin-bottom: 0 !important;
-          padding-bottom: 0 !important;
         }
       }
       
-      /* Web専用設定（PWA以外） */
-      @media not all and (display-mode: standalone) {
-        html, body {
-          height: auto !important;
-          min-height: 100vh !important;
-        }
-        
-        #root {
-          min-height: 100vh !important;
-          height: auto !important;
-        }
-      }
-      
-      /* スマホ全般（PWA + Web） */
+      /* スマホ対応 */
       @media (max-width: 768px) {
         html, body {
           overflow-x: hidden !important;
-        }
-        
-        /* より強力なズーム制御 */
-        body {
-          touch-action: manipulation !important;
-          -webkit-user-select: none !important;
-          user-select: none !important;
-          -webkit-touch-callout: none !important;
-          -webkit-tap-highlight-color: transparent !important;
         }
       }
     </style>
@@ -370,6 +256,6 @@
       window.addEventListener('load', applyPWAFixes);
       document.addEventListener('DOMContentLoaded', applyPWAFixes);
     </script>
-  <script src="/_expo/static/js/web/entry-9f95dfe59150df71f6bc340378f4eab0.js" defer></script>
+  <script src="/_expo/static/js/web/entry-fb9290ea26b0b0fc2762ed0a2ebaa0cd.js" defer></script>
 </body>
 </html>
