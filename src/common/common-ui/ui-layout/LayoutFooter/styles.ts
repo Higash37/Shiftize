@@ -16,12 +16,6 @@ export const styles = StyleSheet.create({
     width: "100%", // 画面端まで伸ばす
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    // PWA時のフッター位置調整
-    ...(Platform.OS === "web" && {
-      position: "relative" as any,
-      bottom: 0,
-      zIndex: 1000,
-    }),
   },
   tab: {
     flex: 1,

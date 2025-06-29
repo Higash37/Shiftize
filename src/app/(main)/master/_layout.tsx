@@ -2,7 +2,7 @@ import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
 import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
-import { View, ActivityIndicator, Platform } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { MasterFooter } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
@@ -55,17 +55,7 @@ export default function MasterLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View
-        style={{
-          flex: 1,
-          // PWA時にフッターがfixedになるため、コンテンツエリアを調整
-          ...(Platform.OS === "web" &&
-            typeof window !== "undefined" &&
-            window.matchMedia("(display-mode: standalone)").matches && {
-              paddingBottom: 80, // フッターの高さ分確保
-            }),
-        }}
-      >
+      <View style={{ flex: 1 }}>
         <Stack
           screenOptions={{
             headerShown: false, // デフォルトヘッダーを非表示にする
