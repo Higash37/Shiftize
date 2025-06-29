@@ -4,17 +4,18 @@
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
     />
     <title>%WEB_TITLE%</title>
 
     <!-- PWA 設定 -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="apple-mobile-web-app-title" content="シフト管理" />
-    <meta name="theme-color" content="#F2F2F7" />
-    <meta name="msapplication-navbutton-color" content="#F2F2F7" />
   
 
     <link rel="apple-touch-icon" href="/PWAIcon180x180.png" />
@@ -28,7 +29,7 @@
         height: 100%;
         top: 0;
         left: 0;
-        background-color: #F2F2F7; /* PWA統一色 */
+        background-color: #F2F2F7; /* 青色から白色に変更 */
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -65,66 +66,6 @@
       }
     </style>
 
-    <!-- PWAシンプルスタイル -->
-    <style id="pwa-mobile-fixes">
-      /* 基本設定 */
-      html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        background-color: #F2F2F7 !important;
-        width: 100% !important;
-        height: 100% !important;
-        touch-action: manipulation !important;
-        -webkit-user-select: none !important;
-        user-select: none !important;
-        -webkit-touch-callout: none !important;
-        -webkit-tap-highlight-color: transparent !important;
-      }
-      
-      #root {
-        background-color: #F2F2F7 !important;
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      
-      /* スクロールバー非表示 */
-      *::-webkit-scrollbar {
-        display: none !important;
-      }
-      * {
-        -ms-overflow-style: none !important;
-        scrollbar-width: none !important;
-      }
-      
-      /* PWA時のみ */
-      @media (display-mode: standalone) {
-        html, body, #root {
-          height: 100vh !important;
-          width: 100vw !important;
-          overflow: hidden !important;
-        }
-        
-        /* PWA時もフッターは自然な位置に */
-        footer,
-        [data-testid*="footer"],
-        div[style*="flexDirection: row"][style*="backgroundColor"] {
-          position: relative !important;
-          bottom: auto !important;
-          margin-bottom: 0 !important;
-          padding-bottom: 0 !important;
-        }
-      }
-      
-      /* スマホ対応 */
-      @media (max-width: 768px) {
-        html, body {
-          overflow-x: hidden !important;
-        }
-      }
-    </style>
-
     <!-- その他のスタイルとスクリプト -->
     <style id="expo-reset">
       html,
@@ -134,9 +75,10 @@
         margin: 0;
         padding: 0;
         width: 100%;
-        background-color: #F2F2F7; /* PWA用に統一 */
+        background-color: white;
         overscroll-behavior: none;
         touch-action: manipulation;
+        /* Removed position: fixed and overflow: hidden */
       }
       #root {
         display: flex;
@@ -145,23 +87,15 @@
         flex-direction: column;
         overscroll-behavior: none;
         touch-action: manipulation;
-        background-color: #F2F2F7; /* PWA用に統一 */
       }
       body {
         height: calc(var(--vh, 1vh) * 100);
       }
       
-      /* PWA時のexpo-reset調整 */
+      /* PWA時のフッター下余白調整 */
       @media (display-mode: standalone) {
-        html, body {
-          height: 100vh !important;
-          min-height: 100vh !important;
-        }
-        #root {
-          height: 100vh !important;
-        }
         body {
-          height: 100vh !important;
+          padding-bottom: 20px !important; /* 80px から 20px に変更 */
         }
       }
     </style>
@@ -195,7 +129,7 @@
         }, 1); // 0.01秒後にスプラッシュスクリーンを非表示
       });
       
-      // タッチ操作の防止（強化版）
+      // タッチ操作の防止
       document.addEventListener('touchmove', function(e) {
         if (e.touches.length > 1) {
           e.preventDefault(); // ピンチジェスチャーを防止
@@ -208,7 +142,7 @@
         }
       }, { passive: false });
       
-      // ダブルタップによるズームを防止（強化版）
+      // ダブルタップによるズームを防止
       let lastTap = 0;
       document.addEventListener('touchend', function(e) {
         const now = new Date().getTime();
@@ -218,33 +152,6 @@
         }
         lastTap = now;
       }, { passive: false });
-
-      // Gestureイベントによるズーム防止
-      document.addEventListener('gesturestart', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-
-      document.addEventListener('gesturechange', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-
-      document.addEventListener('gestureend', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-
-      // Wheelイベントでのズーム防止
-      document.addEventListener('wheel', function(e) {
-        if (e.ctrlKey) {
-          e.preventDefault();
-        }
-      }, { passive: false });
-
-      // キーボードによるズーム防止
-      document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '0')) {
-          e.preventDefault();
-        }
-      });
 
       function setAppHeight() {
         document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -260,24 +167,6 @@
 
       window.addEventListener('resize', adjustHeight);
       window.addEventListener('load', adjustHeight);
-
-      // PWA専用の背景色設定
-      function applyPWAFixes() {
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-          document.body.style.backgroundColor = '#F2F2F7';
-          document.documentElement.style.backgroundColor = '#F2F2F7';
-          
-          const rootElement = document.getElementById('root');
-          if (rootElement) {
-            rootElement.style.backgroundColor = '#F2F2F7';
-          }
-        }
-      }
-
-      // PWA設定の適用
-      applyPWAFixes();
-      window.addEventListener('load', applyPWAFixes);
-      document.addEventListener('DOMContentLoaded', applyPWAFixes);
     </script>
   </body>
 </html>

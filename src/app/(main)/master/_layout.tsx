@@ -55,6 +55,7 @@ export default function MasterLayout() {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* メインコンテンツエリア - フッター分を除いた高さ */}
       <View style={{ flex: 1 }}>
         <Stack
           screenOptions={{
@@ -66,6 +67,7 @@ export default function MasterLayout() {
           <Slot />
         </Stack>
       </View>
+      {/* フッター - 固定サイズ */}
       <MasterFooter />
       <Toast />
     </View>

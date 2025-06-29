@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 0,
     borderBottomLeftRadius: layout.borderRadius.large,
     borderBottomRightRadius: layout.borderRadius.large,
+    minHeight: Platform.OS === "web" ? 120 : undefined, // PWA時の固定高さ
   },
   logo: {
     fontSize: typography.fontSize.xxlarge + 8, // 32px equivalent
@@ -111,7 +112,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: Platform.OS === "web" ? "flex-start" : "center", // PWA時は上揃え
+    paddingTop: Platform.OS === "web" ? layout.padding.large : 0, // PWA時の上部余白
+    overflow: Platform.OS === "web" ? "hidden" : "visible", // PWA時のoverflow制御
   },
   welcomeText: {
     fontSize: typography.fontSize.xxlarge,
@@ -136,7 +139,9 @@ const styles = StyleSheet.create({
   buttonDesktop: {
     width: "40%",
   },
-  footer: {},
+  footer: {
+    minHeight: Platform.OS === "web" ? 80 : undefined, // PWA時の固定高さ
+  },
   footerText: {
     fontSize: typography.fontSize.small + 2, // 14px equivalent
     color: colors.text.disabled,
