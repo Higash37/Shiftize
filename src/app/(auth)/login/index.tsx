@@ -47,7 +47,11 @@ export default function Login() {
 
   // レスポンシブヘッダースタイル
   const getHeaderStyle = () => {
-    const baseStyle = designSystem.layout.headerPrimary;
+    const baseStyle = {
+      ...designSystem.layout.headerPrimary,
+      borderTopLeftRadius: 0, // 上部角丸を明示的に削除
+      borderTopRightRadius: 0, // 上部角丸を明示的に削除
+    };
 
     if (isDesktop) {
       // PC: 高さをさらに小さく（30%さらに縮小）

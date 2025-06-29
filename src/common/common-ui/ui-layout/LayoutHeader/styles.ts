@@ -11,12 +11,15 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     width: "100%", // ヘッダーを画面幅いっぱいに
-    margin: 0, // PWA対応: 余白をリセット
-    borderRadius: 0, // PWA対応: 角丸をリセット
-    borderTopLeftRadius: 0, // PWA対応: 個別指定
-    borderTopRightRadius: 0, // PWA対応: 個別指定
-    borderBottomLeftRadius: 0, // PWA対応: 個別指定
-    borderBottomRightRadius: 0, // PWA対応: 個別指定
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    // PWA時の上部余白削除
+    ...(Platform.OS === "web" && {
+      marginTop: 0,
+      paddingTop: 10,
+      position: "relative" as any,
+      top: 0,
+    }),
   },
   leftContainer: {
     flexDirection: "row",

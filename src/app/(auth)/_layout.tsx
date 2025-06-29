@@ -2,6 +2,57 @@ import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
 import { useAuth } from "@/services/auth/useAuth";
 import { useRouter } from "expo-router";
+import { View, Platform } from "react-native";
+
+// Web/PWA環境でのズーム制御
+if (typeof document !== "undefined") {
+  // ダブルタップズーム防止
+  let lastTap = 0;
+  document.addEventListener(
+    "touchend",
+    function (e) {
+      const now = Date.now();
+      if (now - lastTap <= 300) {
+        e.preventDefault();
+      }
+      lastTap = now;
+    },
+    { passive: false }
+  );
+
+  // ピンチズーム防止
+  document.addEventListener(
+    "touchmove",
+    function (e) {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  document.addEventListener(
+    "touchstart",
+    function (e) {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  document.addEventListener("gesturestart", function (e) {
+    e.preventDefault();
+  });
+
+  document.addEventListener("gesturechange", function (e) {
+    e.preventDefault();
+  });
+
+  document.addEventListener("gestureend", function (e) {
+    e.preventDefault();
+  });
+}
 
 export default function AuthLayout() {
   const { user, role, loading, authError } = useAuth();
@@ -45,9 +96,24 @@ export default function AuthLayout() {
     checkAuth();
   }, [user, role, loading, authError]);
 
+  const webContainerStyle =
+    Platform.OS === "web"
+      ? {
+          margin: 0,
+          padding: 0,
+          height: "100vh" as any,
+          width: "100vw" as any,
+          position: "fixed" as any,
+          top: 0,
+          left: 0,
+        }
+      : {};
+
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Slot />
-    </Stack>
+    <View style={[{ flex: 1 }, webContainerStyle]}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Slot />
+      </Stack>
+    </View>
   );
 }
