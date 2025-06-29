@@ -101,11 +101,6 @@ export default function AuthLayout() {
       ? {
           margin: 0,
           padding: 0,
-          height: "100vh" as any,
-          width: "100vw" as any,
-          position: "fixed" as any,
-          top: 0,
-          left: 0,
         }
       : {};
 
