@@ -127,15 +127,18 @@ export function Footer({}: FooterProps) {
           );
         })}
       </View>
-      {isStandalonePWA() && (
-        <View
-          style={{
-            height: 10,
-            width: "100%",
-            backgroundColor: colors.background,
-          }}
-        />
-      )}
+      {isStandalonePWA() &&
+        (typeof window !== "undefined" && window.document ? (
+          <div className="pwa-footer-safearea" />
+        ) : (
+          <View
+            style={{
+              height: 10,
+              width: "100%",
+              backgroundColor: colors.background,
+            }}
+          />
+        ))}
     </>
   );
 }
