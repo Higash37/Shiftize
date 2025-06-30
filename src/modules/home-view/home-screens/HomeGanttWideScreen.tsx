@@ -9,6 +9,8 @@ import {
 import { styles } from "../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../home-types/home-view-types";
 import { GanttHeaderRow } from "../home-components/home-gantt/GanttHeaderRow";
+import { colors } from "@/common/common-theme/ThemeColors";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface Props {
   namesFirst: string[];
@@ -122,21 +124,33 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
                         width: cellWidthFirst * span,
                         height: cellHeightFirst,
                         backgroundColor:
-                          slot.type === "class"
-                            ? "#eee"
-                            : slot.color || "#e3f2fd",
+                          slot.type === "class" ? "#eee" : undefined, // スタッフのときは背景色なし
                         borderColor:
-                          slot.type === "class"
-                            ? "#bbb"
-                            : slot.color || "#90caf9",
+                          slot.type === "class" ? "#bbb" : colors.primary, // スタッフのときは青枠
                         borderWidth: 1,
                         justifyContent: "center",
                         alignItems: "center",
+                        flexDirection: "row", // アイコンとテキストを横並び
                       },
                     ]}
                     onPress={() => onCellPress && onCellPress(name)}
                   >
-                    <Text style={styles.taskText}>
+                    <MaterialIcons
+                      name={slot.type === "class" ? "school" : "person"}
+                      size={16}
+                      color={
+                        slot.type === "class"
+                          ? colors.text.secondary
+                          : colors.primary
+                      }
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={[
+                        styles.taskText,
+                        slot.type !== "class" && { color: colors.primary }, // スタッフのときは青文字
+                      ]}
+                    >
                       {slot.task || ""} {slot.start}~{slot.end}
                     </Text>
                   </Pressable>

@@ -48,7 +48,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
       color: slot
         ? slot.type === "class"
           ? "#eee"
-          : slot.color || "#e3f2fd"
+          : undefined // スタッフのときは背景色なし
         : undefined,
       type: slot ? slot.type : undefined,
     });

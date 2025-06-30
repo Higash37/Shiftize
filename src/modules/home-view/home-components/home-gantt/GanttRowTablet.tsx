@@ -2,6 +2,8 @@ import React from "react";
 import { View, Text } from "react-native";
 import { styles } from "../../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../../home-types/home-view-types";
+import { colors } from "@/common/common-theme/ThemeColors";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface GanttRowTabletProps {
   time: string;
@@ -53,23 +55,41 @@ export const GanttRowTablet: React.FC<GanttRowTabletProps> = ({
                 backgroundColor: slot
                   ? slot.type === "class"
                     ? "#eee"
-                    : slot.color || "#e3f2fd"
+                    : undefined // スタッフのときは背景色なし
                   : undefined,
                 borderColor: slot
                   ? slot.type === "class"
                     ? "#bbb"
-                    : slot.color || "#90caf9"
+                    : colors.primary // スタッフのときは青枠
                   : undefined,
                 borderWidth: slot ? 1 : 0,
                 opacity: slot ? 1 : 0.1,
                 justifyContent: "center",
                 alignItems: "center",
+                flexDirection: "row", // アイコンとテキストを横並び
               },
             ]}
             onTouchEnd={() => onCellPress && onCellPress(name)}
           >
+            {slot && (
+              <MaterialIcons
+                name={slot.type === "class" ? "school" : "person"}
+                size={16}
+                color={
+                  slot.type === "class" ? colors.text.secondary : colors.primary
+                }
+                style={{ marginRight: 4 }}
+              />
+            )}
             {slot && slot.task && (
-              <Text style={styles.taskText}>{slot.task}</Text>
+              <Text
+                style={[
+                  styles.taskText,
+                  slot.type !== "class" && { color: colors.primary }, // スタッフのときは青文字
+                ]}
+              >
+                {slot.task}
+              </Text>
             )}
           </View>
         );
