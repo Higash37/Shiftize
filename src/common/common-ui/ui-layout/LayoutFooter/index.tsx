@@ -97,35 +97,46 @@ export function Footer({}: FooterProps) {
   };
 
   return (
-    <View style={[styles.footer, isStandalonePWA() && { marginBottom: 5 }]}>
-      {user_TABS.map((tab) => {
-        const active = pathname === tab.path;
-        return (
-          <TouchableOpacity
-            key={tab.name}
-            style={[
-              styles.tab,
-              tab.name === "create" && styles.createTab,
-              tab.isUnderDevelopment && styles.disabledTab,
-            ]}
-            onPress={() => handleTabPress(tab)}
-            disabled={tab.isUnderDevelopment}
-          >
-            {tab.icon(active)}
-            <Text
+    <>
+      <View style={styles.footer}>
+        {user_TABS.map((tab) => {
+          const active = pathname === tab.path;
+          return (
+            <TouchableOpacity
+              key={tab.name}
               style={[
-                styles.label,
-                active && styles.activeLabel,
-                tab.name === "create" && styles.createLabel,
-                tab.isUnderDevelopment && styles.disabledLabel,
+                styles.tab,
+                tab.name === "create" && styles.createTab,
+                tab.isUnderDevelopment && styles.disabledTab,
               ]}
+              onPress={() => handleTabPress(tab)}
+              disabled={tab.isUnderDevelopment}
             >
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
+              {tab.icon(active)}
+              <Text
+                style={[
+                  styles.label,
+                  active && styles.activeLabel,
+                  tab.name === "create" && styles.createLabel,
+                  tab.isUnderDevelopment && styles.disabledLabel,
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      {isStandalonePWA() && (
+        <View
+          style={{
+            height: 5,
+            width: "100%",
+            backgroundColor: colors.background,
+          }}
+        />
+      )}
+    </>
   );
 }
 
