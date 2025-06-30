@@ -130,7 +130,7 @@ export function Footer({}: FooterProps) {
       {isStandalonePWA() && (
         <View
           style={{
-            height: 5,
+            height: 10,
             width: "100%",
             backgroundColor: colors.background,
           }}
