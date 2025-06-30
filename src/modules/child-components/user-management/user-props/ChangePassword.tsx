@@ -122,6 +122,13 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
           loading={isLoading}
           disabled={isLoading}
         />
+        <Button
+          title="キャンセル"
+          onPress={onComplete || (() => {})}
+          disabled={isLoading}
+          style={{ marginTop: 8 }}
+          variant="secondary"
+        />
       </View>
     </View>
   );

@@ -47,7 +47,6 @@ export const CreateGroupSuccessScreen: React.FC = () => {
   const handleGoToManagement = async () => {
     if (isAuthenticated && user) {
       // 既にログイン済みの場合は直接管理画面へ
-      console.log("既にログイン済み、管理画面へ遷移:", user);
       router.replace("/(main)/master");
     } else {
       // ログインが必要な場合はログイン画面へ

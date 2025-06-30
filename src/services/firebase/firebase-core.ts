@@ -27,12 +27,6 @@ const FirebaseCore = (() => {
     appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
   };
 
-  console.log("Firebase設定確認:", {
-    projectId: firebaseConfig.projectId,
-    authDomain: firebaseConfig.authDomain,
-    hasApiKey: !!firebaseConfig.apiKey,
-  });
-
   // アプリ初期化
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);

@@ -56,20 +56,6 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
   const [selectedShift, setSelectedShift] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
 
-  // デバッグ用ログ
-  console.log("ShiftEditCardView props:", {
-    shiftsCount: shifts.length,
-    usersCount: users.length,
-    daysCount: days.length,
-    currentYearMonth,
-    deletedShiftsCount: shifts.filter(
-      (s) => s.status === "deleted" || s.status === "purged"
-    ).length,
-    activeShiftsCount: shifts.filter(
-      (s) => s.status !== "deleted" && s.status !== "purged"
-    ).length,
-  });
-
   const getShiftsForDate = (date: string) => {
     const dateShifts = shifts.filter((shift) => {
       // 削除されていないシフトのみを表示
@@ -78,7 +64,6 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
       const matchesDate = shift.date === date;
       return isNotDeleted && matchesDate;
     });
-    console.log(`Active edit shifts for date ${date}:`, dateShifts); // デバッグ用
     return dateShifts;
   };
 
@@ -159,8 +144,6 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
     const startTime = formatTime(shift.startTime);
     const endTime = formatTime(shift.endTime);
 
-    console.log("Rendering edit shift card:", shift); // デバッグ用
-
     return (
       <View
         key={shift.id}
@@ -172,7 +155,6 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
         <TouchableOpacity
           style={styles.shiftContent}
           onPress={() => {
-            console.log("Edit shift card pressed:", shift); // デバッグ用
             openEditModal(shift);
           }}
           activeOpacity={0.7}
@@ -193,7 +175,6 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
           <TouchableOpacity
             style={[styles.actionButton, styles.editButton]}
             onPress={() => {
-              console.log("Edit button pressed:", shift); // デバッグ用
               openEditModal(shift);
             }}
             activeOpacity={0.7}

@@ -177,14 +177,12 @@ export const ShiftService = {
   ): Promise<void> => {
     try {
       const shiftRef = doc(db, "shifts", id);
-      console.log("Updating shift with tasks:", { id, tasks, comments }); // ログ追加
       await updateDoc(shiftRef, {
         tasks,
         comments,
         status: "completed", // ステータスを完了に更新
         updatedAt: serverTimestamp(),
       });
-      console.log("Shift updated successfully:", { id, tasks, comments }); // 成功ログ
     } catch (error) {
       console.error("シフトの更新に失敗しました:", error);
       throw error;

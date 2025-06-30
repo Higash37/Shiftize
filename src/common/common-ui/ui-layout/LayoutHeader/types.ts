@@ -2,6 +2,7 @@ import { HeaderBaseProps } from "../types";
 
 export interface HeaderProps extends HeaderBaseProps {
   // ここに追加のプロパティがあれば定義する
+  onPressSettings?: () => void;
 }
 
 export interface MasterHeaderProps extends HeaderBaseProps {

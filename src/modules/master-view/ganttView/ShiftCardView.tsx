@@ -32,20 +32,6 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
 
-  // デバッグ用ログ
-  console.log("ShiftCardView props:", {
-    shiftsCount: shifts.length,
-    usersCount: users.length,
-    daysCount: days.length,
-    currentYearMonth,
-    deletedShiftsCount: shifts.filter(
-      (s) => s.status === "deleted" || s.status === "purged"
-    ).length,
-    activeShiftsCount: shifts.filter(
-      (s) => s.status !== "deleted" && s.status !== "purged"
-    ).length,
-  });
-
   const getShiftsForDate = (date: string) => {
     const dateShifts = shifts.filter((shift) => {
       // 削除されていないシフトのみを表示
@@ -54,7 +40,6 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
       const matchesDate = shift.date === date;
       return isNotDeleted && matchesDate;
     });
-    console.log(`Active shifts for date ${date}:`, dateShifts); // デバッグ用
     return dateShifts;
   };
 
@@ -87,8 +72,6 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
     const startTime = formatTime(shift.startTime);
     const endTime = formatTime(shift.endTime);
 
-    console.log("Rendering shift card:", shift); // デバッグ用
-
     return (
       <TouchableOpacity
         key={shift.id}
@@ -97,7 +80,6 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
           { borderLeftColor: user?.color || colors.primary },
         ]}
         onPress={() => {
-          console.log("Shift card pressed:", shift); // デバッグ用
           onShiftPress(shift);
         }}
         activeOpacity={0.7}

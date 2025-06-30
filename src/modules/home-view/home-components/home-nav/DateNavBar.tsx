@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { styles } from "../../home-styles/home-view-styles";
+import { FontAwesome } from "@expo/vector-icons";
 
 interface DateNavBarProps {
   isMobile: boolean;
@@ -10,6 +11,7 @@ interface DateNavBarProps {
   onNextDay: () => void;
   dateLabel: string;
   onOpenDatePicker: () => void;
+  onPressSettings?: () => void;
 }
 
 export const DateNavBar: React.FC<DateNavBarProps> = ({
@@ -20,6 +22,7 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
   onNextDay,
   dateLabel,
   onOpenDatePicker,
+  onPressSettings,
 }) => (
   <View
     style={[
@@ -73,7 +76,15 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
         <Text style={styles.dateNavBtn}>{">"}</Text>
       </Pressable>
     </View>
-    {/* 右端スペース調整用 */}
-    <View style={{ width: 80 }} />
+    {/* 右端：設定アイコン */}
+    <View
+      style={{ width: 80, alignItems: "flex-end", justifyContent: "center" }}
+    >
+      {onPressSettings && (
+        <Pressable onPress={onPressSettings} style={{ padding: 8 }}>
+          <FontAwesome name="cog" size={24} color="#1976d2" />
+        </Pressable>
+      )}
+    </View>
   </View>
 );

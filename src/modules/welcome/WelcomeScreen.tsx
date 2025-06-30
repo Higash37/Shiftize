@@ -22,7 +22,6 @@ export const WelcomeScreen: React.FC = () => {
   const isDesktop = isWeb && width > 768; // PC画面の判定
   const handleCreateGroup = () => {
     // 新規グループ作成画面に遷移
-    console.log("新規グループ作成");
     router.push("/(auth)/create-group");
   };
 

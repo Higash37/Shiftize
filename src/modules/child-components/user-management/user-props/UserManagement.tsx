@@ -56,7 +56,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
     setLoading(true);
     try {
       // 実際にFirebaseからユーザーを削除する処理が入る
-      console.log(`ユーザー削除: ${userId}`);
 
       // 削除後に一覧を更新
       setUserList(userList.filter((user: User) => user.uid !== userId));
@@ -78,7 +77,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
     try {
       if (selectedUser) {
         // 既存ユーザーの更新処理（実際には実装しない）
-        console.log("ユーザー更新:", { ...data, uid: selectedUser.uid });
 
         // ユーザー一覧を更新
         const updatedUsers = userList.map((user: User) =>
@@ -90,7 +88,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
       } else {
         // 新規ユーザーの追加処理（実際には実装しない）
         const newUserId = `user_${Date.now()}`;
-        console.log("ユーザー追加:", { ...data, uid: newUserId });
 
         // 追加したユーザーを一覧に追加
         const newUser: User = {

@@ -18,7 +18,6 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
   timePerTask,
   onPress,
 }) => {
-  console.log("Rendering TaskCardComponent with title:", title);
   return (
     <TouchableOpacity onPress={onPress} style={styles.touchable}>
       <Box

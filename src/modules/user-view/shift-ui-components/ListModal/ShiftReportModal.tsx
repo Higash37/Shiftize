@@ -52,10 +52,7 @@ const ShiftReportModal = ({
           formattedTasks,
           comments
         );
-        console.log("報告が保存され、ステータスが完了に更新されました:", {
-          taskCounts,
-          comments,
-        });
+
         fetchShifts();
         setReportModalVisible(false);
       } catch (error) {

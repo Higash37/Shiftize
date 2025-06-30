@@ -4,13 +4,14 @@ import {
   Animated,
   ActivityIndicator,
   useWindowDimensions,
+  Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { useAuth } from "@/services/auth/useAuth";
-import { Header } from "@/common/common-ui/ui-layout";
+import { Header, Footer } from "@/common/common-ui/ui-layout";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { designSystem } from "@/common/common-constants/DesignSystem";
 import type { ShiftData, ShiftCreateFormProps } from "./types";
@@ -19,6 +20,7 @@ import ShiftCreateFormContent from "./ShiftCreateFormContent";
 import type { UserData } from "@/services/firebase/firebase";
 import type { Shift } from "@/common/common-models/ModelIndex";
 import type { FlexAlignType } from "react-native";
+import ChangePassword from "@/modules/child-components/user-management/user-props/ChangePassword";
 
 export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   initialMode,
@@ -73,6 +75,8 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         alignSelf: "center" as FlexAlignType,
       } // PC用スタイル
     : styles.container; // その他のデバイス用スタイル
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   // ユーザーデータを取得
   useEffect(() => {
@@ -290,7 +294,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           });
         } else {
           // 新規作成の場合はuseShiftのcreateShiftメソッドを使用
-          console.log("ShiftCreateForm: 新規シフト作成", shiftObject); // デバッグログ
           await createShift(shiftObject);
         }
       }
@@ -317,7 +320,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   };
 
   const handleDeleteShift = async () => {
-    console.log("initialShiftId:", initialShiftId);
     if (!isEditMode || !initialShiftId) return;
 
     try {
@@ -333,20 +335,17 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
             status: "deleted",
             updatedAt: serverTimestamp(),
           });
-          console.log("Shift immediately deleted for status: pending");
         } else {
           // それ以外は削除申請
           await updateDoc(doc(db, "shifts", initialShiftId), {
             status: "deletion_requested",
             updatedAt: serverTimestamp(),
           });
-          console.log("Deletion requested for shiftId:", initialShiftId);
         }
 
         // Firestoreの更新結果を確認
         const updatedShiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
         if (updatedShiftDoc.exists()) {
-          console.log("Updated shift status:", updatedShiftDoc.data().status);
         } else {
           console.error("Shift document not found after update.");
         }
@@ -370,10 +369,19 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           title={isEditMode ? "シフト編集" : "シフト作成"}
           showBackButton
           onBack={() => router.back()}
+          onPressSettings={() => setShowPasswordModal(true)}
         />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
+        <Modal
+          visible={showPasswordModal}
+          animationType="slide"
+          onRequestClose={() => setShowPasswordModal(false)}
+        >
+          <ChangePassword onComplete={() => setShowPasswordModal(false)} />
+          <Footer />
+        </Modal>
       </View>
     );
   }
@@ -381,8 +389,19 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   return (
     <>
       <View style={{ width: "100%" }}>
-        <Header title="シフト作成" />
+        <Header
+          title="シフト作成"
+          onPressSettings={() => setShowPasswordModal(true)}
+        />
       </View>
+      <Modal
+        visible={showPasswordModal}
+        animationType="slide"
+        onRequestClose={() => setShowPasswordModal(false)}
+      >
+        <ChangePassword onComplete={() => setShowPasswordModal(false)} />
+        <Footer />
+      </Modal>
       <ShiftCreateFormContent
         containerStyle={containerStyle}
         selectedDate={selectedDate}

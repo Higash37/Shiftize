@@ -48,7 +48,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
         if (savedStoreId) {
           setStoreIdAndUsername(savedStoreId); // 保存された店舗IDを初期値に設定
           setSaveStoreId(true);
-          console.log("保存された店舗IDを読み込みました:", savedStoreId);
         }
       } catch (error) {
         console.error("保存された店舗IDの読み込みに失敗しました:", error);
@@ -86,11 +85,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
 
     if (onLogin) {
       try {
-        console.log("ログインフォームから送信:", {
-          username,
-          storeId,
-          saveStoreId,
-        });
         await onLogin(username, password, storeId);
 
         // 店舗ID保存の設定に応じて処理

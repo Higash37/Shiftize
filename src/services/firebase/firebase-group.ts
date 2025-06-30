@@ -41,14 +41,9 @@ export const GroupService = {
    */
   checkStoreIdExists: async (storeId: string): Promise<boolean> => {
     try {
-      console.log("Firebase店舗ID確認開始:", storeId);
       const storeDoc = await getDoc(doc(db, "stores", storeId));
       const exists = storeDoc.exists();
-      console.log("Firebase店舗ID確認結果:", {
-        storeId,
-        exists,
-        docData: exists ? storeDoc.data() : null,
-      });
+
       return exists;
     } catch (error: any) {
       console.error("店舗ID確認エラー:", {
@@ -97,15 +92,8 @@ export const GroupService = {
    */
   createGroup: async (data: CreateGroupData): Promise<GroupCreationResult> => {
     try {
-      console.log("グループ作成開始:", data);
-
       // 1. 店舗IDの重複チェック
-      console.log("最終重複チェック開始:", data.storeId);
       const storeIdExists = await GroupService.checkStoreIdExists(data.storeId);
-      console.log("最終重複チェック結果:", {
-        storeId: data.storeId,
-        exists: storeIdExists,
-      });
 
       if (storeIdExists) {
         console.error("店舗ID重複エラー:", data.storeId);
@@ -155,8 +143,6 @@ export const GroupService = {
 
       // 7. 初期メンバーを作成（もしあれば）
       if (data.initialMembers && data.initialMembers.length > 0) {
-        console.log("初期メンバー作成開始:", data.initialMembers.length);
-
         for (const member of data.initialMembers) {
           try {
             // バリデーション
@@ -200,8 +186,6 @@ export const GroupService = {
               updatedAt: serverTimestamp(),
               isActive: true,
             });
-
-            console.log("メンバー作成成功:", member.nickname);
           } catch (memberError: any) {
             console.error(
               "メンバー作成エラー:",
@@ -212,11 +196,6 @@ export const GroupService = {
           }
         }
       }
-
-      console.log("グループ作成成功:", {
-        storeId: data.storeId,
-        adminUid: adminUser.uid,
-      });
 
       return {
         success: true,

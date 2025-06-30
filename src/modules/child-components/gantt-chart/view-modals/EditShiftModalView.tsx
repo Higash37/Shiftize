@@ -50,10 +50,6 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
 
   const [isAddingClassTime, setIsAddingClassTime] = React.useState(false);
 
-  // デバッグログを追加
-  console.log("ユーザー配列:", users);
-  console.log("選択されたユーザーID:", newShiftData.userId);
-
   return (
     <Modal
       visible={visible}

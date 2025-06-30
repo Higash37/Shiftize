@@ -26,7 +26,6 @@ export const useAuth = () => {
   const [authError, setAuthError] = useState<string | null>(null);
 
   const signIn = async (email: string, password: string, storeId: string) => {
-    console.log("signIn関数が呼び出されました", { email, storeId });
     setAuthError(null);
 
     try {
@@ -35,17 +34,11 @@ export const useAuth = () => {
       const userQuery = query(usersRef, where("email", "==", email));
       const userSnapshot = await getDocs(userQuery);
 
-      console.log("Firestoreクエリ結果:", {
-        isEmpty: userSnapshot.empty,
-        docCount: userSnapshot.docs.length,
-      });
-
       if (userSnapshot.empty) {
         throw new Error("ユーザーが見つかりません");
       }
 
       const userData = userSnapshot.docs[0].data();
-      console.log("取得したユーザーデータ:", userData);
 
       // 削除フラグを確認
       if (userData.deleted) {
@@ -61,24 +54,16 @@ export const useAuth = () => {
         throw new Error("店舗IDが一致しません");
       }
 
-      // currentPasswordと入力されたパスワードを照合
-      console.log("パスワード照合:", {
-        inputPassword: password,
-        currentPassword: userData.currentPassword,
-      });
-
       if (userData.currentPassword !== password) {
         throw new Error("パスワードが正しくありません");
       }
 
       // Firebase Authでのログイン（入力されたパスワードを使用）
-      console.log("Firebase Auth認証開始");
       const userCredential = await signInWithEmailAndPassword(
         getAuth(),
         email,
         password
       );
-      console.log("Firebase Auth認証成功", userCredential);
 
       setUser({
         uid: userCredential.user.uid,
@@ -90,7 +75,6 @@ export const useAuth = () => {
       setRole(userData.role);
       setStoreId(userData.storeId);
       setAuthError(null);
-      console.log("ユーザー情報が設定されました", { userData });
     } catch (error: any) {
       console.error("signIn関数内でエラーが発生しました", error);
       setUser(null);
@@ -117,22 +101,9 @@ export const useAuth = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(getAuth(), async (firebaseUser) => {
-      // デバッグ時のみログを出力
-      if (__DEV__) {
-        console.log("onAuthStateChanged triggered:", {
-          hasUser: !!firebaseUser,
-          uid: firebaseUser?.uid,
-          currentStoreId: storeId,
-        });
-      }
-
       if (firebaseUser) {
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
         const userData = userDoc.data();
-
-        if (__DEV__) {
-          console.log("Firestore user data:", userData);
-        }
 
         if (userData) {
           // 削除フラグを確認
@@ -160,11 +131,6 @@ export const useAuth = () => {
           setRole(userData.role);
           setStoreId(userStoreId);
           setAuthError(null); // 成功時はエラーをクリア
-          console.log("ユーザー状態を設定:", {
-            uid: firebaseUser.uid,
-            storeId: userStoreId,
-            role: userData.role,
-          });
         } else {
           console.error("ユーザー情報が見つかりません。");
           // Firebase認証をログアウト
@@ -175,10 +141,6 @@ export const useAuth = () => {
           setAuthError("ユーザー情報が見つかりません。");
         }
       } else {
-        // ログアウト時のログは初回のみ表示
-        if (user) {
-          console.log("ユーザーがログアウトしました");
-        }
         setUser(null);
         setRole(null);
         setStoreId(null);

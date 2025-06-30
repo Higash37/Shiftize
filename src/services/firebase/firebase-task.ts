@@ -27,10 +27,6 @@ export const TaskService = {
 
   getTasks: async (storeId?: string) => {
     const querySnapshot = await getDocs(collection(db, "tasks"));
-    console.log(
-      "Firebase tasks snapshot:",
-      querySnapshot.docs.map((doc) => doc.data())
-    );
 
     let tasks = querySnapshot.docs.map((doc) => ({
       id: doc.id,

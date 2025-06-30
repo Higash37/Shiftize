@@ -366,7 +366,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
 
     // シフトがない場合は0を返す
     if (!shifts || shifts.length === 0) {
-      console.log("シフトがありません - 計算結果: 0円");
       return {
         totalHours: 0,
         totalAmount: 0,
@@ -393,9 +392,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           shift.status === "completed")
       );
     });
-    console.log(
-      `計算対象: 全シフト ${shifts.length}件中、選択月(${selectedYear}年${selectedMonth}月)の承認済み・承認待ち ${targetShifts.length}件`
-    );
 
     targetShifts.forEach((shift) => {
       // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）

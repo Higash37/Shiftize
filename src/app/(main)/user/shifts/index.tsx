@@ -5,7 +5,6 @@ import Header from "@/common/common-ui/ui-layout/LayoutHeader";
 export default function UserShiftsScreen() {
   return (
     <>
-      <Header title="シフト一覧" />
       <UserShiftList />
     </>
   );

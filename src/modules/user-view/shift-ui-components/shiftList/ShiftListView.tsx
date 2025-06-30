@@ -31,6 +31,7 @@ import { modalStyles } from "../ListModal/ModalStyles";
 import ShiftModal from "../ListModal/ShiftModal";
 import ShiftReportModal from "../ListModal/ShiftReportModal";
 import TaskModal from "../ListModal/TaskModal";
+import ChangePassword from "@/modules/child-components/user-management/user-props/ChangePassword";
 
 export const UserShiftList = () => {
   const router = useRouter();
@@ -59,6 +60,7 @@ export const UserShiftList = () => {
   const shiftRefs = useRef<{ [key: string]: any }>({}).current;
   const { width, height } = useWindowDimensions();
   const isTablet = width >= 768 && width < 1024; // タブレット判定
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   // 画面がフォーカスされた時にデータを更新
   useEffect(() => {
@@ -71,11 +73,6 @@ export const UserShiftList = () => {
 
   // 初回マウント時にデータを取得
   useEffect(() => {
-    console.log("UserShiftList debug:", {
-      userStoreId: user?.storeId,
-      userUid: user?.uid,
-      shiftsCount: shifts.length,
-    });
     fetchShifts();
   }, []);
 
@@ -95,10 +92,6 @@ export const UserShiftList = () => {
   // 月ごとにシフトをグループ化
   const monthlyShifts = useMemo(() => {
     if (!displayMonth || !user) {
-      console.log("monthlyShifts: no displayMonth or user", {
-        displayMonth,
-        userUid: user?.uid,
-      });
       return [];
     }
 
@@ -140,14 +133,6 @@ export const UserShiftList = () => {
         }
         return dateCompare;
       });
-
-    console.log("monthlyShifts debug:", {
-      displayMonth,
-      totalShifts: shifts.length,
-      userShifts: shifts.filter((s) => s.userId === user.uid).length,
-      filteredShifts: filteredShifts.length,
-      firstShift: filteredShifts[0],
-    });
 
     return filteredShifts;
   }, [shifts, displayMonth, user]);
@@ -203,8 +188,6 @@ export const UserShiftList = () => {
   };
 
   const handleShiftPress = (shift: any) => {
-    console.log("Shift status:", shift.status); // デバッグ用ログ
-    console.log("handleShiftPress called with shift:", shift);
     if (shift.status === "approved") {
       setModalShift(shift);
       setModalVisible(true);
@@ -281,6 +264,10 @@ export const UserShiftList = () => {
   return (
     <>
       <View style={containerStyle}>
+        <Header
+          title="シフト一覧"
+          onPressSettings={() => setShowPasswordModal(true)}
+        />
         <View style={styles.calendarContainer}>
           <ShiftCalendar
             shifts={monthlyShifts}
@@ -377,6 +364,13 @@ export const UserShiftList = () => {
         onSelect={(v: number) => handleTaskUpdate(selectedTask!, "time", v)}
         onClose={() => setPicker(null)}
       />
+      <Modal
+        visible={showPasswordModal}
+        animationType="slide"
+        onRequestClose={() => setShowPasswordModal(false)}
+      >
+        <ChangePassword onComplete={() => setShowPasswordModal(false)} />
+      </Modal>
     </>
   );
 };

@@ -29,6 +29,7 @@ import { auth, db, firebaseConfig } from "./firebase-core";
 export const AuthService = {
   /**
    * ユーザーサインイン
+   * 認証状態が反映されるまで onAuthStateChanged で待機してからユーザー情報を返す
    */
   signIn: async (email: string, password: string): Promise<User> => {
     try {
@@ -37,7 +38,24 @@ export const AuthService = {
         email,
         password
       );
-      const firebaseUser = userCredential.user;
+      // 認証状態が反映されるまで待つ
+      await new Promise<void>((resolve, reject) => {
+        const unsubscribe = auth.onAuthStateChanged(
+          (firebaseUser) => {
+            if (firebaseUser) {
+              unsubscribe();
+              resolve();
+            }
+          },
+          (error) => {
+            unsubscribe();
+            reject(error);
+          }
+        );
+      });
+      // 認証状態が反映された後にユーザー情報を返す
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) throw new Error("認証ユーザーが取得できませんでした");
       return {
         uid: firebaseUser.uid,
         nickname: firebaseUser.displayName || email.split("@")[0],
@@ -81,8 +99,6 @@ export const AuthService = {
     storeId?: string
   ): Promise<User> => {
     try {
-      console.log("Creating user with email:", email, "storeId:", storeId);
-
       // 現在のユーザー情報を保存
       const currentUser = auth.currentUser;
       if (!currentUser) {
@@ -102,7 +118,6 @@ export const AuthService = {
         );
 
         const firebaseUser = userCredential.user;
-        console.log("Firebase user created:", firebaseUser.uid);
 
         // ニックネームを決定
         const displayName = nickname || email.split("@")[0];
@@ -125,8 +140,6 @@ export const AuthService = {
         if (storeId) userData.storeId = storeId;
 
         await setDoc(userRef, userData);
-
-        console.log("User data saved to Firestore");
 
         // 4. 一時的なアプリを削除
         await deleteApp(tempApp);
@@ -280,11 +293,9 @@ export const AuthService = {
   createInitialMasterUser: async (): Promise<void> => {
     try {
       await AuthService.createUser("master@example.com", "123456");
-      console.log("初期マスターユーザーを作成しました");
     } catch (error: any) {
       // すでにユーザーが存在する場合は無視
       if (error.code === "auth/email-already-in-use") {
-        console.log("マスターユーザーは既に存在します");
         return;
       }
       console.error("初期マスターユーザーの作成に失敗しました:", error);

@@ -65,7 +65,6 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
                     userId: itemValue,
                     nickname: user ? user.nickname : "",
                   });
-                  console.log("Selected User:", user);
                 }}
                 style={styles.picker}
               >

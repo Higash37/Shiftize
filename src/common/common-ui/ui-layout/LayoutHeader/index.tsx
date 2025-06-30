@@ -12,7 +12,12 @@ import { HeaderProps } from "./types";
  *
  * アプリケーションの上部に表示され、タイトルとナビゲーション機能を提供します。
  */
-export function Header({ title, showBackButton = false, onBack }: HeaderProps) {
+export function Header({
+  title,
+  showBackButton = false,
+  onBack,
+  onPressSettings,
+}: HeaderProps) {
   const { signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -42,9 +47,19 @@ export function Header({ title, showBackButton = false, onBack }: HeaderProps) {
         )}
         <Text style={styles.title}>{title}</Text>
       </View>
-      <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
-        <FontAwesome name="sign-out" size={24} color={colors.text.primary} />
-      </TouchableOpacity>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {onPressSettings && (
+          <TouchableOpacity
+            onPress={onPressSettings}
+            style={styles.signOutButton}
+          >
+            <FontAwesome name="cog" size={24} color={colors.text.primary} />
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
+          <FontAwesome name="sign-out" size={24} color={colors.text.primary} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

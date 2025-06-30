@@ -2,8 +2,8 @@
 // 旧: app/(main)/HomeCommonScreen.tsx
 // スタイル分割済み（home-view-styles.ts）
 // 型定義分割済み（home-view-types.ts）
-import React from "react";
-import { View, useWindowDimensions } from "react-native";
+import React, { useState } from "react";
+import { View, useWindowDimensions, Modal } from "react-native";
 import { styles } from "../home-styles/home-view-styles";
 import { format } from "date-fns";
 import ja from "date-fns/locale/ja";
@@ -18,10 +18,12 @@ import { GanttSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader";
 // import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 // import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { DateNavBar } from "../home-components/home-nav/DateNavBar";
+import ChangePassword from "@/modules/child-components/user-management/user-props/ChangePassword";
 // import "./home-common-screen.css"; // CSS インポートを削除
 
 export default function HomeCommonScreen() {
   const gantt = useHomeGanttState();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const openDatePicker = () => gantt.setShowDatePicker(true);
   const handlePrevDay = () =>
@@ -42,8 +44,6 @@ export default function HomeCommonScreen() {
     (shift) => shift.status === "approved" || shift.status === "completed"
   );
 
-  console.log("Filtered schedule:", gantt.scheduleForSelectedDate); // デバッグ用ログ
-
   if (gantt.loading) {
     return (
       <View style={[styles.container, { flex: 1 }]}>
@@ -63,6 +63,7 @@ export default function HomeCommonScreen() {
         onNextDay={handleNextDay}
         dateLabel={format(gantt.selectedDate, "yyyy年M月d日")}
         onOpenDatePicker={openDatePicker}
+        onPressSettings={() => setShowPasswordModal(true)}
       />
       {!!gantt.isWide && (
         <GanttHalfSwitch
@@ -79,6 +80,13 @@ export default function HomeCommonScreen() {
           gantt.setShowDatePicker(false);
         }}
       />
+      <Modal
+        visible={showPasswordModal}
+        animationType="slide"
+        onRequestClose={() => setShowPasswordModal(false)}
+      >
+        <ChangePassword onComplete={() => setShowPasswordModal(false)} />
+      </Modal>
       {/* レイアウト分岐 */}
       {gantt.isTablet ? (
         <HomeGanttTabletScreen

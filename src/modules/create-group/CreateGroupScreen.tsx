@@ -91,17 +91,13 @@ export const CreateGroupScreen: React.FC = () => {
     setStoreIdError("");
 
     try {
-      console.log("店舗ID重複チェック開始:", storeId);
       const exists = await GroupService.checkStoreIdExists(storeId);
-      console.log("店舗ID重複チェック結果:", { storeId, exists });
 
       if (exists) {
         setStoreIdError("この店舗IDは既に使用されています");
-        console.log("店舗ID重複エラー:", storeId);
         return false;
       } else {
         setStoreIdError("");
-        console.log("店舗ID利用可能:", storeId);
         return true;
       }
     } catch (error) {
@@ -226,8 +222,6 @@ export const CreateGroupScreen: React.FC = () => {
 
     setLoading(true);
     try {
-      console.log("グループ作成開始...");
-
       const currentStoreId = getCurrentStoreId();
 
       // Firebase を使用してグループを作成
@@ -249,8 +243,6 @@ export const CreateGroupScreen: React.FC = () => {
       });
 
       if (result.success) {
-        console.log("グループ作成成功:", result);
-
         // 成功画面に遷移（パラメーターを渡す）
         router.replace({
           pathname: "/(auth)/create-group/success",
