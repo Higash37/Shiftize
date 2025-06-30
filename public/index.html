@@ -135,6 +135,14 @@
       "keywords": "シフト管理,スケジューリング,シフト作成,講師管理,スタッフ管理"
     }
     </script>
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <!-- PWA theme color -->
+    <meta name="theme-color" content="#F2F2F7" />
+
+    <!-- Apple Touch Icon for PWA -->
+    <link rel="apple-touch-icon" href="/PWAIcon180x180.png" sizes="180x180" />
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -229,6 +237,15 @@
 
       window.addEventListener('resize', adjustHeight);
       window.addEventListener('load', adjustHeight);
+    </script>
+
+    <!-- PWA service worker registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
     </script>
   </body>
 </html>
