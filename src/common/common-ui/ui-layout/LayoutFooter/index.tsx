@@ -1,5 +1,11 @@
 import React from "react";
-import { View, TouchableOpacity, Text, Dimensions } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  Dimensions,
+  Platform,
+} from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import Toast from "react-native-toast-message";
 import {
@@ -58,6 +64,16 @@ const user_TABS: TabItem[] = [
   },
 ];
 
+function isStandalonePWA() {
+  if (typeof window !== "undefined") {
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true
+    );
+  }
+  return false;
+}
+
 /**
  * Footer - 講師用フッターナビゲーションコンポーネント
  *
@@ -81,7 +97,7 @@ export function Footer({}: FooterProps) {
   };
 
   return (
-    <View style={styles.footer}>
+    <View style={[styles.footer, isStandalonePWA() && { marginBottom: 5 }]}>
       {user_TABS.map((tab) => {
         const active = pathname === tab.path;
         return (
