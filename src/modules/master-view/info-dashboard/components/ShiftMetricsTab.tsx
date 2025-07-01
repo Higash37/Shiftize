@@ -3,19 +3,103 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
+import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 
-export const ShiftMetricsTab: React.FC = () => {
+interface ShiftMetricsTabProps {
+  shifts?: any[];
+  users?: any[];
+}
+
+export const ShiftMetricsTab: React.FC<ShiftMetricsTabProps> = ({
+  shifts = [],
+  users = [],
+}) => {
   const [metrics, setMetrics] = useState({
-    totalShifts: 124,
-    filledShifts: 118,
-    canceledShifts: 6,
-    overtimeShifts: 15,
-    approvedRequests: 89,
-    pendingRequests: 7,
-    rejectedRequests: 4,
-    averageShiftLength: 4.5,
+    totalShifts: 0,
+    filledShifts: 0,
+    canceledShifts: 0,
+    overtimeShifts: 0,
+    approvedRequests: 0,
+    pendingRequests: 0,
+    rejectedRequests: 0,
+    averageShiftLength: 0,
   });
+
+  // 実データからシフト指標を計算
+  useEffect(() => {
+    if (shifts.length === 0) return;
+
+    const currentDate = new Date();
+    const currentMonthShifts = shifts.filter((shift) => {
+      const shiftDate = new Date(shift.date);
+      return (
+        shiftDate.getMonth() === currentDate.getMonth() &&
+        shiftDate.getFullYear() === currentDate.getFullYear()
+      );
+    });
+
+    const totalShifts = currentMonthShifts.length;
+    const filledShifts = currentMonthShifts.filter(
+      (shift) => shift.status === "completed" || shift.status === "confirmed"
+    ).length;
+    const canceledShifts = currentMonthShifts.filter(
+      (shift) => shift.status === "cancelled"
+    ).length;
+
+    // 8時間以上を残業シフトとして扱う（正確な実労働時間で計算）
+    const overtimeShifts = currentMonthShifts.filter((shift) => {
+      const { totalMinutes } = calculateTotalWage(
+        {
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          classes: shift.classes || [],
+        },
+        1100 // 時給は計算に影響しないので固定値
+      );
+      const hours = totalMinutes / 60;
+      return hours > 8;
+    }).length;
+
+    // リクエスト関連（シフトのstatusから推測）
+    const approvedRequests = currentMonthShifts.filter(
+      (shift) => shift.status === "confirmed" || shift.status === "approved"
+    ).length;
+    const pendingRequests = currentMonthShifts.filter(
+      (shift) => shift.status === "pending"
+    ).length;
+    const rejectedRequests = currentMonthShifts.filter(
+      (shift) => shift.status === "rejected"
+    ).length;
+
+    // 平均シフト時間を正確に計算（実労働時間ベース）
+    let totalWorkingMinutes = 0;
+    currentMonthShifts.forEach((shift) => {
+      const { totalMinutes } = calculateTotalWage(
+        {
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          classes: shift.classes || [],
+        },
+        1100 // 時給は計算に影響しないので固定値
+      );
+      totalWorkingMinutes += totalMinutes;
+    });
+
+    const averageShiftLength =
+      totalShifts > 0 ? totalWorkingMinutes / 60 / totalShifts : 0;
+
+    setMetrics({
+      totalShifts,
+      filledShifts,
+      canceledShifts,
+      overtimeShifts,
+      approvedRequests,
+      pendingRequests,
+      rejectedRequests,
+      averageShiftLength: Math.round(averageShiftLength * 10) / 10,
+    });
+  }, [shifts]);
 
   const fillRate = (metrics.filledShifts / metrics.totalShifts) * 100;
   const cancelRate = (metrics.canceledShifts / metrics.totalShifts) * 100;

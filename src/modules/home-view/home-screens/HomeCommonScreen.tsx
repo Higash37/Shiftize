@@ -80,13 +80,7 @@ export default function HomeCommonScreen() {
           gantt.setShowDatePicker(false);
         }}
       />
-      <Modal
-        visible={showPasswordModal}
-        animationType="slide"
-        onRequestClose={() => setShowPasswordModal(false)}
-      >
-        <ChangePassword onComplete={() => setShowPasswordModal(false)} />
-      </Modal>
+
       {/* レイアウト分岐 */}
       {gantt.isTablet ? (
         <HomeGanttTabletScreen

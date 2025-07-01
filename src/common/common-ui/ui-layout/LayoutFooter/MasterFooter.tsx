@@ -105,6 +105,15 @@ const MASTER_TABS: TabItem[] = [
     isUnderDevelopment: false,
   },
 ];
+function isStandalonePWA() {
+  if (typeof window !== "undefined") {
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true
+    );
+  }
+  return false;
+}
 
 /**
  * MasterFooter - 管理者用フッターナビゲーションコンポーネント
@@ -157,6 +166,18 @@ export function MasterFooter({}: MasterFooterProps) {
           </TouchableOpacity>
         );
       })}
+      {isStandalonePWA() &&
+        (typeof window !== "undefined" && window.document ? (
+          <div className="pwa-footer-safearea" />
+        ) : (
+          <View
+            style={{
+              height: 10,
+              width: "100%",
+              backgroundColor: colors.background,
+            }}
+          />
+        ))}
     </View>
   );
 }

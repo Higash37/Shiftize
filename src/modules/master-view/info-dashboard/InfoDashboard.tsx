@@ -13,6 +13,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
+import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
+import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
+import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
+
 import {
   BudgetSection,
   StaffEfficiencyTab,
@@ -40,6 +44,25 @@ const tabs: TabItem[] = [
   { key: "trend", label: "トレンド", icon: "analytics" },
 ];
 
+/**
+ * InfoDashboard - 経営ダッシュボード
+ *
+ * 実データ（Firebase/Firestore）を使用したシフト管理の経営分析ダッシュボード
+ *
+ * 機能:
+ * - スタッフ稼働率分析（実データ）
+ * - 人件費分析（実データ）
+ * - シフト指標分析（実データ）
+ * - 生産性分析（実データ）
+ * - トレンド分析（実データ）
+ * - 月間予算設定機能
+ *
+ * データソース:
+ * - シフトデータ: useShifts()から取得
+ * - ユーザーデータ: useUsers()から取得
+ * - 集計処理: リアルタイムで現在月のデータを計算
+ */
+
 export const InfoDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("efficiency");
   const [monthlyBudget, setMonthlyBudget] = useState<number>(500000); // デフォルト予算
@@ -49,6 +72,87 @@ export const InfoDashboard: React.FC = () => {
   );
   const { width } = useWindowDimensions();
   const isTabletOrDesktop = width >= 768;
+
+  // 実際のデータを取得
+  const { shifts, loading: shiftsLoading } = useShifts();
+  const { users, loading: usersLoading } = useUsers();
+
+  // 現在の月のデータを計算
+  const currentDate = new Date();
+  const currentMonthShifts = shifts.filter((shift) => {
+    const shiftDate = new Date(shift.date);
+    return (
+      shiftDate.getMonth() === currentDate.getMonth() &&
+      shiftDate.getFullYear() === currentDate.getFullYear() &&
+      (shift.status === "approved" ||
+        shift.status === "pending" ||
+        shift.status === "completed")
+    );
+  });
+
+  // 実際の集計データを計算（ガントチャートと同じロジック）
+  const realData = {
+    totalHours: 0,
+    totalCost: 0,
+    budgetUsage: 0, // 後で計算
+    staffCount: users.length,
+    completedShifts: currentMonthShifts.filter(
+      (shift) => shift.status === "completed"
+    ).length,
+    totalShifts: currentMonthShifts.length,
+  };
+
+  // 正確な時間とコスト計算
+  let totalMinutes = 0;
+  let totalAmount = 0;
+
+  currentMonthShifts.forEach((shift) => {
+    // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
+    const user = users.find((u) => u.uid === shift.userId);
+    const hourlyWage = user?.hourlyWage || 1100;
+
+    // 授業時間を除外したシフト時間の計算
+    const { totalMinutes: workMinutes, totalWage: workWage } =
+      calculateTotalWage(
+        {
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          classes: shift.classes || [],
+        },
+        hourlyWage
+      );
+
+    totalMinutes += workMinutes;
+    totalAmount += workWage;
+  });
+
+  realData.totalHours = totalMinutes / 60;
+  realData.totalCost = Math.round(totalAmount);
+
+  // 予算使用率を計算
+  realData.budgetUsage = (realData.totalCost / monthlyBudget) * 100;
+
+  // 予算使用率の色を動的に決定
+  const getBudgetStatusColor = (usageRate: number) => {
+    if (usageRate >= 90) return "#E53E3E"; // 赤色：危険
+    if (usageRate >= 75) return "#FF9800"; // オレンジ色：注意
+    if (usageRate >= 50) return "#2196F3"; // 青色：適正
+    return "#4CAF50"; // 緑色：余裕あり
+  };
+
+  const getBudgetStatusIcon = (usageRate: number) => {
+    if (usageRate >= 90) return "warning";
+    if (usageRate >= 75) return "priority-high";
+    if (usageRate >= 50) return "info";
+    return "check-circle";
+  };
+
+  const getBudgetStatusText = (usageRate: number) => {
+    if (usageRate >= 90) return "予算超過危険";
+    if (usageRate >= 75) return "予算注意";
+    if (usageRate >= 50) return "予算適正";
+    return "予算余裕あり";
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("ja-JP", {
@@ -71,162 +175,210 @@ export const InfoDashboard: React.FC = () => {
   };
 
   const renderTabContent = () => {
+    const commonProps = {
+      shifts,
+      users,
+      totalHours: realData.totalHours,
+      totalCost: realData.totalCost,
+      budgetUsage: realData.budgetUsage,
+    };
+
     switch (activeTab) {
       case "efficiency":
-        return <StaffEfficiencyTab budget={monthlyBudget} />;
+        return <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />;
       case "cost":
-        return <CostAnalysisTab budget={monthlyBudget} />;
+        return <CostAnalysisTab budget={monthlyBudget} {...commonProps} />;
       case "shift":
-        return <ShiftMetricsTab />;
+        return <ShiftMetricsTab {...commonProps} />;
       case "productivity":
-        return <ProductivityTab />;
+        return <ProductivityTab {...commonProps} />;
       case "trend":
-        return <TrendAnalysisTab />;
+        return <TrendAnalysisTab shifts={shifts} users={users} />;
       default:
-        return <StaffEfficiencyTab budget={monthlyBudget} />;
+        return <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />;
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* タブナビゲーション */}
       <View
         style={[
-          styles.tabContainer,
-          isTabletOrDesktop && styles.tabContainerDesktop,
+          styles.mainContent,
+          isTabletOrDesktop && styles.mainContentDesktop,
         ]}
       >
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabScrollContainer}
+        {/* タブナビゲーション */}
+        <View
+          style={[
+            styles.tabContainer,
+            isTabletOrDesktop && styles.tabContainerDesktop,
+          ]}
         >
-          {/* 月間予算表示 */}
-          <TouchableOpacity
-            style={[
-              styles.budgetTab,
-              isTabletOrDesktop && styles.budgetTabDesktop,
-            ]}
-            onPress={openBudgetModal}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabScrollContainer}
           >
-            <MaterialIcons
-              name="account-balance"
-              size={18}
-              color={colors.primary}
-            />
-            <Text style={styles.budgetTabText}>
-              月間予算設定 {formatCurrency(monthlyBudget)}
-            </Text>
-          </TouchableOpacity>
-
-          {tabs.map((tab) => (
+            {/* 月間予算表示 */}
             <TouchableOpacity
-              key={tab.key}
               style={[
-                styles.tab,
-                activeTab === tab.key && styles.activeTab,
-                isTabletOrDesktop && styles.tabDesktop,
+                styles.budgetTab,
+                isTabletOrDesktop && styles.budgetTabDesktop,
+                {
+                  borderLeftColor: getBudgetStatusColor(realData.budgetUsage),
+                  borderLeftWidth: 4,
+                },
               ]}
-              onPress={() => setActiveTab(tab.key)}
+              onPress={openBudgetModal}
             >
               <MaterialIcons
-                name={tab.icon as any}
-                size={20}
-                color={
-                  activeTab === tab.key ? colors.primary : colors.text.secondary
-                }
+                name={getBudgetStatusIcon(realData.budgetUsage) as any}
+                size={18}
+                color={getBudgetStatusColor(realData.budgetUsage)}
               />
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === tab.key && styles.activeTabText,
-                ]}
-              >
-                {tab.label}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.budgetTabText}>
+                  月間予算設定 {formatCurrency(monthlyBudget)}
+                </Text>
+                <Text
+                  style={[
+                    styles.budgetStatusText,
+                    { color: getBudgetStatusColor(realData.budgetUsage) },
+                  ]}
+                >
+                  {getBudgetStatusText(realData.budgetUsage)} (
+                  {realData.budgetUsage.toFixed(1)}%)
+                </Text>
+              </View>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
 
-      {/* タブコンテンツ */}
-      <ScrollView style={styles.contentContainer}>
-        {renderTabContent()}
-      </ScrollView>
-
-      {/* プレビュー段階オーバーレイ */}
-      <View style={styles.previewOverlay}>
-        <View style={styles.previewBadge}>
-          <MaterialIcons name="construction" size={16} color={colors.warning} />
-          <Text style={styles.previewText}>プレビュー中</Text>
-        </View>
-        <Text style={styles.previewDescription}>
-          この機能は開発中です。実際のデータとは異なる場合があります。
-        </Text>
-      </View>
-
-      {/* 予算編集モーダル */}
-      <Modal
-        visible={showBudgetModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowBudgetModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Box variant="card" style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <MaterialIcons
-                name="account-balance"
-                size={24}
-                color={colors.primary}
-              />
-              <Text style={styles.modalTitle}>月間予算設定</Text>
+            {tabs.map((tab) => (
               <TouchableOpacity
-                onPress={() => setShowBudgetModal(false)}
-                style={styles.closeButton}
+                key={tab.key}
+                style={[
+                  styles.tab,
+                  activeTab === tab.key && styles.activeTab,
+                  isTabletOrDesktop && styles.tabDesktop,
+                ]}
+                onPress={() => setActiveTab(tab.key)}
               >
                 <MaterialIcons
-                  name="close"
-                  size={24}
-                  color={colors.text.secondary}
+                  name={tab.icon as any}
+                  size={20}
+                  color={
+                    activeTab === tab.key
+                      ? colors.primary
+                      : colors.text.secondary
+                  }
                 />
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab.key && styles.activeTabText,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
               </TouchableOpacity>
-            </View>
+            ))}
+          </ScrollView>
+        </View>
 
-            <View style={styles.modalInputContainer}>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.currencySymbol}>¥</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  value={budgetInputValue}
-                  onChangeText={setBudgetInputValue}
-                  keyboardType="numeric"
-                  placeholder="500000"
-                  placeholderTextColor={colors.text.disabled}
-                  autoFocus={true}
+        {/* タブコンテンツ */}
+        <ScrollView
+          style={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {shifts.length === 0 && !shiftsLoading ? (
+            <View style={styles.noDataContainer}>
+              <MaterialIcons
+                name="info"
+                size={48}
+                color={colors.text.disabled}
+              />
+              <Text style={styles.noDataTitle}>シフトデータがありません</Text>
+              <Text style={styles.noDataDescription}>
+                シフトを登録すると、ここに分析データが表示されます。
+              </Text>
+            </View>
+          ) : (
+            renderTabContent()
+          )}
+        </ScrollView>
+
+        {/* データ読み込み中の表示 */}
+        {(shiftsLoading || usersLoading) && (
+          <View style={styles.loadingOverlay}>
+            <View style={styles.loadingBadge}>
+              <MaterialIcons name="sync" size={16} color={colors.primary} />
+              <Text style={styles.loadingText}>データ読み込み中...</Text>
+            </View>
+          </View>
+        )}
+
+        {/* 予算編集モーダル */}
+        <Modal
+          visible={showBudgetModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowBudgetModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <Box variant="card" style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <MaterialIcons
+                  name="account-balance"
+                  size={24}
+                  color={colors.primary}
+                />
+                <Text style={styles.modalTitle}>月間予算設定</Text>
+                <TouchableOpacity
+                  onPress={() => setShowBudgetModal(false)}
+                  style={styles.closeButton}
+                >
+                  <MaterialIcons
+                    name="close"
+                    size={24}
+                    color={colors.text.secondary}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalInputContainer}>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.currencySymbol}>¥</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    value={budgetInputValue}
+                    onChangeText={setBudgetInputValue}
+                    keyboardType="numeric"
+                    placeholder="500000"
+                    placeholderTextColor={colors.text.disabled}
+                    autoFocus={true}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.modalButtonContainer}>
+                <Button
+                  title="キャンセル"
+                  onPress={() => setShowBudgetModal(false)}
+                  variant="outline"
+                  size="medium"
+                  style={styles.modalButton}
+                />
+                <Button
+                  title="保存"
+                  onPress={handleBudgetSave}
+                  variant="primary"
+                  size="medium"
+                  style={styles.modalButton}
                 />
               </View>
-            </View>
-
-            <View style={styles.modalButtonContainer}>
-              <Button
-                title="キャンセル"
-                onPress={() => setShowBudgetModal(false)}
-                variant="outline"
-                size="medium"
-                style={styles.modalButton}
-              />
-              <Button
-                title="保存"
-                onPress={handleBudgetSave}
-                variant="primary"
-                size="medium"
-                style={styles.modalButton}
-              />
-            </View>
-          </Box>
-        </View>
-      </Modal>
+            </Box>
+          </View>
+        </Modal>
+      </View>
     </View>
   );
 };
@@ -234,8 +386,17 @@ export const InfoDashboard: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: "#FFFFFF", // 背景を白に変更
     position: "relative",
+    alignItems: "center",
+  },
+  mainContent: {
+    flex: 1,
+    width: "100%",
+  },
+  mainContentDesktop: {
+    width: "80%",
+    maxWidth: 1200,
   },
   tabContainer: {
     backgroundColor: colors.surface,
@@ -270,6 +431,12 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginLeft: 6,
   },
+  budgetStatusText: {
+    fontSize: 11,
+    fontWeight: "500",
+    marginLeft: 6,
+    marginTop: 2,
+  },
   tab: {
     flexDirection: "row",
     alignItems: "center",
@@ -300,48 +467,54 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: layout.padding.medium,
   },
-  // プレビューオーバーレイ関連のスタイル
-  previewOverlay: {
+  // データなし表示のスタイル
+  noDataContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: layout.padding.xlarge * 2,
+  },
+  noDataTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: colors.text.secondary,
+    marginTop: layout.padding.medium,
+    marginBottom: layout.padding.small,
+  },
+  noDataDescription: {
+    fontSize: 14,
+    color: colors.text.disabled,
+    textAlign: "center",
+    maxWidth: 280,
+  },
+  // ローディング中オーバーレイ関連のスタイル
+  loadingOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.03)", // より薄い半透明オーバーレイ
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
     justifyContent: "center",
     alignItems: "center",
-    pointerEvents: "none", // タッチイベントを透過
+    pointerEvents: "none",
   },
-  previewBadge: {
+  loadingBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.warning + "E6", // 警告色 + 90%不透明度
+    backgroundColor: colors.primary + "E6",
     paddingHorizontal: layout.padding.medium,
     paddingVertical: layout.padding.small,
     borderRadius: layout.borderRadius.large,
-    marginBottom: layout.padding.small,
     ...shadows.medium,
     borderWidth: 1,
-    borderColor: colors.warning + "40",
+    borderColor: colors.primary + "40",
   },
-  previewText: {
+  loadingText: {
     fontSize: 14,
-    fontWeight: "700",
-    color: colors.text.primary,
+    fontWeight: "600",
+    color: colors.surface,
     marginLeft: 6,
-  },
-  previewDescription: {
-    fontSize: 12,
-    color: colors.text.secondary,
-    textAlign: "center",
-    maxWidth: 280,
-    backgroundColor: colors.surface + "F5", // サーフェス色 + 96%不透明度
-    paddingHorizontal: layout.padding.medium,
-    paddingVertical: layout.padding.small,
-    borderRadius: layout.borderRadius.medium,
-    ...shadows.small,
-    borderWidth: 1,
-    borderColor: colors.border + "60",
   },
   // モーダル関連のスタイル
   modalOverlay: {

@@ -1,19 +1,119 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
+import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 
-export const ProductivityTab: React.FC = () => {
-  const [productivityData] = useState({
-    tasksCompleted: 342,
-    averageTaskTime: 12.5,
-    productivityScore: 87.3,
-    peakHours: "14:00-17:00",
-    efficiency: 92.1,
-    qualityScore: 94.5,
+interface ProductivityTabProps {
+  shifts?: any[];
+  users?: any[];
+  totalHours?: number;
+  totalCost?: number;
+}
+
+export const ProductivityTab: React.FC<ProductivityTabProps> = ({
+  shifts = [],
+  users = [],
+  totalHours = 0,
+  totalCost = 0,
+}) => {
+  const [productivityData, setProductivityData] = useState({
+    tasksCompleted: 0,
+    averageTaskTime: 0,
+    productivityScore: 0,
+    peakHours: "データなし",
+    efficiency: 0,
+    qualityScore: 0,
   });
+
+  // 実データから生産性指標を計算
+  useEffect(() => {
+    if (shifts.length === 0 || users.length === 0) return;
+
+    const currentDate = new Date();
+    const currentMonthShifts = shifts.filter((shift) => {
+      const shiftDate = new Date(shift.date);
+      return (
+        shiftDate.getMonth() === currentDate.getMonth() &&
+        shiftDate.getFullYear() === currentDate.getFullYear()
+      );
+    });
+
+    // タスク完了数（完了したシフト数として計算）
+    const tasksCompleted = currentMonthShifts.filter(
+      (shift) => shift.status === "completed" || shift.status === "approved"
+    ).length;
+
+    // 平均タスク時間（正確な実労働時間で計算）
+    let totalWorkingMinutes = 0;
+    currentMonthShifts.forEach((shift) => {
+      const { totalMinutes } = calculateTotalWage(
+        {
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          classes: shift.classes || [],
+        },
+        1100 // 時給は計算に影響しないので固定値
+      );
+      totalWorkingMinutes += totalMinutes;
+    });
+
+    const averageTaskTime =
+      currentMonthShifts.length > 0
+        ? totalWorkingMinutes / 60 / currentMonthShifts.length
+        : 0;
+
+    // 生産性スコア（完了率 × 効率率）
+    const completionRate =
+      currentMonthShifts.length > 0
+        ? (tasksCompleted / currentMonthShifts.length) * 100
+        : 0;
+    const targetHours = users.length * 160; // 1人月160時間が目標
+    const actualHours = totalWorkingMinutes / 60;
+    const efficiencyRate =
+      targetHours > 0 ? Math.min((actualHours / targetHours) * 100, 120) : 0; // 最大120%
+    const productivityScore = completionRate * 0.6 + efficiencyRate * 0.4;
+
+    // ピーク時間帯の分析（シフトの開始時間から推測）
+    const hourCounts: { [key: number]: number } = {};
+    currentMonthShifts.forEach((shift) => {
+      const startHour = parseInt(shift.startTime?.split(":")[0] || "9");
+      hourCounts[startHour] = (hourCounts[startHour] || 0) + 1;
+    });
+
+    const peakHour = Object.keys(hourCounts).reduce((a, b) =>
+      hourCounts[parseInt(a)] > hourCounts[parseInt(b)] ? a : b
+    );
+    const peakHours = peakHour
+      ? `${peakHour}:00-${parseInt(peakHour) + 3}:00`
+      : "データなし";
+
+    // 効率性（時間あたりのコスト効率）
+    const efficiency =
+      totalHours > 0 ? Math.min((tasksCompleted / totalHours) * 100, 100) : 0;
+
+    // 品質スコア（キャンセル率の逆数として計算）
+    const canceledShifts = currentMonthShifts.filter(
+      (shift) => shift.status === "cancelled"
+    ).length;
+    const qualityScore =
+      currentMonthShifts.length > 0
+        ? ((currentMonthShifts.length - canceledShifts) /
+            currentMonthShifts.length) *
+          100
+        : 0;
+
+    setProductivityData({
+      tasksCompleted,
+      averageTaskTime: Math.round(averageTaskTime * 10) / 10,
+      productivityScore: Math.round(productivityScore * 10) / 10,
+      peakHours,
+      efficiency: Math.round(efficiency * 10) / 10,
+      qualityScore: Math.round(qualityScore * 10) / 10,
+    });
+  }, [shifts, users, totalHours, totalCost]);
 
   const renderProductivityCard = (
     icon: string,
@@ -48,194 +148,113 @@ export const ProductivityTab: React.FC = () => {
           </View>
         )}
       </View>
-      <Text style={[styles.cardValue, { color }]}>{value}</Text>
+      <Text style={styles.cardValue}>{value}</Text>
       <Text style={styles.cardLabel}>{label}</Text>
       <Text style={styles.cardDescription}>{description}</Text>
     </View>
   );
 
-  const renderTimeSlotAnalysis = () => {
-    const timeSlots = [
-      { time: "09:00-12:00", productivity: 78, tasks: 45 },
-      { time: "12:00-14:00", productivity: 65, tasks: 32 },
-      { time: "14:00-17:00", productivity: 95, tasks: 78 },
-      { time: "17:00-20:00", productivity: 88, tasks: 67 },
-      { time: "20:00-22:00", productivity: 72, tasks: 28 },
-    ];
-
-    return (
-      <View style={styles.timeAnalysis}>
-        {timeSlots.map((slot, index) => (
-          <View key={index} style={styles.timeSlot}>
-            <Text style={styles.timeSlotLabel}>{slot.time}</Text>
-            <View style={styles.timeSlotMetrics}>
-              <View style={styles.timeSlotProgress}>
-                <View style={styles.progressBg}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      {
-                        width: `${slot.productivity}%`,
-                        backgroundColor:
-                          slot.productivity >= 90
-                            ? colors.success || "#4CAF50"
-                            : slot.productivity >= 70
-                            ? colors.warning || "#FF9800"
-                            : colors.error,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.productivityPercent}>
-                  {slot.productivity}%
-                </Text>
-              </View>
-              <Text style={styles.taskCount}>{slot.tasks}件</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-    );
-  };
-
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
-      {/* 主要生産性指標 */}
-      <Box variant="card" style={styles.mainCard}>
-        <Text style={styles.sectionTitle}>生産性指標</Text>
-
-        <View style={styles.metricsGrid}>
+      {/* 生産性概要 */}
+      <Box variant="card" style={styles.overviewCard}>
+        <Text style={styles.sectionTitle}>生産性概要</Text>
+        <View style={styles.productivityGrid}>
           {renderProductivityCard(
-            "assessment",
-            `${productivityData.productivityScore}%`,
-            "総合生産性スコア",
-            "タスク完了率とクオリティの総合評価",
-            colors.primary,
-            5.2
-          )}
-
-          {renderProductivityCard(
-            "speed",
-            `${productivityData.efficiency}%`,
-            "作業効率",
-            "計画時間に対する実績効率",
+            "check-circle",
+            productivityData.tasksCompleted.toString(),
+            "完了タスク",
+            "月間で完了したシフト数",
             colors.success || "#4CAF50",
-            2.8
+            5
           )}
-
           {renderProductivityCard(
-            "star",
-            `${productivityData.qualityScore}%`,
-            "品質スコア",
-            "作業品質の評価指標",
-            colors.secondary,
-            1.3
+            "schedule",
+            `${productivityData.averageTaskTime}h`,
+            "平均シフト時間",
+            "1シフトあたりの平均時間",
+            colors.primary,
+            -2
           )}
-
           {renderProductivityCard(
-            "timer",
-            `${productivityData.averageTaskTime}分`,
-            "平均作業時間",
-            "1タスクあたりの平均処理時間",
+            "trending-up",
+            `${productivityData.productivityScore}%`,
+            "生産性スコア",
+            "総合的な生産性指標",
             colors.warning || "#FF9800",
-            -3.1
+            8
           )}
         </View>
       </Box>
 
-      {/* 時間帯別分析 */}
-      <Box variant="card" style={styles.timeCard}>
-        <Text style={styles.sectionTitle}>時間帯別生産性</Text>
-        <Text style={styles.peakInfo}>
-          <MaterialIcons
-            name="trending-up"
-            size={16}
-            color={colors.success || "#4CAF50"}
-          />{" "}
-          ピーク時間: {productivityData.peakHours}
-        </Text>
-        {renderTimeSlotAnalysis()}
-      </Box>
-
-      {/* タスク分析 */}
-      <Box variant="card" style={styles.taskCard}>
-        <Text style={styles.sectionTitle}>タスク分析</Text>
-
-        <View style={styles.taskMetrics}>
-          <View style={styles.taskMetricItem}>
+      {/* 効率性分析 */}
+      <Box variant="card" style={styles.efficiencyCard}>
+        <Text style={styles.sectionTitle}>効率性分析</Text>
+        <View style={styles.efficiencyGrid}>
+          <View style={styles.efficiencyItem}>
             <MaterialIcons
-              name="done-all"
+              name="access-time"
               size={24}
-              color={colors.success || "#4CAF50"}
+              color={colors.primary}
             />
-            <Text style={styles.taskMetricValue}>
-              {productivityData.tasksCompleted}
+            <Text style={styles.efficiencyValue}>
+              {productivityData.peakHours}
             </Text>
-            <Text style={styles.taskMetricLabel}>完了タスク数</Text>
-            <Text style={styles.taskMetricSubtext}>今月累計</Text>
+            <Text style={styles.efficiencyLabel}>ピーク時間帯</Text>
           </View>
-
-          <View style={styles.taskMetricItem}>
-            <MaterialIcons name="schedule" size={24} color={colors.primary} />
-            <Text style={styles.taskMetricValue}>27.3</Text>
-            <Text style={styles.taskMetricLabel}>日平均タスク数</Text>
-            <Text style={styles.taskMetricSubtext}>1日あたり</Text>
+          <View style={styles.efficiencyItem}>
+            <MaterialIcons name="speed" size={24} color={colors.primary} />
+            <Text style={styles.efficiencyValue}>
+              {productivityData.efficiency}%
+            </Text>
+            <Text style={styles.efficiencyLabel}>効率性</Text>
           </View>
-
-          <View style={styles.taskMetricItem}>
-            <MaterialIcons
-              name="trending-up"
-              size={24}
-              color={colors.warning || "#FF9800"}
-            />
-            <Text style={styles.taskMetricValue}>113%</Text>
-            <Text style={styles.taskMetricLabel}>目標達成率</Text>
-            <Text style={styles.taskMetricSubtext}>月間目標比</Text>
+          <View style={styles.efficiencyItem}>
+            <MaterialIcons name="star" size={24} color={colors.primary} />
+            <Text style={styles.efficiencyValue}>
+              {productivityData.qualityScore}%
+            </Text>
+            <Text style={styles.efficiencyLabel}>品質スコア</Text>
           </View>
         </View>
       </Box>
 
-      {/* 改善提案 */}
+      {/* パフォーマンス改善提案 */}
       <Box variant="card" style={styles.suggestionCard}>
-        <Text style={styles.sectionTitle}>生産性向上の提案</Text>
-
-        <View style={styles.suggestions}>
+        <Text style={styles.sectionTitle}>改善提案</Text>
+        <View style={styles.suggestionList}>
           <View style={styles.suggestionItem}>
             <MaterialIcons
               name="lightbulb"
               size={20}
               color={colors.warning || "#FF9800"}
             />
-            <View style={styles.suggestionContent}>
-              <Text style={styles.suggestionTitle}>ピーク時間の活用</Text>
-              <Text style={styles.suggestionText}>
-                14:00-17:00の高生産性時間帯により多くの重要タスクを配置
-              </Text>
-            </View>
+            <Text style={styles.suggestionText}>
+              ピーク時間帯（{productivityData.peakHours}
+              ）の人員配置を最適化しましょう
+            </Text>
           </View>
-
-          <View style={styles.suggestionItem}>
-            <MaterialIcons name="schedule" size={20} color={colors.primary} />
-            <View style={styles.suggestionContent}>
-              <Text style={styles.suggestionTitle}>休憩時間の最適化</Text>
-              <Text style={styles.suggestionText}>
-                12:00-14:00の低生産性時間に適切な休憩を配置
-              </Text>
-            </View>
-          </View>
-
           <View style={styles.suggestionItem}>
             <MaterialIcons
-              name="group"
+              name="lightbulb"
               size={20}
-              color={colors.success || "#4CAF50"}
+              color={colors.warning || "#FF9800"}
             />
-            <View style={styles.suggestionContent}>
-              <Text style={styles.suggestionTitle}>チーム連携強化</Text>
-              <Text style={styles.suggestionText}>
-                高効率スタッフのノウハウ共有で全体レベル向上
-              </Text>
-            </View>
+            <Text style={styles.suggestionText}>
+              平均シフト時間が{productivityData.averageTaskTime}
+              時間です。効率化を検討してください
+            </Text>
+          </View>
+          <View style={styles.suggestionItem}>
+            <MaterialIcons
+              name="lightbulb"
+              size={20}
+              color={colors.warning || "#FF9800"}
+            />
+            <Text style={styles.suggestionText}>
+              品質スコアが{productivityData.qualityScore}
+              %です。さらなる向上を目指しましょう
+            </Text>
           </View>
         </View>
       </Box>
@@ -244,17 +263,8 @@ export const ProductivityTab: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  mainCard: {
+  overviewCard: {
     marginBottom: layout.padding.medium,
-  },
-  timeCard: {
-    marginBottom: layout.padding.medium,
-  },
-  taskCard: {
-    marginBottom: layout.padding.medium,
-  },
-  suggestionCard: {
-    marginBottom: layout.padding.large,
   },
   sectionTitle: {
     fontSize: 18,
@@ -262,17 +272,18 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginBottom: layout.padding.medium,
   },
-  metricsGrid: {
+  productivityGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+    gap: layout.padding.small,
   },
   productivityCard: {
-    width: "48%",
+    flex: 1,
+    minWidth: 150,
+    padding: layout.padding.medium,
     backgroundColor: colors.surface,
     borderRadius: layout.borderRadius.medium,
-    padding: layout.padding.medium,
-    marginBottom: layout.padding.medium,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -285,137 +296,73 @@ const styles = StyleSheet.create({
   trendBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.background,
-    borderRadius: 12,
+    backgroundColor: colors.surface,
     paddingHorizontal: 6,
     paddingVertical: 2,
+    borderRadius: 12,
   },
   trendValue: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "600",
     marginLeft: 2,
   },
   cardValue: {
     fontSize: 24,
     fontWeight: "700",
+    color: colors.text.primary,
     marginBottom: 4,
   },
   cardLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: colors.text.primary,
-    marginBottom: 2,
+    color: colors.text.secondary,
+    marginBottom: 4,
   },
   cardDescription: {
-    fontSize: 11,
-    color: colors.text.secondary,
-    lineHeight: 14,
+    fontSize: 12,
+    color: colors.text.disabled,
   },
-  peakInfo: {
-    fontSize: 14,
-    color: colors.success || "#4CAF50",
-    fontWeight: "500",
-    marginBottom: layout.padding.medium,
-    alignItems: "center",
-  },
-  timeAnalysis: {
-    marginTop: layout.padding.small,
-  },
-  timeSlot: {
+  efficiencyCard: {
     marginBottom: layout.padding.medium,
   },
-  timeSlotLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: colors.text.primary,
-    marginBottom: layout.padding.small,
-  },
-  timeSlotMetrics: {
+  efficiencyGrid: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "space-around",
   },
-  timeSlotProgress: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: layout.padding.medium,
-  },
-  progressBg: {
-    flex: 1,
-    height: 6,
-    backgroundColor: colors.border,
-    borderRadius: 3,
-    marginRight: layout.padding.small,
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 3,
-  },
-  productivityPercent: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: colors.text.primary,
-    minWidth: 35,
-  },
-  taskCount: {
-    fontSize: 12,
-    color: colors.text.secondary,
-    minWidth: 30,
-    textAlign: "right",
-  },
-  taskMetrics: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  taskMetricItem: {
+  efficiencyItem: {
     alignItems: "center",
     flex: 1,
   },
-  taskMetricValue: {
+  efficiencyValue: {
     fontSize: 20,
     fontWeight: "700",
     color: colors.text.primary,
-    marginTop: layout.padding.small,
-    marginBottom: 4,
+    marginVertical: 4,
   },
-  taskMetricLabel: {
+  efficiencyLabel: {
     fontSize: 12,
-    fontWeight: "600",
-    color: colors.text.primary,
-    textAlign: "center",
-    marginBottom: 2,
-  },
-  taskMetricSubtext: {
-    fontSize: 10,
     color: colors.text.secondary,
     textAlign: "center",
   },
-  suggestions: {
-    marginTop: layout.padding.small,
+  suggestionCard: {
+    marginBottom: layout.padding.medium,
+  },
+  suggestionList: {
+    gap: layout.padding.small,
   },
   suggestionItem: {
     flexDirection: "row",
-    marginBottom: layout.padding.medium,
-    padding: layout.padding.medium,
-    backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
+    alignItems: "center",
+    padding: layout.padding.small,
+    backgroundColor: colors.warning + "10",
+    borderRadius: layout.borderRadius.small,
     borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-  },
-  suggestionContent: {
-    flex: 1,
-    marginLeft: layout.padding.medium,
-  },
-  suggestionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.text.primary,
-    marginBottom: 4,
+    borderLeftColor: colors.warning || "#FF9800",
   },
   suggestionText: {
-    fontSize: 12,
-    color: colors.text.secondary,
-    lineHeight: 16,
+    flex: 1,
+    fontSize: 14,
+    color: colors.text.primary,
+    marginLeft: layout.padding.small,
   },
 });

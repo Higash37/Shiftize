@@ -76,15 +76,5 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
         <Text style={styles.dateNavBtn}>{">"}</Text>
       </Pressable>
     </View>
-    {/* 右端：設定アイコン */}
-    <View
-      style={{ width: 80, alignItems: "flex-end", justifyContent: "center" }}
-    >
-      {onPressSettings && (
-        <Pressable onPress={onPressSettings} style={{ padding: 8 }}>
-          <FontAwesome name="cog" size={24} color="#1976d2" />
-        </Pressable>
-      )}
-    </View>
   </View>
 );

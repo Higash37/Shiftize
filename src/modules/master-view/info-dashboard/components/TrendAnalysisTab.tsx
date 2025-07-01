@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,51 +9,147 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
+import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 
 type PeriodType = "3months" | "6months" | "1year";
 
-export const TrendAnalysisTab: React.FC = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("3months");
+interface TrendAnalysisTabProps {
+  shifts?: any[];
+  users?: any[];
+}
 
-  const trendData = {
+export const TrendAnalysisTab: React.FC<TrendAnalysisTabProps> = ({
+  shifts = [],
+  users = [],
+}) => {
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("3months");
+  const [trendData, setTrendData] = useState({
     "3months": {
-      labels: ["1月", "2月", "3月"],
-      workHours: [280, 295, 312],
-      costs: [420000, 435000, 387000],
-      efficiency: [82, 85, 89],
+      labels: [] as string[],
+      workHours: [] as number[],
+      costs: [] as number[],
+      efficiency: [] as number[],
     },
     "6months": {
-      labels: ["10月", "11月", "12月", "1月", "2月", "3月"],
-      workHours: [295, 285, 275, 280, 295, 312],
-      costs: [445000, 428000, 415000, 420000, 435000, 387000],
-      efficiency: [78, 80, 79, 82, 85, 89],
+      labels: [] as string[],
+      workHours: [] as number[],
+      costs: [] as number[],
+      efficiency: [] as number[],
     },
     "1year": {
-      labels: [
-        "4月",
-        "5月",
-        "6月",
-        "7月",
-        "8月",
-        "9月",
-        "10月",
-        "11月",
-        "12月",
-        "1月",
-        "2月",
-        "3月",
-      ],
-      workHours: [305, 318, 332, 345, 298, 285, 295, 285, 275, 280, 295, 312],
-      costs: [
-        458000, 477000, 498000, 518000, 447000, 428000, 445000, 428000, 415000,
-        420000, 435000, 387000,
-      ],
-      efficiency: [75, 76, 78, 82, 78, 77, 78, 80, 79, 82, 85, 89],
+      labels: [] as string[],
+      workHours: [] as number[],
+      costs: [] as number[],
+      efficiency: [] as number[],
     },
-  };
+  });
+
+  // 実データからトレンド分析データを計算
+  useEffect(() => {
+    if (shifts.length === 0 || users.length === 0) return;
+
+    const currentDate = new Date();
+
+    // 各期間のデータを計算
+    const calculatePeriodData = (months: number) => {
+      const labels: string[] = [];
+      const workHours: number[] = [];
+      const costs: number[] = [];
+      const efficiency: number[] = [];
+
+      for (let i = months - 1; i >= 0; i--) {
+        const targetDate = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() - i,
+          1
+        );
+        const monthLabel = `${targetDate.getMonth() + 1}月`;
+        labels.push(monthLabel);
+
+        // その月のシフトデータ
+        const monthShifts = shifts.filter((shift) => {
+          const shiftDate = new Date(shift.date);
+          return (
+            shiftDate.getMonth() === targetDate.getMonth() &&
+            shiftDate.getFullYear() === targetDate.getFullYear()
+          );
+        });
+
+        // 稼働時間（正確な実労働時間で計算）
+        let monthWorkingMinutes = 0;
+        let monthCost = 0;
+
+        monthShifts.forEach((shift) => {
+          const user = users.find((u) => u.uid === shift.userId);
+          const hourlyWage = user?.hourlyWage || 1100;
+
+          const { totalMinutes, totalWage } = calculateTotalWage(
+            {
+              startTime: shift.startTime,
+              endTime: shift.endTime,
+              classes: shift.classes || [],
+            },
+            hourlyWage
+          );
+
+          monthWorkingMinutes += totalMinutes;
+          monthCost += totalWage;
+        });
+
+        const monthHours = monthWorkingMinutes / 60;
+        workHours.push(Math.round(monthHours));
+        costs.push(Math.round(monthCost));
+
+        // 効率性（完了率）
+        const completedShifts = monthShifts.filter(
+          (shift) => shift.status === "completed" || shift.status === "approved"
+        ).length;
+        const efficiencyRate =
+          monthShifts.length > 0
+            ? (completedShifts / monthShifts.length) * 100
+            : 0;
+        efficiency.push(Math.round(efficiencyRate));
+      }
+
+      return { labels, workHours, costs, efficiency };
+    };
+
+    setTrendData({
+      "3months": calculatePeriodData(3),
+      "6months": calculatePeriodData(6),
+      "1year": calculatePeriodData(12),
+    });
+  }, [shifts, users]);
 
   const currentData = trendData[selectedPeriod];
+
+  // トレンド計算
+  const workHoursTrend =
+    currentData.workHours.length >= 2
+      ? Math.round(
+          ((currentData.workHours[currentData.workHours.length - 1] -
+            currentData.workHours[currentData.workHours.length - 2]) /
+            currentData.workHours[currentData.workHours.length - 2]) *
+            100
+        )
+      : 0;
+
+  const costsTrend =
+    currentData.costs.length >= 2
+      ? Math.round(
+          ((currentData.costs[currentData.costs.length - 1] -
+            currentData.costs[currentData.costs.length - 2]) /
+            currentData.costs[currentData.costs.length - 2]) *
+            100
+        )
+      : 0;
+
+  const efficiencyTrend =
+    currentData.efficiency.length >= 2
+      ? currentData.efficiency[currentData.efficiency.length - 1] -
+        currentData.efficiency[currentData.efficiency.length - 2]
+      : 0;
 
   const renderPeriodSelector = () => (
     <View style={styles.periodSelector}>
@@ -83,151 +179,23 @@ export const TrendAnalysisTab: React.FC = () => {
     </View>
   );
 
-  const renderTrendChart = (
-    data: number[],
-    label: string,
-    color: string,
-    unit: string = ""
-  ) => {
-    const maxValue = Math.max(...data);
-    const minValue = Math.min(...data);
-    const range = maxValue - minValue;
-
-    return (
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>{label}</Text>
-        <View style={styles.chart}>
-          {data.map((value, index) => {
-            const height =
-              range > 0 ? ((value - minValue) / range) * 60 + 20 : 40;
-            const isLast = index === data.length - 1;
-            const trend = index > 0 ? value - data[index - 1] : 0;
-
-            return (
-              <View key={index} style={styles.chartColumn}>
-                <View style={styles.chartBarContainer}>
-                  <View
-                    style={[
-                      styles.chartBar,
-                      {
-                        height,
-                        backgroundColor: isLast ? color : color + "60",
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.chartValue}>
-                  {typeof value === "number" && value >= 1000
-                    ? `${(value / 1000).toFixed(0)}k`
-                    : value.toString()}
-                  {unit}
-                </Text>
-                <Text style={styles.chartLabel}>
-                  {currentData.labels[index]}
-                </Text>
-                {trend !== 0 && (
-                  <MaterialIcons
-                    name={trend > 0 ? "trending-up" : "trending-down"}
-                    size={12}
-                    color={
-                      trend > 0 ? colors.success || "#4CAF50" : colors.error
-                    }
-                    style={styles.trendIcon}
-                  />
-                )}
-              </View>
-            );
-          })}
-        </View>
+  const renderSimpleChart = (data: number[], color: string, label: string) => (
+    <View style={styles.chartContainer}>
+      <Text style={styles.chartLabel}>{label}</Text>
+      <View style={styles.chartBars}>
+        {data.map((value, index) => {
+          const maxValue = Math.max(...data);
+          const height = maxValue > 0 ? (value / maxValue) * 80 : 0;
+          return (
+            <View key={index} style={styles.barContainer}>
+              <View style={[styles.bar, { height, backgroundColor: color }]} />
+              <Text style={styles.barLabel}>{currentData.labels[index]}</Text>
+            </View>
+          );
+        })}
       </View>
-    );
-  };
-
-  const calculateTrend = (data: number[]) => {
-    if (data.length < 2) return 0;
-    const recent = data[data.length - 1];
-    const previous = data[data.length - 2];
-    return ((recent - previous) / previous) * 100;
-  };
-
-  const renderTrendSummary = () => {
-    const workHoursTrend = calculateTrend(currentData.workHours);
-    const costsTrend = calculateTrend(currentData.costs);
-    const efficiencyTrend = calculateTrend(currentData.efficiency);
-
-    return (
-      <View style={styles.trendSummary}>
-        <View style={styles.trendItem}>
-          <MaterialIcons
-            name="schedule"
-            size={20}
-            color={workHoursTrend >= 0 ? colors.primary : colors.error}
-          />
-          <Text style={styles.trendLabel}>稼働時間</Text>
-          <Text
-            style={[
-              styles.trendValue,
-              {
-                color:
-                  workHoursTrend >= 0
-                    ? colors.success || "#4CAF50"
-                    : colors.error,
-              },
-            ]}
-          >
-            {workHoursTrend > 0 ? "+" : ""}
-            {workHoursTrend.toFixed(1)}%
-          </Text>
-        </View>
-
-        <View style={styles.trendItem}>
-          <MaterialIcons
-            name="attach-money"
-            size={20}
-            color={costsTrend <= 0 ? colors.success || "#4CAF50" : colors.error}
-          />
-          <Text style={styles.trendLabel}>人件費</Text>
-          <Text
-            style={[
-              styles.trendValue,
-              {
-                color:
-                  costsTrend <= 0 ? colors.success || "#4CAF50" : colors.error,
-              },
-            ]}
-          >
-            {costsTrend > 0 ? "+" : ""}
-            {costsTrend.toFixed(1)}%
-          </Text>
-        </View>
-
-        <View style={styles.trendItem}>
-          <MaterialIcons
-            name="trending-up"
-            size={20}
-            color={
-              efficiencyTrend >= 0 ? colors.success || "#4CAF50" : colors.error
-            }
-          />
-          <Text style={styles.trendLabel}>効率性</Text>
-          <Text
-            style={[
-              styles.trendValue,
-              {
-                color:
-                  efficiencyTrend >= 0
-                    ? colors.success || "#4CAF50"
-                    : colors.error,
-              },
-            ]}
-          >
-            {efficiencyTrend > 0 ? "+" : ""}
-            {efficiencyTrend.toFixed(1)}%
-          </Text>
-        </View>
-      </View>
-    );
-  };
+    </View>
+  );
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
@@ -235,80 +203,157 @@ export const TrendAnalysisTab: React.FC = () => {
       <Box variant="card" style={styles.selectorCard}>
         <Text style={styles.sectionTitle}>期間選択</Text>
         {renderPeriodSelector()}
-        {renderTrendSummary()}
       </Box>
 
-      {/* 稼働時間トレンド */}
+      {/* トレンド概要 */}
+      <Box variant="card" style={styles.overviewCard}>
+        <Text style={styles.sectionTitle}>トレンド概要</Text>
+        <View style={styles.trendGrid}>
+          <View style={styles.trendItem}>
+            <MaterialIcons name="schedule" size={24} color={colors.primary} />
+            <Text style={styles.trendValue}>
+              {currentData.workHours.length > 0
+                ? currentData.workHours[currentData.workHours.length - 1]
+                : 0}
+              h
+            </Text>
+            <Text style={styles.trendLabel}>稼働時間</Text>
+            <Text
+              style={[
+                styles.trendChange,
+                {
+                  color:
+                    workHoursTrend >= 0
+                      ? colors.success || "#4CAF50"
+                      : colors.error,
+                },
+              ]}
+            >
+              {workHoursTrend > 0 ? "+" : ""}
+              {workHoursTrend}%
+            </Text>
+          </View>
+          <View style={styles.trendItem}>
+            <MaterialIcons
+              name="attach-money"
+              size={24}
+              color={colors.primary}
+            />
+            <Text style={styles.trendValue}>
+              ¥
+              {currentData.costs.length > 0
+                ? currentData.costs[
+                    currentData.costs.length - 1
+                  ].toLocaleString()
+                : 0}
+            </Text>
+            <Text style={styles.trendLabel}>人件費</Text>
+            <Text
+              style={[
+                styles.trendChange,
+                {
+                  color:
+                    costsTrend <= 0
+                      ? colors.success || "#4CAF50"
+                      : colors.error,
+                },
+              ]}
+            >
+              {costsTrend > 0 ? "+" : ""}
+              {costsTrend}%
+            </Text>
+          </View>
+          <View style={styles.trendItem}>
+            <MaterialIcons
+              name="trending-up"
+              size={24}
+              color={colors.primary}
+            />
+            <Text style={styles.trendValue}>
+              {currentData.efficiency.length > 0
+                ? currentData.efficiency[currentData.efficiency.length - 1]
+                : 0}
+              %
+            </Text>
+            <Text style={styles.trendLabel}>効率性</Text>
+            <Text
+              style={[
+                styles.trendChange,
+                {
+                  color:
+                    efficiencyTrend >= 0
+                      ? colors.success || "#4CAF50"
+                      : colors.error,
+                },
+              ]}
+            >
+              {efficiencyTrend > 0 ? "+" : ""}
+              {efficiencyTrend}pt
+            </Text>
+          </View>
+        </View>
+      </Box>
+
+      {/* チャート */}
       <Box variant="card" style={styles.chartCard}>
-        {renderTrendChart(
+        <Text style={styles.sectionTitle}>推移グラフ</Text>
+        {renderSimpleChart(
           currentData.workHours,
-          "稼働時間トレンド",
           colors.primary,
-          "h"
+          "稼働時間 (h)"
         )}
-      </Box>
-
-      {/* 人件費トレンド */}
-      <Box variant="card" style={styles.chartCard}>
-        {renderTrendChart(
-          currentData.costs,
-          "人件費トレンド",
-          colors.secondary,
-          ""
+        {renderSimpleChart(
+          currentData.costs.map((c) => Math.round(c / 1000)),
+          colors.warning || "#FF9800",
+          "人件費 (千円)"
         )}
-      </Box>
-
-      {/* 効率性トレンド */}
-      <Box variant="card" style={styles.chartCard}>
-        {renderTrendChart(
+        {renderSimpleChart(
           currentData.efficiency,
-          "効率性トレンド",
           colors.success || "#4CAF50",
-          "%"
+          "効率性 (%)"
         )}
       </Box>
 
       {/* 予測・提案 */}
-      <Box variant="card" style={styles.predictionCard}>
-        <Text style={styles.sectionTitle}>予測・提案</Text>
-
-        <View style={styles.predictions}>
-          <View style={styles.predictionItem}>
+      <Box variant="card" style={styles.insightCard}>
+        <Text style={styles.sectionTitle}>傾向分析</Text>
+        <View style={styles.insightList}>
+          <View style={styles.insightItem}>
             <MaterialIcons
-              name="trending-up"
-              size={24}
-              color={colors.success || "#4CAF50"}
+              name={workHoursTrend >= 0 ? "trending-up" : "trending-down"}
+              size={20}
+              color={
+                workHoursTrend >= 0 ? colors.success || "#4CAF50" : colors.error
+              }
             />
-            <View style={styles.predictionContent}>
-              <Text style={styles.predictionTitle}>効率向上トレンド</Text>
-              <Text style={styles.predictionText}>
-                過去3ヶ月で効率が継続的に向上しています。この傾向が続けば来月は92%の効率が期待できます。
-              </Text>
-            </View>
+            <Text style={styles.insightText}>
+              稼働時間が前月比{workHoursTrend > 0 ? "増加" : "減少"}しています（
+              {workHoursTrend}%）
+            </Text>
           </View>
-
-          <View style={styles.predictionItem}>
-            <MaterialIcons name="savings" size={24} color={colors.primary} />
-            <View style={styles.predictionContent}>
-              <Text style={styles.predictionTitle}>コスト最適化</Text>
-              <Text style={styles.predictionText}>
-                人件費が前月比11%削減されました。効率的なシフト配置により更なる最適化が可能です。
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.predictionItem}>
+          <View style={styles.insightItem}>
             <MaterialIcons
-              name="schedule"
-              size={24}
+              name={costsTrend <= 0 ? "trending-down" : "trending-up"}
+              size={20}
+              color={
+                costsTrend <= 0 ? colors.success || "#4CAF50" : colors.error
+              }
+            />
+            <Text style={styles.insightText}>
+              人件費が前月比{costsTrend > 0 ? "増加" : "減少"}しています（
+              {costsTrend}%）
+            </Text>
+          </View>
+          <View style={styles.insightItem}>
+            <MaterialIcons
+              name="lightbulb"
+              size={20}
               color={colors.warning || "#FF9800"}
             />
-            <View style={styles.predictionContent}>
-              <Text style={styles.predictionTitle}>繁忙期対策</Text>
-              <Text style={styles.predictionText}>
-                季節的な稼働時間の増加が予想されます。スタッフの増員やシフト調整を検討してください。
-              </Text>
-            </View>
+            <Text style={styles.insightText}>
+              効率性スコアが{efficiencyTrend >= 0 ? "改善" : "悪化"}
+              傾向にあります
+            </Text>
           </View>
         </View>
       </Box>
@@ -320,12 +365,6 @@ const styles = StyleSheet.create({
   selectorCard: {
     marginBottom: layout.padding.medium,
   },
-  chartCard: {
-    marginBottom: layout.padding.medium,
-  },
-  predictionCard: {
-    marginBottom: layout.padding.large,
-  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
@@ -334,16 +373,16 @@ const styles = StyleSheet.create({
   },
   periodSelector: {
     flexDirection: "row",
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderRadius: layout.borderRadius.medium,
     padding: 4,
-    marginBottom: layout.padding.medium,
   },
   periodButton: {
     flex: 1,
     paddingVertical: layout.padding.small,
-    alignItems: "center",
+    paddingHorizontal: layout.padding.medium,
     borderRadius: layout.borderRadius.small,
+    alignItems: "center",
   },
   periodButtonActive: {
     backgroundColor: colors.primary,
@@ -354,101 +393,90 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   periodButtonTextActive: {
-    color: colors.text.white,
+    color: colors.surface,
     fontWeight: "600",
   },
-  trendSummary: {
+  overviewCard: {
+    marginBottom: layout.padding.medium,
+  },
+  trendGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
-    backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
-    padding: layout.padding.medium,
   },
   trendItem: {
-    alignItems: "center",
     flex: 1,
+    alignItems: "center",
+    padding: layout.padding.small,
+  },
+  trendValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: colors.text.primary,
+    marginVertical: 4,
   },
   trendLabel: {
     fontSize: 12,
     color: colors.text.secondary,
-    marginTop: 4,
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  trendValue: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  chartContainer: {
-    marginBottom: layout.padding.small,
-  },
-  chartTitle: {
-    fontSize: 16,
+  trendChange: {
+    fontSize: 12,
     fontWeight: "600",
-    color: colors.text.primary,
+  },
+  chartCard: {
     marginBottom: layout.padding.medium,
   },
-  chart: {
+  chartContainer: {
+    marginBottom: layout.padding.large,
+  },
+  chartLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.text.primary,
+    marginBottom: layout.padding.small,
+  },
+  chartBars: {
     flexDirection: "row",
     alignItems: "flex-end",
-    height: 120,
+    justifyContent: "space-between",
+    height: 100,
     paddingHorizontal: layout.padding.small,
   },
-  chartColumn: {
+  barContainer: {
     flex: 1,
     alignItems: "center",
     marginHorizontal: 2,
   },
-  chartBarContainer: {
-    height: 80,
-    justifyContent: "flex-end",
-    width: "100%",
-  },
-  chartBar: {
-    width: "100%",
-    borderRadius: 2,
+  bar: {
+    width: "80%",
     minHeight: 4,
-  },
-  chartValue: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: colors.text.primary,
-    marginTop: 4,
-    textAlign: "center",
-  },
-  chartLabel: {
-    fontSize: 9,
-    color: colors.text.secondary,
-    marginTop: 2,
-    textAlign: "center",
-  },
-  trendIcon: {
-    marginTop: 2,
-  },
-  predictions: {
-    marginTop: layout.padding.small,
-  },
-  predictionItem: {
-    flexDirection: "row",
-    marginBottom: layout.padding.medium,
-    padding: layout.padding.medium,
-    backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  predictionContent: {
-    flex: 1,
-    marginLeft: layout.padding.medium,
-  },
-  predictionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.text.primary,
+    borderRadius: 2,
     marginBottom: 4,
   },
-  predictionText: {
-    fontSize: 12,
-    color: colors.text.secondary,
-    lineHeight: 16,
+  barLabel: {
+    fontSize: 10,
+    color: colors.text.disabled,
+    textAlign: "center",
+  },
+  insightCard: {
+    marginBottom: layout.padding.medium,
+  },
+  insightList: {
+    gap: layout.padding.small,
+  },
+  insightItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: layout.padding.small,
+    backgroundColor: colors.surface,
+    borderRadius: layout.borderRadius.small,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+  },
+  insightText: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.text.primary,
+    marginLeft: layout.padding.small,
   },
 });

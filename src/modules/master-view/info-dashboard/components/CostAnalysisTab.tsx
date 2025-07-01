@@ -9,23 +9,161 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
+import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 
 interface CostAnalysisTabProps {
   budget: number;
+  shifts?: any[];
+  users?: any[];
+  totalCost?: number;
+  totalHours?: number;
 }
 
-export const CostAnalysisTab: React.FC<CostAnalysisTabProps> = ({ budget }) => {
+export const CostAnalysisTab: React.FC<CostAnalysisTabProps> = ({
+  budget,
+  shifts = [],
+  users = [],
+  totalCost = 0,
+  totalHours = 0,
+}) => {
   const [costData, setCostData] = useState({
-    totalCost: 387000,
-    lastMonthCost: 425000,
-    fixedCosts: 120000,
-    variableCosts: 267000,
-    overtimeCosts: 45000,
+    totalCost: 0,
+    lastMonthCost: 0,
+    fixedCosts: 0,
+    variableCosts: 0,
+    overtimeCosts: 0,
   });
 
   const { width } = useWindowDimensions();
   const isTabletOrDesktop = width >= 768;
+
+  // 実データからコスト分析データを計算
+  useEffect(() => {
+    if (shifts.length === 0) return;
+
+    const currentDate = new Date();
+    const currentMonthShifts = shifts.filter((shift) => {
+      const shiftDate = new Date(shift.date);
+      return (
+        shiftDate.getMonth() === currentDate.getMonth() &&
+        shiftDate.getFullYear() === currentDate.getFullYear() &&
+        (shift.status === "approved" ||
+          shift.status === "pending" ||
+          shift.status === "completed")
+      );
+    });
+
+    // 前月のシフトも取得
+    const lastMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - 1,
+      1
+    );
+    const lastMonthShifts = shifts.filter((shift) => {
+      const shiftDate = new Date(shift.date);
+      return (
+        shiftDate.getMonth() === lastMonth.getMonth() &&
+        shiftDate.getFullYear() === lastMonth.getFullYear() &&
+        (shift.status === "approved" ||
+          shift.status === "pending" ||
+          shift.status === "completed")
+      );
+    });
+
+    // 現在月のコスト計算（正確な計算）
+    let currentMonthCost = 0;
+    let currentMonthMinutes = 0;
+
+    currentMonthShifts.forEach((shift) => {
+      const user = users.find((u) => u.uid === shift.userId);
+      const hourlyWage = user?.hourlyWage || 1100;
+
+      const { totalMinutes, totalWage } = calculateTotalWage(
+        {
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          classes: shift.classes || [],
+        },
+        hourlyWage
+      );
+
+      currentMonthCost += totalWage;
+      currentMonthMinutes += totalMinutes;
+    });
+
+    // 前月のコスト計算（正確な計算）
+    let lastMonthCostCalc = 0;
+
+    lastMonthShifts.forEach((shift) => {
+      const user = users.find((u) => u.uid === shift.userId);
+      const hourlyWage = user?.hourlyWage || 1100;
+
+      const { totalWage } = calculateTotalWage(
+        {
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          classes: shift.classes || [],
+        },
+        hourlyWage
+      );
+
+      lastMonthCostCalc += totalWage;
+    });
+
+    // 固定費と変動費の分類（簡易版）
+    const avgHourlyWage =
+      users.length > 0
+        ? users.reduce((sum, user) => sum + (user.hourlyWage || 1100), 0) /
+          users.length
+        : 1100;
+    const currentMonthHours = currentMonthMinutes / 60;
+    const regularHours = Math.min(currentMonthHours, users.length * 160); // 1人月160時間を標準とする
+    const overtimeHours = Math.max(0, currentMonthHours - regularHours);
+
+    const fixedCosts = regularHours * avgHourlyWage;
+    const variableCosts =
+      currentMonthCost - fixedCosts - overtimeHours * avgHourlyWage * 1.25;
+    const overtimeCosts = overtimeHours * avgHourlyWage * 1.25; // 残業代25%増し
+
+    setCostData({
+      totalCost: Math.round(currentMonthCost),
+      lastMonthCost: Math.round(lastMonthCostCalc),
+      fixedCosts: Math.max(0, Math.round(fixedCosts)),
+      variableCosts: Math.max(0, Math.round(variableCosts)),
+      overtimeCosts: Math.max(0, Math.round(overtimeCosts)),
+    });
+  }, [shifts, users]);
+
+  // 実際の労働時間を計算（propsのtotalHoursではなく）
+  const actualTotalHours = React.useMemo(() => {
+    const currentDate = new Date();
+    const currentMonthShifts = shifts.filter((shift) => {
+      const shiftDate = new Date(shift.date);
+      return (
+        shiftDate.getMonth() === currentDate.getMonth() &&
+        shiftDate.getFullYear() === currentDate.getFullYear() &&
+        (shift.status === "approved" ||
+          shift.status === "pending" ||
+          shift.status === "completed")
+      );
+    });
+
+    let totalMinutes = 0;
+    currentMonthShifts.forEach((shift) => {
+      const { totalMinutes: workMinutes } = calculateTotalWage(
+        {
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          classes: shift.classes || [],
+        },
+        1100 // 時給は計算に影響しないので固定値
+      );
+      totalMinutes += workMinutes;
+    });
+
+    return totalMinutes / 60;
+  }, [shifts]);
 
   const budgetUsage = (costData.totalCost / budget) * 100;
   const costChange =
@@ -235,13 +373,23 @@ export const CostAnalysisTab: React.FC<CostAnalysisTabProps> = ({ budget }) => {
         <View style={styles.efficiencyGrid}>
           <View style={styles.efficiencyItem}>
             <MaterialIcons name="timeline" size={20} color={colors.primary} />
-            <Text style={styles.efficiencyValue}>¥1,387</Text>
+            <Text style={styles.efficiencyValue}>
+              ¥
+              {Math.round(
+                costData.totalCost / Math.max(1, actualTotalHours) || 0
+              ).toLocaleString()}
+            </Text>
             <Text style={styles.efficiencyLabel}>時間あたりコスト</Text>
           </View>
 
           <View style={styles.efficiencyItem}>
             <MaterialIcons name="person" size={20} color={colors.primary} />
-            <Text style={styles.efficiencyValue}>¥96,750</Text>
+            <Text style={styles.efficiencyValue}>
+              ¥
+              {Math.round(
+                costData.totalCost / Math.max(1, users.length) || 0
+              ).toLocaleString()}
+            </Text>
             <Text style={styles.efficiencyLabel}>スタッフあたり</Text>
           </View>
 
@@ -251,7 +399,9 @@ export const CostAnalysisTab: React.FC<CostAnalysisTabProps> = ({ budget }) => {
               size={20}
               color={colors.primary}
             />
-            <Text style={styles.efficiencyValue}>77.4%</Text>
+            <Text style={styles.efficiencyValue}>
+              {(((budget - costData.totalCost) / budget) * 100).toFixed(1)}%
+            </Text>
             <Text style={styles.efficiencyLabel}>予算効率</Text>
           </View>
         </View>
