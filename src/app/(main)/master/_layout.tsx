@@ -73,7 +73,7 @@ export default function MasterLayout() {
   return (
     <View style={{ flex: 1, display: "flex", flexDirection: "column" }}>
       {/* メインコンテンツエリア - フッター分を除いた高さ */}
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, ...(isPWA && { paddingBottom: 80 }) }}>
         <Stack
           screenOptions={{
             headerShown: false, // デフォルトヘッダーを非表示にする
@@ -99,6 +99,11 @@ export default function MasterLayout() {
             left: 0,
             right: 0,
             zIndex: 1000,
+            width: "100vw" as any,
+            minWidth: "100vw" as any,
+            maxWidth: "100vw" as any,
+            margin: 0,
+            padding: 0,
           }),
         }}
       >

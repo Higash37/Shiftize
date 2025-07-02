@@ -157,11 +157,14 @@ export function MasterFooter({}: MasterFooterProps) {
           ...(isPWA && {
             position: "fixed" as any,
             zIndex: 1000,
+            width: "100vw" as any,
+            minWidth: "100vw" as any,
+            maxWidth: "100vw" as any,
           }),
         },
       ]}
     >
-      {MASTER_TABS.map((tab) => {
+      {MASTER_TABS.map((tab, index) => {
         const active = pathname === tab.path;
         return (
           <TouchableOpacity
@@ -175,6 +178,10 @@ export function MasterFooter({}: MasterFooterProps) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                ...(isPWA && {
+                  minWidth: `${100 / MASTER_TABS.length}%` as any,
+                  maxWidth: `${100 / MASTER_TABS.length}%` as any,
+                }),
               },
             ]}
             onPress={() => handleTabPress(tab)}

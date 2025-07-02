@@ -20,6 +20,12 @@ export const styles = StyleSheet.create({
     alignItems: "center", // 縦方向の中央揃え
     minHeight: 60, // 最小高さを保証
     paddingHorizontal: 8, // 左右の余白
+    ...(Platform.OS === "web" && {
+      position: "relative" as any,
+      bottom: 0,
+      left: 0,
+      right: 0,
+    }),
   },
   tab: {
     flex: 1,
@@ -27,6 +33,7 @@ export const styles = StyleSheet.create({
     paddingVertical: IS_SMALL_DEVICE ? 6 : 8,
     minWidth: 0, // flex子要素の最小幅を0に
     maxWidth: "100%", // 最大幅制限
+    justifyContent: "center",
   },
   createTab: {
     marginTop: IS_SMALL_DEVICE ? -15 : -20,
