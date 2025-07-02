@@ -351,6 +351,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         value={subject}
         onChangeText={setSubject}
         placeholder="業務内容を入力"
+        placeholderTextColor="#999"
         multiline
         numberOfLines={3}
         style={styles.subjectInput}

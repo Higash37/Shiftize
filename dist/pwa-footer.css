@@ -3,3 +3,43 @@
   width: 100%;
   background-color: #f2f2f7;
 }
+
+/* PWA時のフッター表示修正 */
+@media (display-mode: standalone) {
+  /* React Nativeのフッタービューを確実に配置 */
+  [data-react-native="true"] > div > div:last-child {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    width: 100% !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  /* マスターフッター専用の配置修正 */
+  .master-footer-pwa {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  /* フッター内の各タブアイテム */
+  .master-footer-pwa > div {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* 全体のフッターコンテナにも適用 */
+  [data-react-native="true"] div[style*="flex-direction: row"] {
+    width: 100% !important;
+    justify-content: space-around !important;
+  }
+}

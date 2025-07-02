@@ -16,11 +16,17 @@ export const styles = StyleSheet.create({
     width: "100%", // 画面端まで伸ばす
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    justifyContent: "space-around", // タブを均等に配置
+    alignItems: "center", // 縦方向の中央揃え
+    minHeight: 60, // 最小高さを保証
+    paddingHorizontal: 8, // 左右の余白
   },
   tab: {
     flex: 1,
     alignItems: "center",
     paddingVertical: IS_SMALL_DEVICE ? 6 : 8,
+    minWidth: 0, // flex子要素の最小幅を0に
+    maxWidth: "100%", // 最大幅制限
   },
   createTab: {
     marginTop: IS_SMALL_DEVICE ? -15 : -20,

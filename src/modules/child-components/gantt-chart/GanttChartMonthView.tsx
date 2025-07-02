@@ -78,6 +78,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   onShiftUpdate,
   onMonthChange,
   onTimeChange,
+  onTaskAdd,
   classTimes = [],
 }) => {
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
@@ -154,6 +155,12 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const visibleShifts = shifts.filter(
     (s) => s.status !== "deleted" && s.status !== "purged"
   );
+
+  // usersにroleを追加（デフォルトは"staff"）
+  const usersWithRole = users.map((user) => ({
+    ...user,
+    role: "staff" as const, // デフォルトでstaffロールを追加
+  }));
 
   // 日付ごとにシフトをグループ化
   const rows: [string, ShiftItem[]][] = days.flatMap((date) => {
@@ -514,8 +521,10 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             handleShiftPress={handleShiftPress}
             handleEmptyCellClick={handleEmptyCellClick}
             onTimeChange={onTimeChange}
+            onTaskAdd={onTaskAdd}
             styles={styles}
             userColorsMap={userColorsMap}
+            users={usersWithRole}
           />
         </View>
       </CustomScrollView>

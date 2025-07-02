@@ -4,7 +4,7 @@
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5, user-scalable=yes"
     />
     <meta name="google-site-verification" content="Je5W8Kxj3tBMQiEZkzrvbSQ-pfko-uA8HOdIeYplXsQ" />
     <title>シフタイズ - シフト管理・スケジューリングアプリ</title>
@@ -91,8 +91,8 @@
         width: 100%;
         background-color: white;
         overscroll-behavior: none;
-        /* ズーム機能を完全に無効化 */
-        touch-action: manipulation;
+        /* ズーム機能を有効化 */
+        touch-action: pan-x pan-y pinch-zoom;
         -webkit-user-select: none;
         user-select: none;
         -webkit-touch-callout: none;
@@ -104,7 +104,7 @@
         flex: 1;
         flex-direction: column;
         overscroll-behavior: none;
-        touch-action: manipulation;
+        touch-action: pan-x pan-y pinch-zoom;
       }
       body {
         height: calc(var(--vh, 1vh) * 100);
@@ -146,8 +146,7 @@
 
     <!-- PWA Footer Safearea CSS -->
     <link rel="stylesheet" href="/pwa-footer.css" />
-  <meta name="theme-color" content="#1565C0">
-</head>
+  </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     
@@ -176,45 +175,8 @@
           }
         }, 1); // 0.01秒後にスプラッシュスクリーンを非表示
       });
-      
-      // パスワード入力時のズーム防止を強化
-      document.addEventListener('touchmove', function(e) {
-        if (e.touches.length > 1) {
-          e.preventDefault(); // ピンチジェスチャーを防止
-        }
-      }, { passive: false });
-      
-      document.addEventListener('touchstart', function(e) {
-        if (e.touches.length > 1) {
-          e.preventDefault(); // マルチタッチを防止
-        }
-      }, { passive: false });
-      
-      // ダブルタップによるズームを防止
-      let lastTap = 0;
-      document.addEventListener('touchend', function(e) {
-        const now = new Date().getTime();
-        const timeDiff = now - lastTap;
-        if (timeDiff < 300 && timeDiff > 0) {
-          e.preventDefault();
-        }
-        lastTap = now;
-      }, { passive: false });
 
-      // キーボード・ホイールズームの防止
-      document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '0')) {
-          e.preventDefault();
-        }
-      });
-
-      document.addEventListener('wheel', function(e) {
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault();
-        }
-      }, { passive: false });
-
-      // フォーカス時のズームを防止
+      // フォーカス時のフォントサイズ調整（iOSでの自動ズームを防ぐため）
       document.addEventListener('focusin', function(e) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
           // フォーカス時のズームを防ぐため、font-sizeを16px以上に設定
@@ -251,6 +213,40 @@
         });
       }
     </script>
-  <script src="/_expo/static/js/web/entry-38011ec4a5f246d6b6519e6bca3836b2.js" defer></script>
-</body>
+
+    <!-- ズーム機能強化 -->
+    <script>
+      // ズーム機能を確実に有効化
+      document.addEventListener('DOMContentLoaded', function() {
+        // viewport設定を強制的に更新
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+          viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5, user-scalable=yes');
+        }
+        
+        // touch-actionを全要素に適用
+        document.body.style.touchAction = 'pan-x pan-y pinch-zoom';
+        document.documentElement.style.touchAction = 'pan-x pan-y pinch-zoom';
+        
+        // すべての子要素にもtouch-actionを適用
+        const applyTouchAction = () => {
+          const allElements = document.querySelectorAll('*');
+          allElements.forEach(element => {
+            element.style.touchAction = 'pan-x pan-y pinch-zoom';
+          });
+        };
+        
+        applyTouchAction();
+        
+        // 定期的にtouch-actionを再適用（動的に追加される要素に対応）
+        setInterval(applyTouchAction, 1000);
+      });
+      
+      // 既存のズーム防止イベントリスナーを削除
+      window.addEventListener('load', function() {
+        // 既存のイベントリスナーを削除するため、新しいdocumentを作成
+        document.removeEventListener = function() {};
+      });
+    </script>
+  </body>
 </html>

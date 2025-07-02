@@ -72,7 +72,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
               onChangeText={handleBudgetChange}
               keyboardType="numeric"
               placeholder="500000"
-              placeholderTextColor={colors.text.disabled}
+              placeholderTextColor="#999"
             />
           </View>
           <Text

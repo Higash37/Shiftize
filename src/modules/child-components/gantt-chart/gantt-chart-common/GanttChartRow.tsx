@@ -29,13 +29,19 @@ interface GanttChartRowProps {
     newStartTime: string,
     newEndTime: string
   ) => void;
+  onTaskAdd?: (shiftId: string) => void; // タスク追加ハンドラーを追加
   styles: any;
   userColorsMap: Record<string, string>;
+  users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
   statusStyles?: (status: ShiftStatus) => {
     borderColor: string;
     color: string;
   };
+  isFirstInGroup?: boolean; // 同じ日付の最初の行かどうか
+  groupSize?: number; // 同じ日付の総行数
 }
+
+export { GanttChartRowProps };
 
 export const GanttChartRow: React.FC<GanttChartRowProps> = ({
   date,
@@ -50,19 +56,41 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
   handleShiftPress,
   handleEmptyCellClick,
   onTimeChange,
+  onTaskAdd,
   styles,
   userColorsMap,
+  users = [], // デフォルト値を設定
   statusStyles,
+  isFirstInGroup = true, // デフォルトは true
+  groupSize = 1, // デフォルトは 1
 }) => {
+  // 行の高さを動的に計算（デフォルト65px）
+  const rowHeight = styles.shiftRow?.height || 65;
+  const mergedCellHeight =
+    typeof rowHeight === "number" ? rowHeight * groupSize : 65 * groupSize;
+
   if (group && group.length > 0) {
     // シフトがある日
     return (
       <View key={date} style={styles.shiftRow}>
-        <DateCell
-          date={date}
-          dateColumnWidth={dateColumnWidth}
-          styles={styles}
-        />
+        {/* 日付セルは同じ日付の最初の行のみ表示 */}
+        {isFirstInGroup && (
+          <View style={{ position: "absolute", left: 0, top: 0, zIndex: 10 }}>
+            <DateCell
+              date={date}
+              dateColumnWidth={dateColumnWidth}
+              styles={{
+                ...styles,
+                dateCell: {
+                  ...styles.dateCell,
+                  height: mergedCellHeight, // 複数行分の高さ
+                },
+              }}
+            />
+          </View>
+        )}
+        {/* 日付セル分のスペースを確保 */}
+        <View style={{ width: dateColumnWidth }} />
         <GanttChartGrid
           shifts={group}
           cellWidth={cellWidth}
@@ -77,8 +105,10 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
             handleEmptyCellClick(date, position);
           }}
           onTimeChange={onTimeChange}
+          onTaskAdd={onTaskAdd} // タスク追加ハンドラーを追加
           styles={styles}
           userColorsMap={userColorsMap}
+          users={users}
         />
         <GanttChartInfo
           shifts={group}
@@ -94,11 +124,24 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
     // シフトがない日
     return (
       <View key={date} style={styles.shiftRow}>
-        <DateCell
-          date={date}
-          dateColumnWidth={dateColumnWidth}
-          styles={styles}
-        />
+        {/* 日付セルは同じ日付の最初の行のみ表示 */}
+        {isFirstInGroup && (
+          <View style={{ position: "absolute", left: 0, top: 0, zIndex: 10 }}>
+            <DateCell
+              date={date}
+              dateColumnWidth={dateColumnWidth}
+              styles={{
+                ...styles,
+                dateCell: {
+                  ...styles.dateCell,
+                  height: mergedCellHeight, // 複数行分の高さ
+                },
+              }}
+            />
+          </View>
+        )}
+        {/* 日付セル分のスペースを確保 */}
+        <View style={{ width: dateColumnWidth }} />
         <EmptyCell
           date={date}
           width={ganttColumnWidth}

@@ -177,6 +177,7 @@ const TaskList: React.FC<TaskListProps> = ({
         <TextInput
           style={styles.input}
           placeholder="タスク名"
+          placeholderTextColor="#999"
           value={newTask.title}
           onChangeText={(text) => setNewTask({ ...newTask, title: text })}
         />
@@ -197,6 +198,7 @@ const TaskList: React.FC<TaskListProps> = ({
             <TextInput
               style={styles.customInput}
               placeholder="カスタム時間を入力"
+              placeholderTextColor="#999"
               value={customTime}
               onChangeText={setCustomTime}
             />
@@ -219,6 +221,7 @@ const TaskList: React.FC<TaskListProps> = ({
             <TextInput
               style={styles.customInput}
               placeholder="カスタム頻度を入力"
+              placeholderTextColor="#999"
               value={customInterval}
               onChangeText={setCustomInterval}
             />
@@ -227,6 +230,7 @@ const TaskList: React.FC<TaskListProps> = ({
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="記述"
+          placeholderTextColor="#999"
           value={newTask.description}
           onChangeText={(text) => setNewTask({ ...newTask, description: text })}
           multiline

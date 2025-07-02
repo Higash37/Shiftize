@@ -4,56 +4,6 @@ import { useAuth } from "@/services/auth/useAuth";
 import { useRouter } from "expo-router";
 import { View, Platform } from "react-native";
 
-// Web/PWA環境でのズーム制御
-if (typeof document !== "undefined") {
-  // ダブルタップズーム防止
-  let lastTap = 0;
-  document.addEventListener(
-    "touchend",
-    function (e) {
-      const now = Date.now();
-      if (now - lastTap <= 300) {
-        e.preventDefault();
-      }
-      lastTap = now;
-    },
-    { passive: false }
-  );
-
-  // ピンチズーム防止
-  document.addEventListener(
-    "touchmove",
-    function (e) {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    },
-    { passive: false }
-  );
-
-  document.addEventListener(
-    "touchstart",
-    function (e) {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    },
-    { passive: false }
-  );
-
-  document.addEventListener("gesturestart", function (e) {
-    e.preventDefault();
-  });
-
-  document.addEventListener("gesturechange", function (e) {
-    e.preventDefault();
-  });
-
-  document.addEventListener("gestureend", function (e) {
-    e.preventDefault();
-  });
-}
-
 export default function AuthLayout() {
   const { user, role, loading, authError } = useAuth();
   const router = useRouter();

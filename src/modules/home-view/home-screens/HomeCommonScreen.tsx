@@ -63,7 +63,7 @@ export default function HomeCommonScreen() {
         onNextDay={handleNextDay}
         dateLabel={format(gantt.selectedDate, "yyyy年M月d日")}
         onOpenDatePicker={openDatePicker}
-        onPressSettings={() => setShowPasswordModal(true)}
+        onPressSettings={() => setShowPasswordModal(true)} // パスワード変更
       />
       {!!gantt.isWide && (
         <GanttHalfSwitch
@@ -124,6 +124,15 @@ export default function HomeCommonScreen() {
         times={gantt.showFirst ? gantt.timesFirst : gantt.timesSecond}
         sampleSchedule={gantt.scheduleForSelectedDate}
       />
+
+      {/* パスワード変更モーダル */}
+      <Modal
+        visible={showPasswordModal}
+        animationType="slide"
+        onRequestClose={() => setShowPasswordModal(false)}
+      >
+        <ChangePassword onComplete={() => setShowPasswordModal(false)} />
+      </Modal>
     </View>
   );
 }

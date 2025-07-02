@@ -310,6 +310,7 @@ export const ShiftHolidaySettingsView: React.FC<
                 fontSize: 16,
               }}
               placeholder="祝日・特別日の名前を入力"
+              placeholderTextColor="#999"
               value={newHolidayName}
               onChangeText={setNewHolidayName}
             />

@@ -362,6 +362,7 @@ export const CreateGroupScreen: React.FC = () => {
                     value={customStoreId}
                     onChangeText={handleCustomStoreIdChange}
                     placeholder="4桁の数字を入力"
+                    placeholderTextColor="#999"
                     keyboardType="numeric"
                     maxLength={4}
                   />
@@ -389,6 +390,7 @@ export const CreateGroupScreen: React.FC = () => {
                 value={form.groupName}
                 onChangeText={(value) => handleInputChange("groupName", value)}
                 placeholder="例: ○○店、△△チーム"
+                placeholderTextColor="#999"
                 maxLength={30}
               />
             </View>
@@ -403,6 +405,7 @@ export const CreateGroupScreen: React.FC = () => {
                   handleInputChange("adminNickname", value)
                 }
                 placeholder="あなたのニックネーム"
+                placeholderTextColor="#999"
                 maxLength={20}
               />
             </View>
@@ -417,6 +420,7 @@ export const CreateGroupScreen: React.FC = () => {
                   handleInputChange("adminPassword", value)
                 }
                 placeholder="6文字以上"
+                placeholderTextColor="#999"
                 secureTextEntry
                 maxLength={50}
               />
@@ -432,6 +436,7 @@ export const CreateGroupScreen: React.FC = () => {
                   handleInputChange("confirmPassword", value)
                 }
                 placeholder="パスワードを再入力"
+                placeholderTextColor="#999"
                 secureTextEntry
                 maxLength={50}
               />
@@ -476,6 +481,7 @@ export const CreateGroupScreen: React.FC = () => {
                         <TextInput
                           style={styles.memberInput}
                           placeholder="ニックネーム"
+                          placeholderTextColor="#999"
                           value={member.nickname}
                           onChangeText={(value) =>
                             updateMember(member.id, "nickname", value)
@@ -485,6 +491,7 @@ export const CreateGroupScreen: React.FC = () => {
                         <TextInput
                           style={styles.memberInput}
                           placeholder="パスワード（6文字以上）"
+                          placeholderTextColor="#999"
                           value={member.password}
                           onChangeText={(value) =>
                             updateMember(member.id, "password", value)
@@ -538,6 +545,7 @@ export const CreateGroupScreen: React.FC = () => {
                         <TextInput
                           style={styles.memberInput}
                           placeholder="時給（円）"
+                          placeholderTextColor="#999"
                           value={member.hourlyWage?.toString() || ""}
                           onChangeText={(value) => {
                             // 数字のみ許可

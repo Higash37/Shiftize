@@ -378,6 +378,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
               <TextInput
                 style={styles.searchInput}
                 placeholder="ユーザー検索..."
+                placeholderTextColor="#999"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />

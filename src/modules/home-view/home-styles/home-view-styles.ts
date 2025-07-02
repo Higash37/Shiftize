@@ -88,7 +88,9 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minHeight: 48,
   },
   dateNavBtn: {
     fontSize: 22,

@@ -164,6 +164,7 @@ const ShiftReportModal = ({
               width: "100%",
             }}
             placeholder="コメントを入力してください"
+            placeholderTextColor="#999"
             value={comments}
             onChangeText={setComments}
           />

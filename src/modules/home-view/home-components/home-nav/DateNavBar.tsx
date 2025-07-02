@@ -11,7 +11,7 @@ interface DateNavBarProps {
   onNextDay: () => void;
   dateLabel: string;
   onOpenDatePicker: () => void;
-  onPressSettings?: () => void;
+  onPressSettings?: () => void; // パスワード変更ボタン
 }
 
 export const DateNavBar: React.FC<DateNavBarProps> = ({
@@ -30,13 +30,20 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
       {
         alignItems: "center",
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "center",
+        position: "relative",
       },
     ]}
   >
-    {/* 左端：前半/後半ボタンまたはスペーサー */}
-    {isMobile ? (
-      <View style={{ marginLeft: 30 }}>
+    {/* 左端：前半/後半ボタン */}
+    {isMobile && (
+      <View
+        style={{
+          position: "absolute",
+          left: 16,
+          zIndex: 1,
+        }}
+      >
         <Pressable
           onPress={onToggleHalf}
           style={{
@@ -53,16 +60,13 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
           </Text>
         </Pressable>
       </View>
-    ) : (
-      // PC/タブレット用：左側のスペーサー（バランス用）
-      <View style={{ width: 80 }} />
     )}
-    {/* 中央：年月ピッカー＋日付ナビ */}
+
+    {/* 中央：年月ピッカー＋日付ナビ（常に中央配置） */}
     <View
       style={{
         flexDirection: "row",
         alignItems: "center",
-        flex: 1,
         justifyContent: "center",
       }}
     >
@@ -76,5 +80,20 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
         <Text style={styles.dateNavBtn}>{">"}</Text>
       </Pressable>
     </View>
+
+    {/* 右端：パスワード変更ボタン（もしあれば） */}
+    {onPressSettings && (
+      <View
+        style={{
+          position: "absolute",
+          right: 16,
+          zIndex: 1,
+        }}
+      >
+        <Pressable onPress={onPressSettings}>
+          <FontAwesome name="key" size={20} color="#666" />
+        </Pressable>
+      </View>
+    )}
   </View>
 );

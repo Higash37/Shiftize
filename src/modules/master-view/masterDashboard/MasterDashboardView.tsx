@@ -50,11 +50,18 @@ export const MasterDashboardView: React.FC<MasterDashboardViewProps> = ({
           <StatCard title="総ユーザー数" value={users?.length ?? 0} />
           <StatCard title="一般ユーザー数" value={regularUsers.length} />
         </View>
-        <Link href="/master/users" asChild>
-          <Pressable style={styles.link}>
-            <Text style={styles.linkText}>ユーザー管理へ</Text>
-          </Pressable>
-        </Link>
+        <View style={styles.linksContainer}>
+          <Link href="/master/users" asChild>
+            <Pressable style={styles.link}>
+              <Text style={styles.linkText}>ユーザー管理へ</Text>
+            </Pressable>
+          </Link>
+          <Link href="/master/tasks" asChild>
+            <Pressable style={[styles.link, styles.taskLink]}>
+              <Text style={styles.linkText}>タスク管理へ</Text>
+            </Pressable>
+          </Link>
+        </View>
       </View>
     </View>
   );

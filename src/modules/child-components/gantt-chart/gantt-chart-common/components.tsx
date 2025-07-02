@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { ShiftItem } from "@/common/common-models/ModelIndex";
+import { ShiftItem, TaskItem } from "@/common/common-models/ModelIndex";
 import { ShiftStatusConfig } from "../gantt-chart-types/GanttChartTypes";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { Ionicons } from "@expo/vector-icons";
@@ -34,7 +34,19 @@ export const DateCell: React.FC<DateCellProps> = ({
       : "#FF0000"
     : "#000000";
   return (
-    <View style={[styles.dateCell, { width: dateColumnWidth }]}>
+    <View
+      style={[
+        styles.dateCell,
+        {
+          width: dateColumnWidth,
+          borderWidth: 1,
+          borderColor: "#ddd",
+          borderRightWidth: 2,
+          borderRightColor: "#bbb",
+          backgroundColor: "#f8f9fa",
+        },
+      ]}
+    >
       <Text style={[styles.dateDayText, { color: textColor }]}>
         {dayOfMonth}
       </Text>
@@ -60,10 +72,29 @@ export type GanttChartGridProps = {
     newStartTime: string,
     newEndTime: string
   ) => void;
+  onTaskAdd?: (shiftId: string) => void; // タスク追加ハンドラーを追加
   styles: any;
   userColorsMap: Record<string, string>;
+  users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
   getTimeWidth?: (time: string) => number; // 動的幅計算用
 };
+
+// 授業データをタスクアイテムに変換するヘルパー関数
+const convertClassesToTasks = (shift: ShiftItem): Array<TaskItem> => {
+  if (!shift.classes || shift.classes.length === 0) return [];
+
+  return shift.classes.map((classTime, index) => ({
+    id: `${shift.id}-class-${index}`,
+    title: `授業 ${classTime.startTime}-${classTime.endTime}`,
+    shortName: "授業", // 授業の略称
+    startTime: classTime.startTime,
+    endTime: classTime.endTime,
+    color: "#757575", // 授業用のグレー系色
+    icon: "book-outline", // 授業用アイコン
+    type: "custom", // 授業は独自設定タスクとして扱う
+  }));
+};
+
 export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   shifts,
   cellWidth,
@@ -74,8 +105,10 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   onShiftPress,
   onBackgroundPress,
   onTimeChange,
+  onTaskAdd,
   styles,
   userColorsMap,
+  users = [], // デフォルト値を設定
   getTimeWidth,
 }) => {
   // 動的時間位置の計算
@@ -196,41 +229,6 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           );
         })}
       </View>
-      {/* 授業時間バー（クラスバー）を先に描画し、zIndexでシフトバーより上に */}
-      {shifts.map((shift, index) => {
-        const classes = shift.classes ?? [];
-        if (classes.length === 0) return null;
-        return classes.map((classTime, cidx) => {
-          const startPos = timeToPosition(classTime.startTime);
-          const endPos = timeToPosition(classTime.endTime);
-          const barWidth = endPos - startPos;
-          const totalShifts = shifts.length;
-          const cellHeight = 65;
-          let singleBarHeight;
-          let barVerticalOffset;
-          if (totalShifts === 1) {
-            singleBarHeight = cellHeight;
-            barVerticalOffset = 0;
-          } else {
-            singleBarHeight = Math.floor(cellHeight / Math.min(totalShifts, 3));
-            barVerticalOffset = index * singleBarHeight;
-          }
-          return (
-            <View
-              key={shift.id + "-class-" + cidx}
-              style={[
-                styles.classBar,
-                {
-                  left: startPos,
-                  width: Math.max(barWidth, 20), // 最小幅20px
-                  height: singleBarHeight,
-                  top: barVerticalOffset,
-                },
-              ]}
-            />
-          );
-        });
-      })}
       {/* シフトバー */}
       {shifts.map((shift, index) => {
         const statusConfig = getStatusConfig(shift.status);
@@ -238,7 +236,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         const endPos = timeToPosition(shift.endTime);
         const barWidth = endPos - startPos;
         const totalShifts = shifts.length;
-        const cellHeight = 65;
+        const cellHeight = 70;
         let singleBarHeight;
         let barVerticalOffset;
         if (totalShifts === 1) {
@@ -251,7 +249,27 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         // ユーザー色を取得（なければステータス色）
         const userColor = userColorsMap?.[shift.userId] || statusConfig.color;
 
-        // 従来のタッチ可能なシフトバー（読み取り専用）
+        // 2時間以下かどうかを判定（120分 = 2時間）
+        const startTimeMinutes = (() => {
+          const [h, m] = shift.startTime.split(":").map(Number);
+          return h * 60 + m;
+        })();
+        const endTimeMinutes = (() => {
+          const [h, m] = shift.endTime.split(":").map(Number);
+          return h * 60 + m;
+        })();
+        const durationMinutes = endTimeMinutes - startTimeMinutes;
+        const isShortShift = durationMinutes <= 120; // 2時間以下
+
+        // ユーザー情報を取得してアイコンを決定
+        const user = users.find((u) => u.uid === shift.userId);
+        const isMaster = user?.role === "master";
+        const userIcon = isMaster ? "person" : "school";
+
+        // 短いシフトの場合でも十分な表示幅を確保
+        const minWidthForShift = isShortShift ? 100 : 80; // 短いシフトは最小100px
+
+        // 2行分割表示用のシフトバー
         return (
           <TouchableOpacity
             key={shift.id}
@@ -259,16 +277,30 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
               styles.shiftBar,
               {
                 left: startPos,
-                width: Math.max(barWidth, 30), // 最小幅30px
+                width: Math.max(barWidth, minWidthForShift), // 動的な最小幅
                 height: singleBarHeight,
                 top: barVerticalOffset,
-                backgroundColor: userColor,
+                backgroundColor: "rgba(255, 255, 255, 0.95)", // 背景は白ベース
+                borderLeftWidth: 4, // 左端にユーザー色
+                borderLeftColor: userColor,
+                borderRightWidth: 4, // 右端にもユーザー色を追加
+                borderRightColor: userColor,
+                borderTopWidth: 4, // 上端にユーザー色（半分のサイズ）
+                borderTopColor: userColor,
+                borderBottomWidth: 4, // 下端にユーザー色（半分のサイズ）
+                borderBottomColor: userColor,
                 opacity:
                   shift.status === "deleted" ||
                   shift.status === "deletion_requested"
                     ? 0.5
                     : 1,
                 zIndex: 2, // シフトバーはグリッド全体より前面
+                borderRadius: 4,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.2,
+                shadowRadius: 2,
+                elevation: 2,
               },
             ]}
             onPress={() => onShiftPress?.(shift)}
@@ -277,23 +309,336 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
               style={{
                 width: "100%",
                 height: "100%",
-                justifyContent: "center",
-                alignItems: "center",
-                paddingHorizontal: 4,
+                justifyContent: "flex-start",
+                paddingHorizontal: 2,
+                paddingVertical: 0,
                 flexDirection: "column",
               }}
             >
-              <Text style={styles.shiftBarText} numberOfLines={1}>
-                {shift.nickname}
-              </Text>
-              <Text style={styles.shiftTimeText} numberOfLines={1}>
-                {shift.startTime}～{shift.endTime}
-              </Text>
+              {isShortShift ? (
+                // 2時間以下: 上部エリア内でアイコン＋名前と時間を2行で表示
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    flexDirection: "column",
+                  }}
+                >
+                  {/* 1行目: アイコン + 名前 */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                    }}
+                  >
+                    <Ionicons
+                      name={userIcon as any}
+                      size={16}
+                      color={userColor}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={[
+                        styles.shiftBarText,
+                        {
+                          fontSize: 13,
+                          fontWeight: "bold",
+                          color: "#333",
+                          textAlign: "left",
+                        },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {shift.nickname}
+                    </Text>
+                  </View>
+
+                  {/* 2行目: 時間（アイコン分をインデント） */}
+                  <View
+                    style={{
+                      justifyContent: "flex-start",
+                      paddingLeft: 20, // アイコン分のインデント
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.shiftTimeText,
+                        {
+                          fontSize: 12,
+                          color: "#666",
+                          textAlign: "left",
+                        },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {shift.startTime}～{shift.endTime}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                // 2時間超: アイコン＋名前（左詰め）、時間（中央配置、大きいテキスト）を1行で表示
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    flex: 1,
+                    minHeight: 24,
+                  }}
+                >
+                  {/* 左側: アイコン + 名前 */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      flex: 1,
+                    }}
+                  >
+                    <Ionicons
+                      name={userIcon as any}
+                      size={16}
+                      color={userColor}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={[
+                        styles.shiftBarText,
+                        {
+                          fontSize: 14,
+                          fontWeight: "bold",
+                          color: "#333",
+                          textAlign: "left",
+                        },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {shift.nickname}
+                    </Text>
+                  </View>
+
+                  {/* 右側（中央寄せ）: 時間（大きいテキスト） */}
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.shiftTimeText,
+                        {
+                          fontSize: 15, // 11から22に拡大（約2倍）
+                          fontWeight: "bold", // 太字にして見やすくする
+                          color: "#555", // 少し濃い色にする
+                          textAlign: "center",
+                          marginRight: 40,
+                        },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {shift.startTime}～{shift.endTime}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* 下段: タスクエリア */}
+              <View
+                style={{
+                  flex: 1.0, // 0.35から1.0に変更（約3倍の高さ）
+                  backgroundColor: "rgba(240, 245, 251, 0.8)", // 少し青みがかった背景
+                  borderRadius: 3,
+                  position: "relative",
+                  overflow: "hidden",
+                  borderTopWidth: 0.5,
+                  borderTopColor: "rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                {/* タスク追加ボタン（左上隅） */}
+                {users?.find((u) => u.uid === shift.userId)?.role ===
+                  "master" && (
+                  <TouchableOpacity
+                    style={{
+                      position: "absolute",
+                      top: 2,
+                      left: 2,
+                      width: 20,
+                      height: 20,
+                      backgroundColor: "rgba(76, 175, 80, 0.9)",
+                      borderRadius: 10,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      zIndex: 100,
+                    }}
+                    onPress={() => {
+                      if (onTaskAdd) {
+                        onTaskAdd(shift.id);
+                      } else {
+                        console.log("Add task for shift:", shift.id);
+                      }
+                    }}
+                  >
+                    <Ionicons name="add" size={14} color="white" />
+                  </TouchableOpacity>
+                )}
+
+                {/* タスク表示エリア - 既存のタスクと授業を統合して表示 */}
+                {(() => {
+                  // 既存のタスクと授業タスクを統合
+                  const classTasks = convertClassesToTasks(shift);
+                  const allTasks = [...(shift.tasks || []), ...classTasks];
+
+                  return allTasks.length > 0 ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        height: "100%",
+                        alignItems: "center",
+                        paddingHorizontal: 0,
+                      }}
+                    >
+                      {allTasks.map((task, taskIndex) => {
+                        // タスクの時間範囲を計算
+                        const taskStartPos = timeToPosition(task.startTime);
+                        const taskEndPos = timeToPosition(task.endTime);
+                        const taskWidth = taskEndPos - taskStartPos;
+                        const shiftStartPos = timeToPosition(shift.startTime);
+
+                        // シフト開始位置からの相対位置を計算
+                        const relativeStartPos = Math.max(
+                          0,
+                          taskStartPos - shiftStartPos
+                        );
+                        const relativeWidth = Math.max(taskWidth, 12); // 最小幅12px
+
+                        return (
+                          <View
+                            key={`${shift.id}-task-${taskIndex}`}
+                            style={{
+                              position: "absolute",
+                              left: relativeStartPos + 2, // 少し余白を追加
+                              width: relativeWidth,
+                              height: "100%",
+                              backgroundColor: task.color || "#4CAF50",
+                              borderRadius: 4,
+
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "flex-start",
+                              paddingHorizontal: 0,
+                              shadowColor: "#000",
+                              shadowOffset: { width: 0, height: 1 },
+                              shadowOpacity: 0.25,
+                              shadowRadius: 2,
+                              elevation: 2,
+                              borderWidth: 0.5,
+                              borderColor: "rgba(255, 255, 255, 0.3)",
+                            }}
+                          >
+                            {/* タスクアイコン */}
+                            {task.icon && relativeWidth >= 18 && (
+                              <Ionicons
+                                name={task.icon as any}
+                                size={11}
+                                color="white"
+                                style={{ marginRight: 2 }}
+                              />
+                            )}
+
+                            {/* タスク名または略称（中央部分） */}
+                            {relativeWidth >= 30 && (
+                              <Text
+                                style={{
+                                  fontSize: relativeWidth >= 60 ? 10 : 9,
+                                  color: "white",
+                                  fontWeight: "600",
+                                  textShadowColor: "rgba(0, 0, 0, 0.5)",
+                                  textShadowOffset: { width: 0, height: 0.5 },
+                                  textShadowRadius: 1,
+                                  flex: 1,
+                                  textAlign: "center",
+                                }}
+                                numberOfLines={1}
+                              >
+                                {relativeWidth >= 60 && task.title
+                                  ? task.title
+                                  : task.shortName ||
+                                    task.title?.substring(0, 2) ||
+                                    "タ"}
+                              </Text>
+                            )}
+
+                            {/* 開始時間（左端、幅が十分な場合のみ） */}
+                            {relativeWidth >= 80 && (
+                              <Text
+                                style={{
+                                  fontSize: 9,
+                                  color: "white",
+                                  fontWeight: "500",
+                                  textShadowColor: "rgba(0, 0, 0, 0.5)",
+                                  textShadowOffset: { width: 0, height: 0.5 },
+                                  textShadowRadius: 1,
+                                  position: "absolute",
+                                  left: 2,
+                                  top: 2,
+                                }}
+                                numberOfLines={1}
+                              >
+                                {task.startTime.substring(0, 5)}
+                              </Text>
+                            )}
+                            {/* 終了時間（右端、幅が十分な場合のみ） */}
+                            {relativeWidth >= 100 && (
+                              <Text
+                                style={{
+                                  fontSize: 9,
+                                  color: "white",
+                                  fontWeight: "500",
+                                  textShadowColor: "rgba(0, 0, 0, 0.5)",
+                                  textShadowOffset: { width: 0, height: 0.5 },
+                                  textShadowRadius: 1,
+                                  position: "absolute",
+                                  right: 2,
+                                  bottom: 2,
+                                }}
+                                numberOfLines={1}
+                              >
+                                {task.endTime.substring(0, 5)}
+                              </Text>
+                            )}
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    // タスクがない場合の表示
+                    <View
+                      style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 9,
+                          color: "#aaa",
+                          fontStyle: "italic",
+                        }}
+                      >
+                        タスクなし
+                      </Text>
+                    </View>
+                  );
+                })()}
+              </View>
             </View>
           </TouchableOpacity>
         );
       })}
-      {/* --- 授業時間バー（classTime）を追加 --- */}
     </View>
   );
 };
@@ -487,20 +832,3 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
     </View>
   );
 };
-
-// --- スタイル追加 ---
-// styles.classBar を追加（灰色、角丸、重なり優先）
-const styles = StyleSheet.create({
-  // ...既存のstyle定義...
-  classBar: {
-    position: "absolute",
-    backgroundColor: "#b0b0b0",
-    borderRadius: 6,
-    opacity: 0.85,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 2,
-    zIndex: 3,
-  },
-  // ...既存のstyle定義の後ろに追加...
-});

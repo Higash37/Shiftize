@@ -137,8 +137,30 @@ export function MasterFooter({}: MasterFooterProps) {
     router.push(tab.path);
   };
 
+  const isPWA = isStandalonePWA();
+
   return (
-    <View style={styles.footer}>
+    <View
+      style={[
+        styles.footer,
+        {
+          position: "relative",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-around",
+          alignItems: "center",
+          width: "100%",
+          minWidth: "100%",
+          ...(isPWA && {
+            position: "fixed" as any,
+            zIndex: 1000,
+          }),
+        },
+      ]}
+    >
       {MASTER_TABS.map((tab) => {
         const active = pathname === tab.path;
         return (
@@ -148,6 +170,12 @@ export function MasterFooter({}: MasterFooterProps) {
               styles.tab,
               tab.name === "create" && styles.createTab,
               tab.isUnderDevelopment && styles.disabledTab,
+              {
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              },
             ]}
             onPress={() => handleTabPress(tab)}
             disabled={tab.isUnderDevelopment}
@@ -166,9 +194,9 @@ export function MasterFooter({}: MasterFooterProps) {
           </TouchableOpacity>
         );
       })}
-      {isStandalonePWA() &&
+      {isPWA &&
         (typeof window !== "undefined" && window.document ? (
-          <div className="pwa-footer-safearea" />
+          <div className="pwa-footer-safearea master-footer-pwa" />
         ) : (
           <View
             style={{

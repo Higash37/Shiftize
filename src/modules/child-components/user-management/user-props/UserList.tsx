@@ -143,6 +143,7 @@ export const UserList: React.FC<UserListProps> = ({
         <TextInput
           style={[styles.searchInput, isTablet && styles.searchInputTablet]}
           placeholder="ユーザーを検索..."
+          placeholderTextColor="#999"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />

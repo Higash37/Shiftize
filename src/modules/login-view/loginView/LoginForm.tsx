@@ -149,7 +149,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
             onBlur={() => setStoreIdAndUsernameFocused(false)}
             placeholder="例: 1234山田太郎"
             keyboardType="default"
-            placeholderTextColor={colors.text.disabled}
+            placeholderTextColor="#999"
           />
         </View>
 
@@ -167,7 +167,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
             onFocus={() => setPasswordFocused(true)}
             onBlur={() => setPasswordFocused(false)}
             placeholder="パスワードを入力"
-            placeholderTextColor={colors.text.disabled}
+            placeholderTextColor="#999"
           />
         </View>
 

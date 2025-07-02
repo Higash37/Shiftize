@@ -25,10 +25,17 @@ import {
   ProductivityTab,
   TrendAnalysisTab,
 } from "./components";
+import { TaskManagementIntegratedTab } from "./components/TaskManagementIntegratedTab";
 import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 
-type TabType = "efficiency" | "cost" | "shift" | "productivity" | "trend";
+type TabType =
+  | "efficiency"
+  | "cost"
+  | "shift"
+  | "productivity"
+  | "trend"
+  | "tasks";
 
 interface TabItem {
   key: TabType;
@@ -42,6 +49,7 @@ const tabs: TabItem[] = [
   { key: "shift", label: "シフト指標", icon: "schedule" },
   { key: "productivity", label: "生産性", icon: "trending-up" },
   { key: "trend", label: "トレンド", icon: "analytics" },
+  { key: "tasks", label: "タスク管理", icon: "assignment" },
 ];
 
 /**
@@ -194,6 +202,8 @@ export const InfoDashboard: React.FC = () => {
         return <ProductivityTab {...commonProps} />;
       case "trend":
         return <TrendAnalysisTab shifts={shifts} users={users} />;
+      case "tasks":
+        return <TaskManagementIntegratedTab storeId="default-store" />;
       default:
         return <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />;
     }
@@ -353,7 +363,7 @@ export const InfoDashboard: React.FC = () => {
                     onChangeText={setBudgetInputValue}
                     keyboardType="numeric"
                     placeholder="500000"
-                    placeholderTextColor={colors.text.disabled}
+                    placeholderTextColor="#999"
                     autoFocus={true}
                   />
                 </View>

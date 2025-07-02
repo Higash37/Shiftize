@@ -224,8 +224,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-    minHeight: 65,
-    height: 65,
+    minHeight: 70,
+    height: 70,
   },
   dateCell: {
     padding: 6,

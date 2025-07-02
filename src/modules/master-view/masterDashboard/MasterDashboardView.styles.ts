@@ -39,6 +39,10 @@ export const masterDashboardViewStyles = StyleSheet.create({
     gap: 16,
     marginBottom: 32,
   },
+  linksContainer: {
+    width: "100%",
+    gap: 12,
+  },
   card: {
     flex: 1,
     backgroundColor: colors.background,
@@ -72,6 +76,9 @@ export const masterDashboardViewStyles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
+  },
+  taskLink: {
+    backgroundColor: "#4caf50",
   },
   linkText: {
     color: colors.text.white,

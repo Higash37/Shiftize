@@ -44,7 +44,7 @@ const Input: React.FC<InputProps> = ({
             style,
           ] as StyleProp<TextStyle>
         }
-        placeholderTextColor={colors.text.disabled}
+        placeholderTextColor="#999"
         {...props}
       />
       {(error || helper) && (
