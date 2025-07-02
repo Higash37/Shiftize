@@ -347,14 +347,23 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
     setShowDatePicker({ field: null, show: false });
   };
 
+  const hasValidationErrors = () => {
+    return (
+      !formData.title.trim() ||
+      (formData.shortName && formData.shortName.length !== 2) ||
+      formData.baseTimeMinutes <= 0 ||
+      formData.baseCountPerShift <= 0
+    );
+  };
+
   const handleSave = async () => {
     if (!formData.title.trim()) {
       Alert.alert("エラー", "タスク名を入力してください");
       return;
     }
 
-    if (formData.shortName && formData.shortName.length > 2) {
-      Alert.alert("エラー", "略称は2文字以内で入力してください");
+    if (formData.shortName && formData.shortName.length !== 2) {
+      Alert.alert("エラー", "略称は必ず2文字で入力してください");
       return;
     }
 
@@ -490,11 +499,18 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
             <Text style={styles.headerTitle}>新しいタスク</Text>
             <TouchableOpacity
               onPress={handleSave}
-              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-              disabled={saving}
+              style={[
+                styles.saveButton,
+                (saving || hasValidationErrors()) && styles.saveButtonDisabled,
+              ]}
+              disabled={saving || hasValidationErrors()}
             >
               <Text style={styles.saveButtonText}>
-                {saving ? "保存中..." : "保存"}
+                {saving
+                  ? "保存中..."
+                  : hasValidationErrors()
+                  ? "入力内容を確認してください"
+                  : "保存"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -522,20 +538,43 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>略称（2文字）</Text>
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    formData.shortName && formData.shortName.length !== 2
+                      ? styles.errorInput
+                      : undefined,
+                  ]}
                   value={formData.shortName}
                   onChangeText={(text) => {
-                    // 2文字制限を適用
-                    const trimmedText = text.slice(0, 2);
-                    updateFormData("shortName", trimmedText);
+                    updateFormData("shortName", text);
                   }}
                   placeholder="略称を入力（例：会議）"
                   placeholderTextColor="#999"
-                  maxLength={2}
                 />
                 <Text style={styles.fieldHelper}>
-                  ガントチャートなどで表示される短縮名です
+                  ガントチャートなどで表示される短縮名です（必ず2文字で入力）
                 </Text>
+                <Text
+                  style={[
+                    styles.characterCounter,
+                    formData.shortName && formData.shortName.length !== 2
+                      ? styles.characterCounterError
+                      : undefined,
+                  ]}
+                >
+                  {formData.shortName.length}/2文字
+                </Text>
+                {formData.shortName && formData.shortName.length !== 2 && (
+                  <Text style={styles.errorText}>
+                    {formData.shortName.length < 2
+                      ? "あと" +
+                        (2 - formData.shortName.length) +
+                        "文字入力してください"
+                      : "2文字で入力してください（現在" +
+                        formData.shortName.length +
+                        "文字）"}
+                  </Text>
+                )}
               </View>
 
               <View style={styles.field}>
