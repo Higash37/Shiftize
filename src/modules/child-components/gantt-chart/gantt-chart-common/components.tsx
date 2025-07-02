@@ -544,7 +544,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                                 name={task.icon as any}
                                 size={11}
                                 color="white"
-                                style={{ marginRight: 2 }}
+                                style={{ marginRight: 2, marginTop: 15 }}
                               />
                             )}
 
@@ -582,8 +582,8 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                                   textShadowOffset: { width: 0, height: 0.5 },
                                   textShadowRadius: 1,
                                   position: "absolute",
-                                  left: 2,
-                                  top: 2,
+                                  left: 0,
+                                  top: 0,
                                 }}
                                 numberOfLines={1}
                               >
@@ -602,7 +602,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                                   textShadowRadius: 1,
                                   position: "absolute",
                                   right: 2,
-                                  bottom: 2,
+                                  bottom: 0,
                                 }}
                                 numberOfLines={1}
                               >
