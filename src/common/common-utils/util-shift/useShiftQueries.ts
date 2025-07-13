@@ -10,15 +10,19 @@ export const useShifts = (storeId?: string) => {
 
   // シフトデータを取得する関数
   const fetchShifts = useCallback(async () => {
+    // storeIdが未定義の場合は処理を停止
+    if (!storeId) {
+      console.log("storeId is not provided, skipping fetch");
+      setShifts([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const shiftsRef = collection(db, "shifts");
-      let q = query(shiftsRef);
-
-      // storeIdが指定されている場合はフィルタリング
-      if (storeId) {
-        q = query(shiftsRef, where("storeId", "==", storeId));
-      }
+      // 必ずstoreIdでフィルタリング
+      const q = query(shiftsRef, where("storeId", "==", storeId));
 
       console.log("fetchShifts debug:", {
         storeId,
@@ -31,35 +35,44 @@ export const useShifts = (storeId?: string) => {
         docsCount: querySnapshot.docs.length,
       });
 
-      const shiftsData = querySnapshot.docs.map((doc) => {
-        const data = doc.data();
-        // デバッグ用: classesの内容を出力
-        console.log("shift data:", data);
-        return {
-          id: doc.id,
-          userId: data.userId || "",
-          storeId: data.storeId || "", // storeIdを追加
-          nickname: data.nickname,
-          date: data.date,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          type: data.type || "user",
-          subject: data.subject,
-          isCompleted: data.isCompleted || false,
-          status: data.status as ShiftStatus,
-          duration: data.duration?.toString() || "0",
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date(),
-          requestedChanges: data.requestedChanges?.map((change: any) => ({
-            startTime: change.startTime,
-            endTime: change.endTime,
+      // フィルタリング済みデータのみを処理
+      const shiftsData = querySnapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          // デバッグ用: classesの内容を出力
+          console.log("shift data:", data);
+          console.log("shift extendedTasks:", data.extendedTasks);
+
+          return {
+            id: doc.id,
+            userId: data.userId || "",
+            storeId: data.storeId || "", // storeIdを追加
+            nickname: data.nickname,
             date: data.date,
+            startTime: data.startTime,
+            endTime: data.endTime,
             type: data.type || "user",
             subject: data.subject,
-          })),
-          classes: Array.isArray(data.classes) ? data.classes : [],
-        } as ShiftItem;
-      });
+            isCompleted: data.isCompleted || false,
+            status: data.status as ShiftStatus,
+            duration: data.duration?.toString() || "0",
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+            requestedChanges: data.requestedChanges?.map((change: any) => ({
+              startTime: change.startTime,
+              endTime: change.endTime,
+              date: data.date,
+              type: data.type || "user",
+              subject: data.subject,
+            })),
+            classes: Array.isArray(data.classes) ? data.classes : [],
+            extendedTasks: Array.isArray(data.extendedTasks)
+              ? data.extendedTasks
+              : [],
+          } as ShiftItem;
+        })
+        // 追加の安全チェック: storeIdが一致することを再確認
+        .filter((shift) => shift.storeId === storeId);
 
       setShifts(shiftsData);
     } catch (err) {
@@ -72,6 +85,14 @@ export const useShifts = (storeId?: string) => {
   // 特定の月のシフトデータを取得する関数
   const fetchShiftsByMonth = useCallback(
     async (year: number, month: number) => {
+      // storeIdが未定義の場合は処理を停止
+      if (!storeId) {
+        console.log("storeId is not provided, skipping fetchShiftsByMonth");
+        setShifts([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
         // 指定した月の最初と最後の日
@@ -84,9 +105,10 @@ export const useShifts = (storeId?: string) => {
 
         const shiftsRef = collection(db, "shifts");
 
-        // 日付範囲のみでクエリ（storeIdはJavaScriptでフィルタリング）
+        // storeIdと日付範囲の両方でクエリ
         const q = query(
           shiftsRef,
+          where("storeId", "==", storeId),
           where("date", ">=", startDateStr),
           where("date", "<=", endDateStr)
         );
@@ -102,6 +124,7 @@ export const useShifts = (storeId?: string) => {
           docsCount: querySnapshot.docs.length,
         });
 
+        // 既にFirestoreクエリでフィルタリング済みなので、追加のJavaScriptフィルタリングは不要
         const shiftsData = querySnapshot.docs
           .map((doc) => {
             const data = doc.data();
@@ -111,6 +134,7 @@ export const useShifts = (storeId?: string) => {
               data,
               hasStoreId: !!data.storeId,
               storeId: data.storeId,
+              extendedTasks: data.extendedTasks,
             });
             return {
               id: doc.id,
@@ -134,10 +158,13 @@ export const useShifts = (storeId?: string) => {
                 subject: data.subject,
               })),
               classes: Array.isArray(data.classes) ? data.classes : [],
+              extendedTasks: Array.isArray(data.extendedTasks)
+                ? data.extendedTasks
+                : [],
             } as ShiftItem;
           })
-          // storeIdでJavaScriptフィルタリング
-          .filter((shift) => !storeId || shift.storeId === storeId)
+          // 追加の安全チェック: storeIdが一致することを再確認
+          .filter((shift) => shift.storeId === storeId)
           // JavaScriptでソート
           .sort((a, b) => {
             const dateCompare = a.date.localeCompare(b.date);
@@ -160,8 +187,15 @@ export const useShifts = (storeId?: string) => {
 
   // コンポーネントマウント時に初期データを取得
   useEffect(() => {
-    fetchShifts();
-  }, [fetchShifts]);
+    // storeIdが定義されている場合のみ実行
+    if (storeId) {
+      fetchShifts();
+    } else {
+      // storeIdが未定義の場合は空配列を設定してローディング終了
+      setShifts([]);
+      setLoading(false);
+    }
+  }, [fetchShifts, storeId]);
   return {
     shifts,
     loading,

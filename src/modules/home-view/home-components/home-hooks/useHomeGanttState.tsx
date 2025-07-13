@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
+import { useAuth } from "@/services/auth/useAuth";
 
 // 9:00～22:00の30分刻みの時間ラベル
 const allTimes: string[] = [];
@@ -11,7 +12,8 @@ for (let h = 9; h <= 22; h++) {
 }
 
 export function useHomeGanttState() {
-  const { shifts, loading, fetchShiftsByMonth } = useShifts();
+  const { user } = useAuth();
+  const { shifts, loading, fetchShiftsByMonth } = useShifts(user?.storeId);
   const { users } = useUsers();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);

@@ -485,11 +485,53 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   </TouchableOpacity>
                 )}
 
-                {/* タスク表示エリア - 既存のタスクと授業を統合して表示 */}
+                {/* タスク表示エリア - 既存のタスクと授業、extendedTasksを統合して表示 */}
                 {(() => {
                   // 既存のタスクと授業タスクを統合
                   const classTasks = convertClassesToTasks(shift);
-                  const allTasks = [...(shift.tasks || []), ...classTasks];
+                  const legacyTasks = shift.tasks || [];
+
+                  // デバッグログ追加
+                  console.log("=== GanttChart Task Display Debug ===");
+                  console.log("Shift ID:", shift.id);
+                  console.log("Shift extendedTasks:", shift.extendedTasks);
+                  console.log(
+                    "extendedTasks type:",
+                    typeof shift.extendedTasks
+                  );
+                  console.log(
+                    "extendedTasks length:",
+                    shift.extendedTasks?.length
+                  );
+
+                  // extendedTasksをTaskItem形式に変換
+                  const extendedTasks = (shift.extendedTasks || []).map(
+                    (taskSlot: any) => {
+                      console.log("Processing extended task:", taskSlot);
+                      return {
+                        id: taskSlot.id,
+                        startTime: taskSlot.startTime,
+                        endTime: taskSlot.endTime,
+                        title: taskSlot.title,
+                        shortName: taskSlot.shortName,
+                        color: taskSlot.color,
+                        icon: taskSlot.icon,
+                        description: taskSlot.notes,
+                      };
+                    }
+                  );
+
+                  console.log("Converted extendedTasks:", extendedTasks);
+
+                  const allTasks = [
+                    ...legacyTasks,
+                    ...classTasks,
+                    ...extendedTasks,
+                  ];
+
+                  console.log("All tasks count:", allTasks.length);
+                  console.log("All tasks:", allTasks);
+                  console.log("=== GanttChart Task Display Debug End ===");
 
                   return allTasks.length > 0 ? (
                     <View
@@ -501,11 +543,26 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                       }}
                     >
                       {allTasks.map((task, taskIndex) => {
+                        console.log("Processing task for display:", task);
+                        console.log(
+                          "Task startTime:",
+                          task.startTime,
+                          "endTime:",
+                          task.endTime
+                        );
+
                         // タスクの時間範囲を計算
                         const taskStartPos = timeToPosition(task.startTime);
                         const taskEndPos = timeToPosition(task.endTime);
                         const taskWidth = taskEndPos - taskStartPos;
                         const shiftStartPos = timeToPosition(shift.startTime);
+
+                        console.log("Task position calculation:", {
+                          taskStartPos,
+                          taskEndPos,
+                          taskWidth,
+                          shiftStartPos,
+                        });
 
                         // シフト開始位置からの相対位置を計算
                         const relativeStartPos = Math.max(
@@ -513,6 +570,13 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                           taskStartPos - shiftStartPos
                         );
                         const relativeWidth = Math.max(taskWidth, 12); // 最小幅12px
+
+                        console.log("Final task display params:", {
+                          relativeStartPos,
+                          relativeWidth,
+                          taskColor: task.color,
+                          taskIcon: task.icon,
+                        });
 
                         return (
                           <View

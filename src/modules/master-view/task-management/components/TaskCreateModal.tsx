@@ -13,11 +13,13 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { createTask } from "@/services/firebase/firebase-extended-task";
+import { updateShift, getShifts } from "@/services/firebase/firebase-shift";
 import {
   TaskType,
   TaskTag,
   TaskLevel,
   TimeRange,
+  ShiftTaskSlot,
 } from "@/common/common-models/model-shift/shiftTypes";
 import { useTaskCreateModalStyles } from "./styles/TaskCreateModal.styles";
 
@@ -74,6 +76,7 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
   }>({ field: null, show: false });
 
   const [saving, setSaving] = useState(false);
+  const [addToShift, setAddToShift] = useState(false); // シフトに直接追加するかどうかのフラグ
 
   // 初期シフトデータがある場合のフォーム初期化
   useEffect(() => {
@@ -408,26 +411,13 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
 
     setSaving(true);
     try {
-      await createTask({
+      // タスクデータを準備（undefinedフィールドを除外）
+      const taskData: any = {
         title: formData.title.trim(),
-        shortName: formData.shortName.trim() || undefined,
         description: formData.description.trim(),
         type: formData.type,
         baseTimeMinutes: formData.baseTimeMinutes,
         baseCountPerShift: formData.baseCountPerShift,
-        restrictedTimeRanges:
-          formData.type === "time_specific" &&
-          formData.restrictedTimeRanges.length > 0
-            ? formData.restrictedTimeRanges
-            : undefined,
-        restrictedStartTime:
-          formData.type === "time_specific"
-            ? formData.restrictedStartTime
-            : undefined,
-        restrictedEndTime:
-          formData.type === "time_specific"
-            ? formData.restrictedEndTime
-            : undefined,
         requiredRole: formData.requiredRole,
         tags: formData.tags,
         priority: formData.priority,
@@ -435,13 +425,91 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
         color: formData.color,
         icon: formData.icon,
         storeId,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
         createdBy: "current-user", // TODO: 実際のユーザーIDを取得
         isActive: formData.isActive,
-      });
+      };
 
-      Alert.alert("完了", "タスクを作成しました");
+      // 条件付きでフィールドを追加
+      if (formData.shortName.trim()) {
+        taskData.shortName = formData.shortName.trim();
+      }
+
+      if (
+        formData.type === "time_specific" &&
+        formData.restrictedTimeRanges.length > 0
+      ) {
+        taskData.restrictedTimeRanges = formData.restrictedTimeRanges;
+        if (formData.restrictedStartTime) {
+          taskData.restrictedStartTime = formData.restrictedStartTime;
+        }
+        if (formData.restrictedEndTime) {
+          taskData.restrictedEndTime = formData.restrictedEndTime;
+        }
+      }
+
+      if (formData.validFrom) {
+        taskData.validFrom = formData.validFrom;
+      }
+
+      if (formData.validTo) {
+        taskData.validTo = formData.validTo;
+      }
+
+      // タスクを作成
+      console.log("=== TaskCreateModal Debug ===");
+      console.log("Creating task with storeId:", storeId);
+      console.log("Task data:", taskData);
+      const createdTaskId = await createTask(taskData);
+      console.log("Created task ID:", createdTaskId);
+      console.log("=== TaskCreateModal Debug End ===");
+
+      // シフトに直接追加する場合
+      if (addToShift && initialShiftId && initialShiftData) {
+        try {
+          // 現在のシフトデータを取得
+          const shifts = await getShifts(storeId);
+          const currentShift = shifts.find(
+            (shift) => shift.id === initialShiftId
+          );
+          const currentExtendedTasks = currentShift?.extendedTasks || [];
+
+          // ShiftTaskSlotオブジェクトを作成
+          const newTaskSlot: ShiftTaskSlot = {
+            id: `task_${Date.now()}_${Math.random()}`,
+            taskId: createdTaskId || `task_${Date.now()}`,
+            startTime: initialShiftData.startTime,
+            endTime: initialShiftData.endTime,
+            title: formData.title.trim(),
+            shortName: formData.shortName.trim() || undefined,
+            color: formData.color,
+            icon: formData.icon,
+            status: "pending",
+            createdAt: new Date(),
+          };
+
+          // 既存のextendedTasksに新しいタスクを追加
+          const updatedExtendedTasks = [...currentExtendedTasks, newTaskSlot];
+
+          // シフトにタスクを追加
+          await updateShift(initialShiftId, {
+            extendedTasks: updatedExtendedTasks,
+          });
+
+          Alert.alert(
+            "完了",
+            `タスクを作成し、${initialShiftData.date}のシフトに追加しました`
+          );
+        } catch (shiftError) {
+          console.error("シフトへの追加に失敗しました:", shiftError);
+          Alert.alert(
+            "一部完了",
+            "タスクは作成されましたが、シフトへの追加に失敗しました"
+          );
+        }
+      } else {
+        Alert.alert("完了", "タスクを作成しました");
+      }
+
       onTaskCreated();
       onClose();
       resetForm();
@@ -474,6 +542,7 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
       validTo: undefined,
       isActive: true,
     });
+    setAddToShift(false); // フラグもリセット
   };
 
   const handleClose = () => {
@@ -589,6 +658,109 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
                   numberOfLines={3}
                   maxLength={500}
                 />
+              </View>
+            </View>
+
+            {/* シフトに追加オプション（初期シフトデータがある場合のみ表示） */}
+            {initialShiftData && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>追加オプション</Text>
+                <View style={styles.optionsRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.optionChip,
+                      addToShift && styles.optionChipSelected,
+                    ]}
+                    onPress={() => setAddToShift(!addToShift)}
+                  >
+                    <Ionicons
+                      name={addToShift ? "checkmark-circle" : "ellipse-outline"}
+                      size={16}
+                      color={addToShift ? "#fff" : "#666"}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={[
+                        styles.optionChipText,
+                        addToShift && styles.optionChipTextSelected,
+                      ]}
+                    >
+                      シフトに直接追加
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {addToShift && (
+                  <Text style={styles.fieldHelper}>
+                    このタスクを「{initialShiftData.date}
+                    」のシフトに直接追加します
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* 対象者選択 */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>対象者</Text>
+              <Text style={styles.fieldHelper}>
+                このタスクを実行できる人の権限を選択してください
+              </Text>
+              <View style={styles.optionsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.optionChip,
+                    formData.requiredRole === "staff" &&
+                      styles.optionChipSelected,
+                  ]}
+                  onPress={() => updateFormData("requiredRole", "staff")}
+                >
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      formData.requiredRole === "staff" &&
+                        styles.optionChipTextSelected,
+                    ]}
+                  >
+                    スタッフのみ
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.optionChip,
+                    formData.requiredRole === "master" &&
+                      styles.optionChipSelected,
+                  ]}
+                  onPress={() => updateFormData("requiredRole", "master")}
+                >
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      formData.requiredRole === "master" &&
+                        styles.optionChipTextSelected,
+                    ]}
+                  >
+                    教室長のみ
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.optionChip,
+                    formData.requiredRole === undefined &&
+                      styles.optionChipSelected,
+                  ]}
+                  onPress={() => updateFormData("requiredRole", undefined)}
+                >
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      formData.requiredRole === undefined &&
+                        styles.optionChipTextSelected,
+                    ]}
+                  >
+                    両方
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 

@@ -17,6 +17,8 @@ interface MonthSelectorBarProps {
   isLoading: boolean;
   totalAmount?: number; // 追加：合計金額
   totalHours?: number; // 追加：合計時間
+  shifts?: any[]; // 追加：シフトデータ
+  users?: Array<{ uid: string; nickname: string; color?: string }>; // 追加：ユーザーデータ
 }
 
 export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
@@ -32,6 +34,8 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
     isLoading,
     totalAmount = 0,
     totalHours = 0,
+    shifts = [],
+    users = [],
   } = props;
   return (
     <View style={styles.monthSelector}>
@@ -85,7 +89,13 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
         </TouchableOpacity>
       </View>
       <View style={styles.addShiftButtonRow}>
-        {Platform.OS === "web" && <PrintButton />}
+        {Platform.OS === "web" && (
+          <PrintButton
+            shifts={shifts}
+            users={users}
+            selectedDate={selectedDate}
+          />
+        )}
         <TouchableOpacity style={styles.addShiftButton} onPress={onReload}>
           <Ionicons name="add" size={20} color="#4A90E2" />
         </TouchableOpacity>

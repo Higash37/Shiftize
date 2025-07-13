@@ -77,8 +77,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   onShiftPress,
   onShiftUpdate,
   onMonthChange,
-  onTimeChange,
-  onTaskAdd,
   classTimes = [],
 }) => {
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
@@ -96,6 +94,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     nickname: string;
     status: ShiftStatus;
     classes: ClassTimeSlot[];
+    extendedTasks?: any[]; // 拡張タスク配列を追加
   }>({
     date: "",
     startTime: "09:00",
@@ -104,9 +103,11 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     nickname: "",
     status: "approved",
     classes: [], // 授業時間の初期値
+    extendedTasks: [], // 拡張タスクの初期値
   });
   const [selectedUserId, setSelectedUserId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // 強制再レンダリング用
   const [batchModal, setBatchModal] = useState<{
     visible: boolean;
     type: "approve" | "delete" | null;
@@ -155,12 +156,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const visibleShifts = shifts.filter(
     (s) => s.status !== "deleted" && s.status !== "purged"
   );
-
-  // usersにroleを追加（デフォルトは"staff"）
-  const usersWithRole = users.map((user) => ({
-    ...user,
-    role: "staff" as const, // デフォルトでstaffロールを追加
-  }));
 
   // 日付ごとにシフトをグループ化
   const rows: [string, ShiftItem[]][] = days.flatMap((date) => {
@@ -226,6 +221,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       nickname: shift.nickname,
       status: shift.status,
       classes: shift.classes || [],
+      extendedTasks: shift.extendedTasks || [], // 拡張タスクも含める
     });
     setShowEditModal(true);
   }, []);
@@ -236,6 +232,15 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     const newStatus: ShiftStatus = "deleted"; // 状態に関係なく削除済みに変更
     await updateShiftStatus(shiftId, newStatus);
     setShowEditModal(false); // モーダルを閉じる
+
+    // シフト削除後に即座に画面をリロード
+    console.log("シフト削除完了、画面を更新中...");
+    if (onShiftUpdate) {
+      await onShiftUpdate();
+      console.log("画面更新完了");
+    }
+    // 強制再レンダリングを促すためにキーを更新
+    setRefreshKey((prev) => prev + 1);
     setIsLoading(false); // ローディング終了
   };
 
@@ -270,9 +275,19 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         nickname: "",
         status: "approved",
         classes: [],
+        extendedTasks: [], // 拡張タスクもリセット
       });
       setShowEditModal(false);
       setShowAddModal(false);
+
+      // シフト更新後に即座に画面をリロード
+      console.log("シフト保存完了、画面を更新中...");
+      if (onShiftUpdate) {
+        await onShiftUpdate();
+        console.log("画面更新完了");
+      }
+      // 強制再レンダリングを促すためにキーを更新
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("シフト保存エラー:", error);
     } finally {
@@ -293,6 +308,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         nickname: userObj ? userObj.nickname : "",
         status: shift.status,
         classes: shift.classes || [],
+        extendedTasks: shift.extendedTasks || [], // 拡張タスクも含める
       });
       setShowEditModal(true);
     },
@@ -330,6 +346,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         nickname: defaultNickname,
         status: isMaster ? "approved" : "pending", // マスター権限の場合は直接承認済みに
         classes: [],
+        extendedTasks: [], // 拡張タスクを初期化
       });
       setShowAddModal(true);
     },
@@ -353,6 +370,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       nickname: defaultNickname,
       status: isMaster ? "approved" : "pending",
       classes: [],
+      extendedTasks: [], // 拡張タスクを初期化
     });
     setShowAddModal(true);
   }, [selectedDate, user, users]);
@@ -373,6 +391,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
 
     // シフトがない場合は0を返す
     if (!shifts || shifts.length === 0) {
+      console.log("シフトがありません - 計算結果: 0円");
       return {
         totalHours: 0,
         totalAmount: 0,
@@ -399,6 +418,9 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           shift.status === "completed")
       );
     });
+    console.log(
+      `計算対象: 全シフト ${shifts.length}件中、選択月(${selectedYear}年${selectedMonth}月)の承認済み・承認待ち ${targetShifts.length}件`
+    );
 
     targetShifts.forEach((shift) => {
       // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
@@ -468,6 +490,8 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         isLoading={isLoading}
         totalAmount={totalWage.totalAmount}
         totalHours={totalWage.totalHours}
+        shifts={shifts}
+        users={users}
       />
       {/* 年月ピッカーモーダル */}
       <DatePickerModal
@@ -509,6 +533,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           />
           {/* 本体 */}
           <GanttChartBody
+            key={refreshKey} // 強制再レンダリング用のキーを追加
             days={days}
             rows={rows}
             dateColumnWidth={dateColumnWidth}
@@ -520,11 +545,8 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             getStatusConfig={getStatusConfig}
             handleShiftPress={handleShiftPress}
             handleEmptyCellClick={handleEmptyCellClick}
-            onTimeChange={onTimeChange}
-            onTaskAdd={onTaskAdd}
             styles={styles}
             userColorsMap={userColorsMap}
-            users={usersWithRole}
           />
         </View>
       </CustomScrollView>
@@ -537,6 +559,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         statusConfigs={statusConfigs}
         isLoading={isLoading}
         styles={styles}
+        extendedTasks={[]} // 拡張タスクのテンプレート（必要に応じて実際のデータに置き換え）
         onChange={(field, value) =>
           setNewShiftData({ ...newShiftData, [field]: value })
         }
@@ -557,6 +580,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         statusConfigs={statusConfigs}
         isLoading={isLoading}
         styles={styles}
+        extendedTasks={[]} // 拡張タスクのテンプレート
         onChange={(field, value) => {
           if (field === "userData") {
             setNewShiftData({

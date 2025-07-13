@@ -37,6 +37,7 @@ export function useGanttShiftActions({
         nickname: string;
         status: ShiftStatus;
         classes: ClassTimeSlot[];
+        extendedTasks?: any[]; // 拡張タスク配列を追加
       }
     ) => {
       if (editingShift) {

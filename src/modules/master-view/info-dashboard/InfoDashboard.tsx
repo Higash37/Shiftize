@@ -16,6 +16,7 @@ import { shadows } from "@/common/common-constants/ShadowConstants";
 import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
+import { useAuth } from "@/services/auth/useAuth";
 
 import {
   BudgetSection,
@@ -82,7 +83,8 @@ export const InfoDashboard: React.FC = () => {
   const isTabletOrDesktop = width >= 768;
 
   // 実際のデータを取得
-  const { shifts, loading: shiftsLoading } = useShifts();
+  const { user } = useAuth();
+  const { shifts, loading: shiftsLoading } = useShifts(user?.storeId);
   const { users, loading: usersLoading } = useUsers();
 
   // 現在の月のデータを計算
@@ -203,7 +205,11 @@ export const InfoDashboard: React.FC = () => {
       case "trend":
         return <TrendAnalysisTab shifts={shifts} users={users} />;
       case "tasks":
-        return <TaskManagementIntegratedTab storeId="default-store" />;
+        return (
+          <TaskManagementIntegratedTab
+            storeId={user?.storeId || "default-store"}
+          />
+        );
       default:
         return <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />;
     }

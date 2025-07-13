@@ -46,6 +46,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
     type: "standard" as TaskType,
     baseTimeMinutes: 30,
     baseCountPerShift: 1,
+    restrictedTimeRanges: [] as Array<{ startTime: string; endTime: string }>,
     restrictedStartTime: "",
     restrictedEndTime: "",
     requiredRole: undefined as "staff" | "master" | undefined,
@@ -240,6 +241,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
         type: task.type,
         baseTimeMinutes: task.baseTimeMinutes,
         baseCountPerShift: task.baseCountPerShift,
+        restrictedTimeRanges: task.restrictedTimeRanges || [],
         restrictedStartTime: task.restrictedStartTime || "",
         restrictedEndTime: task.restrictedEndTime || "",
         requiredRole: task.requiredRole,
@@ -316,31 +318,49 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
 
     setSaving(true);
     try {
-      await updateTask(task.id, {
+      // タスクデータを準備（undefinedフィールドを除外）
+      const updateData: any = {
         title: formData.title.trim(),
-        shortName: formData.shortName.trim() || undefined,
         description: formData.description.trim(),
         type: formData.type,
         baseTimeMinutes: formData.baseTimeMinutes,
         baseCountPerShift: formData.baseCountPerShift,
-        restrictedStartTime:
-          formData.type === "time_specific"
-            ? formData.restrictedStartTime
-            : undefined,
-        restrictedEndTime:
-          formData.type === "time_specific"
-            ? formData.restrictedEndTime
-            : undefined,
         requiredRole: formData.requiredRole,
         tags: formData.tags,
         priority: formData.priority,
         difficulty: formData.difficulty,
         color: formData.color,
         icon: formData.icon,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
         isActive: formData.isActive,
-      });
+      };
+
+      // 条件付きでフィールドを追加
+      if (formData.shortName.trim()) {
+        updateData.shortName = formData.shortName.trim();
+      }
+
+      if (
+        formData.type === "time_specific" &&
+        formData.restrictedTimeRanges.length > 0
+      ) {
+        updateData.restrictedTimeRanges = formData.restrictedTimeRanges;
+        if (formData.restrictedStartTime) {
+          updateData.restrictedStartTime = formData.restrictedStartTime;
+        }
+        if (formData.restrictedEndTime) {
+          updateData.restrictedEndTime = formData.restrictedEndTime;
+        }
+      }
+
+      if (formData.validFrom) {
+        updateData.validFrom = formData.validFrom;
+      }
+
+      if (formData.validTo) {
+        updateData.validTo = formData.validTo;
+      }
+
+      await updateTask(task.id, updateData);
 
       Alert.alert("完了", "タスクを更新しました");
       onTaskUpdated();
@@ -461,6 +481,72 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
                   numberOfLines={3}
                   maxLength={500}
                 />
+              </View>
+            </View>
+
+            {/* 対象者選択 */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>対象者</Text>
+              <Text style={styles.fieldHelper}>
+                このタスクを実行できる人の権限を選択してください
+              </Text>
+              <View style={styles.optionsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.optionChip,
+                    formData.requiredRole === "staff" &&
+                      styles.optionChipSelected,
+                  ]}
+                  onPress={() => updateFormData("requiredRole", "staff")}
+                >
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      formData.requiredRole === "staff" &&
+                        styles.optionChipTextSelected,
+                    ]}
+                  >
+                    スタッフのみ
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.optionChip,
+                    formData.requiredRole === "master" &&
+                      styles.optionChipSelected,
+                  ]}
+                  onPress={() => updateFormData("requiredRole", "master")}
+                >
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      formData.requiredRole === "master" &&
+                        styles.optionChipTextSelected,
+                    ]}
+                  >
+                    教室長のみ
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.optionChip,
+                    formData.requiredRole === undefined &&
+                      styles.optionChipSelected,
+                  ]}
+                  onPress={() => updateFormData("requiredRole", undefined)}
+                >
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      formData.requiredRole === undefined &&
+                        styles.optionChipTextSelected,
+                    ]}
+                  >
+                    両方
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 

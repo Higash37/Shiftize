@@ -1,5 +1,5 @@
 {
-  "name": "shiftize",
+  "name": "shift-scheduler-app",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
@@ -35,6 +35,9 @@
     "expo-updates": "~0.24.9",
     "firebase": "^10.8.0",
     "firebase-admin": "^13.2.0",
+    "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.10.3",
+    "jspdf": "^3.0.1",
     "react": "18.2.0",
     "react-dom": "^18.2.0",
     "react-native": "^0.73.6",

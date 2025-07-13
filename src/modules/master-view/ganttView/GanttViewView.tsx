@@ -35,8 +35,8 @@ export const GanttViewView: React.FC<GanttViewViewProps> = ({
   const handleTaskCreated = () => {
     setShowTaskCreateModal(false);
     setSelectedShiftIdForTask("");
-    // 必要に応じてシフトデータを再読み込み
-    // onShiftUpdate?.();
+    // シフトデータを再読み込み
+    onShiftUpdate?.();
   };
 
   // 選択されたシフトの情報を取得

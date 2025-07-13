@@ -61,6 +61,7 @@ export const ShiftService = {
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
           classes: data.classes || [],
+          extendedTasks: data.extendedTasks || [],
           requestedChanges: data.requestedChanges || undefined,
         } as Shift;
       });

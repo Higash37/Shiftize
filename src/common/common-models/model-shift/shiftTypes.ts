@@ -114,6 +114,7 @@ export interface Shift extends BaseShift {
   updatedAt?: Date;
   duration?: number;
   classes?: Array<ClassTimeSlot>;
+  extendedTasks?: Array<ShiftTaskSlot>; // 追加：シフト内のタスクスロット
   requestedChanges?: Array<{
     startTime: string;
     endTime: string;
@@ -132,6 +133,25 @@ export type TimeSlot = {
   start: string;
   end: string;
 };
+
+/**
+ * シフト内タスクスロット
+ */
+export interface ShiftTaskSlot {
+  id: string;
+  taskId: string; // ExtendedTaskのID
+  startTime: string; // HH:MM形式
+  endTime: string; // HH:MM形式
+  title: string; // タスク名
+  shortName?: string; // 2文字の略称
+  color?: string; // 表示色
+  icon?: string; // アイコン
+  status?: "pending" | "in_progress" | "completed" | "cancelled"; // 実行状況
+  actualStartTime?: string; // 実際の開始時間
+  actualEndTime?: string; // 実際の終了時間
+  notes?: string; // メモ
+  createdAt: Date;
+}
 
 /**
  * 授業時間スロット
@@ -201,6 +221,7 @@ export interface ShiftItem {
   updatedAt: Date;
   classes?: Array<ClassTimeSlot>;
   tasks?: Array<TaskItem>; // タスク配列を追加
+  extendedTasks?: Array<ShiftTaskSlot>; // 拡張タスク配列を追加
   requestedChanges?: {
     startTime?: string;
     endTime?: string;

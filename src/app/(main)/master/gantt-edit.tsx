@@ -107,6 +107,7 @@ export default function GanttEditScreen() {
           duration: durationHours, // 計算されたdurationを設定
           status: data.status || "approved", // マスターによる編集は承認済み
           classes: data.classes || [],
+          extendedTasks: data.extendedTasks || [],
         });
       } else {
         // 対象ユーザーを取得
@@ -133,6 +134,7 @@ export default function GanttEditScreen() {
           status: "approved", // マスターによる新規作成は常に承認済み
           duration: durationHours, // 計算された時間を設定
           classes: data.classes || [],
+          extendedTasks: data.extendedTasks || [],
         });
       }
       await handleShiftUpdate();

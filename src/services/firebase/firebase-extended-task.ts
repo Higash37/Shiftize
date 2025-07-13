@@ -21,6 +21,19 @@ import {
 } from "@/common/common-models/model-shift/shiftTypes";
 
 /**
+ * undefined値を除外するヘルパー関数
+ */
+const removeUndefinedFields = (obj: any): any => {
+  const cleaned: any = {};
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] !== undefined) {
+      cleaned[key] = obj[key];
+    }
+  });
+  return cleaned;
+};
+
+/**
  * 拡張されたタスク管理サービス
  */
 export const ExtendedTaskService = {
@@ -31,15 +44,29 @@ export const ExtendedTaskService = {
     taskData: Omit<ExtendedTask, "id" | "createdAt" | "updatedAt">
   ): Promise<string> => {
     try {
-      const taskRef = await addDoc(collection(db, "extendedTasks"), {
+      console.log("=== createTask Debug ===");
+      console.log("Creating task with data:", taskData);
+      console.log("storeId in taskData:", taskData.storeId);
+
+      // undefinedフィールドを除外
+      const cleanedData = removeUndefinedFields({
         ...taskData,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
         validFrom: taskData.validFrom
           ? Timestamp.fromDate(taskData.validFrom)
           : null,
         validTo: taskData.validTo ? Timestamp.fromDate(taskData.validTo) : null,
       });
+
+      console.log("Cleaned data:", cleanedData);
+
+      const taskRef = await addDoc(collection(db, "extendedTasks"), {
+        ...cleanedData,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      });
+
+      console.log("Task created successfully with ID:", taskRef.id);
+      console.log("=== createTask Debug End ===");
       return taskRef.id;
     } catch (error) {
       console.error("タスクの作成に失敗しました:", error);
@@ -55,11 +82,10 @@ export const ExtendedTaskService = {
     includeInactive = false
   ): Promise<ExtendedTask[]> => {
     try {
+      // 単純なクエリに変更（複合インデックス不要）
       let q = query(
         collection(db, "extendedTasks"),
-        where("storeId", "==", storeId),
-        orderBy("priority", "desc"),
-        orderBy("createdAt", "desc")
+        where("storeId", "==", storeId)
       );
 
       const querySnapshot = await getDocs(q);
@@ -75,12 +101,30 @@ export const ExtendedTaskService = {
         } as ExtendedTask;
       });
 
+      // JavaScript側でソート
+      let filteredTasks = tasks;
+
       // 非アクティブなタスクを除外する場合
       if (!includeInactive) {
-        return tasks.filter((task) => task.isActive);
+        filteredTasks = tasks.filter((task) => task.isActive);
       }
 
-      return tasks;
+      // 優先度と作成日でソート
+      filteredTasks.sort((a, b) => {
+        // 優先度順（high > medium > low）
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        const priorityDiff =
+          (priorityOrder[b.priority] || 2) - (priorityOrder[a.priority] || 2);
+
+        if (priorityDiff !== 0) {
+          return priorityDiff;
+        }
+
+        // 優先度が同じ場合は作成日の新しい順
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      });
+
+      return filteredTasks;
     } catch (error) {
       console.error("タスクの取得に失敗しました:", error);
       throw error;
@@ -169,15 +213,19 @@ export const ExtendedTaskService = {
   ): Promise<void> => {
     try {
       const taskRef = doc(db, "extendedTasks", taskId);
-      await updateDoc(taskRef, {
+
+      // undefinedフィールドを除外
+      const cleanedUpdates = removeUndefinedFields({
         ...updates,
-        updatedAt: Timestamp.now(),
         validFrom: updates.validFrom
           ? Timestamp.fromDate(updates.validFrom)
-          : undefined,
-        validTo: updates.validTo
-          ? Timestamp.fromDate(updates.validTo)
-          : undefined,
+          : null,
+        validTo: updates.validTo ? Timestamp.fromDate(updates.validTo) : null,
+      });
+
+      await updateDoc(taskRef, {
+        ...cleanedUpdates,
+        updatedAt: Timestamp.now(),
       });
     } catch (error) {
       console.error("タスクの更新に失敗しました:", error);
