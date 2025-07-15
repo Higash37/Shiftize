@@ -9,6 +9,7 @@ export interface ShiftCalendarProps {
   shifts: Shift[];
   selectedDate: string;
   currentMonth: string;
+  currentUserStoreId?: string; // 現在のユーザーの店舗ID
   onDayPress: (day: { dateString: string }) => void;
   onMonthChange?: (month: { dateString: string }) => void;
   markedDates?: Record<string, any>;

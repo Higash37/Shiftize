@@ -95,6 +95,27 @@ export const shiftListItemStyles = StyleSheet.create({
     borderColor: colors.primary, // 選択時は枠だけ青なども可
     borderWidth: 2,
   },
+  // 店舗名表示用のスタイル
+  storeNameText: {
+    fontSize: IS_SMALL_DEVICE ? 11 : 13,
+    color: colors.text.secondary,
+    fontStyle: "italic",
+  },
+  timeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    gap: 8,
+  },
+  storeLabel: {
+    paddingHorizontal: 4, // userLabelと同じ
+    paddingVertical: 2, // userLabelと同じ
+    borderRadius: 4,
+    fontSize: IS_SMALL_DEVICE ? 12 : 14, // userLabelと同じフォントサイズ
+    fontWeight: "500",
+    textAlign: "center",
+    overflow: "hidden",
+  },
 });
 
 export const shiftListViewStyles = StyleSheet.create({

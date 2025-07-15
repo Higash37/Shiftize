@@ -28,6 +28,8 @@ export {
   markShiftAsDeleted,
   approveShiftChanges,
   markShiftAsCompleted,
+  getShiftsFromMultipleStores,
+  getUserAccessibleShifts,
   ShiftService,
 } from "./firebase-shift";
 

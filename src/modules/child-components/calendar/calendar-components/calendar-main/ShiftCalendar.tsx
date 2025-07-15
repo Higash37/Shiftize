@@ -17,6 +17,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   shifts,
   selectedDate,
   currentMonth,
+  currentUserStoreId,
   onDayPress,
   onMonthChange,
   markedDates: propMarkedDates,
@@ -73,18 +74,25 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
       shiftDate.setHours(0, 0, 0, 0);
       const isPastShift = shiftDate < today;
 
+      // 他店舗のシフトかどうかを判定
+      const isFromOtherStore =
+        currentUserStoreId &&
+        shift.storeId &&
+        shift.storeId !== currentUserStoreId;
+      const dotColor = isFromOtherStore ? "#8B5CF6" : colors.primary; // 他店舗は紫、自店舗は青
+
       const existingMark = marks[shift.date] || {};
       marks[shift.date] = {
         ...existingMark,
         marked: true,
-        dotColor: colors.primary,
+        dotColor: dotColor,
         dotStyle: {
           width: 4,
           height: 4,
           borderRadius: 2,
-          backgroundColor: isPastShift ? colors.primary : "transparent",
+          backgroundColor: isPastShift ? dotColor : "transparent",
           borderWidth: isPastShift ? 0 : 1,
-          borderColor: colors.primary,
+          borderColor: dotColor,
         },
         selected: selectedDate === shift.date,
         selectedColor: colors.primary + "20",
@@ -92,7 +100,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     });
 
     return marks;
-  }, [selectedDate, shifts]);
+  }, [selectedDate, shifts, currentUserStoreId]);
 
   const handleDateSelect = (date: Date) => {
     setTempDate(date);

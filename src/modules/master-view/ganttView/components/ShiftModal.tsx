@@ -25,6 +25,9 @@ import {
   ShiftTaskSlot,
   DEFAULT_SHIFT_STATUS_CONFIG,
 } from "@/common/common-models/ModelIndex";
+import { MultiStoreService } from "@/services/firebase/firebase-multistore";
+import { useAuth } from "@/services/auth/useAuth";
+import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 
 // 時間オプション生成（15分刻み）
 const generateTimeOptions = () => {
@@ -71,6 +74,8 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
   onSave,
   onDelete,
 }) => {
+  const { user } = useAuth();
+  const { users: localUsers } = useUsers();
   const [selectedUserId, setSelectedUserId] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -79,8 +84,43 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
   const [classes, setClasses] = useState<ClassTimeSlot[]>([]);
   const [extendedTasks, setExtendedTasks] = useState<ShiftTaskSlot[]>([]);
   const [loading, setLoading] = useState(false);
+  const [connectedStoreUsers, setConnectedStoreUsers] = useState<
+    Array<{
+      uid: string;
+      nickname: string;
+      email: string;
+      role: string;
+      storeId: string;
+      storeName: string;
+      isFromOtherStore: boolean;
+    }>
+  >([]);
 
   const timeOptions = generateTimeOptions();
+
+  // 連携校舎のユーザーを取得
+  useEffect(() => {
+    const fetchConnectedStoreUsers = async () => {
+      if (!user?.uid) return;
+
+      try {
+        // 現在のユーザーのstoreIdを取得
+        const currentUser = localUsers.find((u) => u.uid === user.uid);
+        if (!currentUser?.storeId) return;
+
+        const users = await MultiStoreService.getConnectedStoreUsers(
+          currentUser.storeId
+        );
+        setConnectedStoreUsers(users);
+      } catch (error) {
+        console.error("Error fetching connected store users:", error);
+      }
+    };
+
+    if (visible) {
+      fetchConnectedStoreUsers();
+    }
+  }, [visible, user?.uid, localUsers]);
 
   // モーダルが開かれた時にデータを初期化
   useEffect(() => {
@@ -190,38 +230,54 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
     ]);
   };
 
-  const renderUserSelector = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>スタッフ</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.userScrollView}
-        contentContainerStyle={styles.userScrollContent}
-      >
-        {users.map((user) => (
-          <TouchableOpacity
-            key={user.uid}
-            style={[
-              styles.userChip,
-              selectedUserId === user.uid && styles.userChipSelected,
-              { borderColor: user.color || colors.primary },
-            ]}
-            onPress={() => setSelectedUserId(user.uid)}
-          >
-            <Text
+  const renderUserSelector = () => {
+    // 本店舗と連携校舎のユーザーを統合
+    const allUsers = [...users, ...connectedStoreUsers];
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>スタッフ</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.userScrollView}
+          contentContainerStyle={styles.userScrollContent}
+        >
+          {allUsers.map((user) => (
+            <TouchableOpacity
+              key={user.uid}
               style={[
-                styles.userChipText,
-                selectedUserId === user.uid && styles.userChipTextSelected,
+                styles.userChip,
+                selectedUserId === user.uid && styles.userChipSelected,
+                {
+                  borderColor:
+                    ("color" in user ? user.color : null) || colors.primary,
+                },
               ]}
+              onPress={() => setSelectedUserId(user.uid)}
             >
-              {user.nickname}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
-  );
+              <Text
+                style={[
+                  styles.userChipText,
+                  selectedUserId === user.uid && styles.userChipTextSelected,
+                ]}
+              >
+                {user.nickname}
+                {"storeName" in user &&
+                  user.storeName &&
+                  user.isFromOtherStore && (
+                    <Text style={styles.storeNameText}>
+                      {" "}
+                      - {user.storeName}
+                    </Text>
+                  )}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
 
   const renderTimeInputs = () => (
     <View style={styles.section}>
@@ -471,7 +527,8 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
   );
 
   const renderDeleteConfirmation = () => {
-    const user = users.find((u) => u.uid === shiftData?.userId);
+    const allUsers = [...users, ...connectedStoreUsers];
+    const user = allUsers.find((u) => u.uid === shiftData?.userId);
     return (
       <View style={styles.deleteContainer}>
         <MaterialIcons name="warning" size={48} color={colors.error} />
@@ -479,6 +536,11 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         <View style={styles.deleteInfo}>
           <Text style={styles.deleteInfoText}>
             スタッフ: {user?.nickname || "不明"}
+            {user &&
+              "storeName" in user &&
+              user.storeName &&
+              user.isFromOtherStore &&
+              ` - ${user.storeName}`}
           </Text>
           <Text style={styles.deleteInfoText}>
             時間: {shiftData?.startTime.substring(0, 5)} -{" "}
@@ -831,5 +893,10 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: colors.error,
+  },
+  storeNameText: {
+    fontSize: 12,
+    color: colors.text.secondary,
+    fontStyle: "italic",
   },
 });

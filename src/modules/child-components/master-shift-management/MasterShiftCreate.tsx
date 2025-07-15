@@ -36,6 +36,7 @@ import { ja } from "date-fns/locale";
 import { getUserData, type UserData } from "@/services/firebase/firebase";
 import { Picker } from "@react-native-picker/picker";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
+import { MultiStoreService } from "@/services/firebase/firebase-multistore";
 import { styles } from "./MasterShiftCreate.styles";
 import { ShiftData, MasterShiftCreateProps } from "./MasterShiftCreate.types";
 
@@ -52,6 +53,17 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   const isEditMode = mode === "edit";
   const { user, role } = useAuth();
   const { users, loading: usersLoading } = useUsers();
+  const [connectedStoreUsers, setConnectedStoreUsers] = useState<
+    Array<{
+      uid: string;
+      nickname: string;
+      email: string;
+      role: string;
+      storeId: string;
+      storeName: string;
+      isFromOtherStore: boolean;
+    }>
+  >([]);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [existingShift, setExistingShift] = useState<Shift | null>(null);
   const [shiftData, setShiftData] = useState<ShiftData>({
@@ -106,6 +118,28 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
 
     fetchUserData();
   }, [user]);
+
+  // 連携校舎のユーザーを取得
+  useEffect(() => {
+    const fetchConnectedStoreUsers = async () => {
+      if (!user?.uid) return;
+
+      // 現在のユーザー情報からstoreIdを取得
+      const currentUser = users.find((u) => u.uid === user.uid);
+      if (!currentUser?.storeId) return;
+
+      try {
+        const connectedUsers = await MultiStoreService.getConnectedStoreUsers(
+          currentUser.storeId
+        );
+        setConnectedStoreUsers(connectedUsers);
+      } catch (error) {
+        console.error("Error fetching connected store users:", error);
+      }
+    };
+
+    fetchConnectedStoreUsers();
+  }, [user?.uid, users]);
 
   // 編集モードの場合、既存のシフト情報を取得
   useEffect(() => {
@@ -340,17 +374,18 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     setShowCalendar(true);
   };
 
-  // フィルタリングされたユーザーリスト
-  const filteredUsers = users.filter((user) =>
+  // フィルタリングされたユーザーリスト（本店舗+連携校舎のユーザー）
+  const filteredUsers = [...users, ...connectedStoreUsers].filter((user) =>
     user.nickname.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   useEffect(() => {
-    const selectedUser = users.find((u) => u.uid === selectedUserId);
+    const allUsers = [...users, ...connectedStoreUsers];
+    const selectedUser = allUsers.find((u) => u.uid === selectedUserId);
     if (selectedUser) {
       setSelectedUserNickname(selectedUser.nickname);
     }
-  }, [selectedUserId, users]);
+  }, [selectedUserId, users, connectedStoreUsers]);
 
   if (isLoading || usersLoading) {
     return (
@@ -410,6 +445,14 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
                     >
                       {user.nickname} (
                       {user.role === "master" ? "管理者" : "ユーザー"})
+                      {"storeName" in user &&
+                        user.storeName &&
+                        user.isFromOtherStore && (
+                          <Text style={styles.storeNameText}>
+                            {" "}
+                            - {user.storeName}
+                          </Text>
+                        )}
                     </Text>
                   </TouchableOpacity>
                 ))

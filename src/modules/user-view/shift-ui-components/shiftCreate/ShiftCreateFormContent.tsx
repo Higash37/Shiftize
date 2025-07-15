@@ -15,6 +15,7 @@ import { ja } from "date-fns/locale";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { shiftCreateFormStyles as styles } from "./styles";
 import type { ShiftData } from "./types";
+import { StoreInfo } from "@/services/firebase/firebase-multistore";
 
 interface ShiftCreateFormContentProps {
   containerStyle: any; // Replace 'any' with the appropriate type
@@ -36,6 +37,9 @@ interface ShiftCreateFormContentProps {
   showCalendar: boolean;
   showSuccess: boolean;
   fadeAnim: Animated.Value;
+  connectedStores: StoreInfo[];
+  selectedStoreId: string;
+  onStoreChange: (storeId: string) => void;
 }
 
 const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
@@ -54,7 +58,18 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
   showCalendar,
   showSuccess,
   fadeAnim,
+  connectedStores,
+  selectedStoreId,
+  onStoreChange,
 }) => {
+  // デバッグ用のログ出力
+  console.log(
+    "ShiftCreateFormContent: Render - connectedStores length:",
+    connectedStores.length
+  );
+  console.log("ShiftCreateFormContent: selectedStoreId:", selectedStoreId);
+  console.log("ShiftCreateFormContent: connectedStores data:", connectedStores);
+
   return (
     <>
       <View style={{ width: "100%" }}></View>
@@ -64,6 +79,42 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
         contentContainerStyle={{ paddingBottom: 20 }}
       >
         <View style={styles.formContainer}>
+          {/* 店舗選択 - デバッグ用の表示 */}
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>
+              勤務店舗 (Debug: {connectedStores.length} stores)
+            </Text>
+            {connectedStores.length > 0 ? (
+              <View style={styles.storeSelectContainer}>
+                {connectedStores.map((store) => (
+                  <TouchableOpacity
+                    key={store.storeId}
+                    style={[
+                      styles.storeSelectButton,
+                      selectedStoreId === store.storeId &&
+                        styles.storeSelectButtonSelected,
+                    ]}
+                    onPress={() => onStoreChange(store.storeId)}
+                  >
+                    <Text
+                      style={[
+                        styles.storeSelectText,
+                        selectedStoreId === store.storeId &&
+                          styles.storeSelectTextSelected,
+                      ]}
+                    >
+                      {store.storeName}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.storeSelectText}>
+                店舗情報を読み込み中...
+              </Text>
+            )}
+          </View>
+
           {/* 日付選択 */}
           <View style={styles.formSection}>
             <Text style={styles.sectionTitle}>日付</Text>

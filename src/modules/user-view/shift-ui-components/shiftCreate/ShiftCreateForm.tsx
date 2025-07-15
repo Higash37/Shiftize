@@ -17,10 +17,24 @@ import { designSystem } from "@/common/common-constants/DesignSystem";
 import type { ShiftData, ShiftCreateFormProps } from "./types";
 import { shiftCreateFormStyles as styles } from "./styles";
 import ShiftCreateFormContent from "./ShiftCreateFormContent";
-import type { UserData } from "@/services/firebase/firebase";
 import type { Shift } from "@/common/common-models/ModelIndex";
 import type { FlexAlignType } from "react-native";
 import ChangePassword from "@/modules/child-components/user-management/user-props/ChangePassword";
+import {
+  MultiStoreService,
+  StoreInfo,
+} from "@/services/firebase/firebase-multistore";
+
+// 型定義
+interface UserData {
+  uid: string;
+  nickname: string;
+  email: string;
+  role: string;
+  storeId?: string;
+  storeName?: string;
+  connectedStores?: string[]; // 連携店舗IDの配列を追加
+}
 
 export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   initialMode,
@@ -35,6 +49,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   const isEditMode = initialMode === "edit";
   const { user } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [currentStore, setCurrentStore] = useState<any>(null); // 現在の店舗ドキュメント
   const [existingShift, setExistingShift] = useState<Shift | null>(null);
   const [shiftData, setShiftData] = useState<ShiftData>({
     startTime: initialStartTime || "",
@@ -48,6 +63,8 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   const [showSuccess, setShowSuccess] = useState(false);
   const fadeAnim = new Animated.Value(0);
   const [errorMessage, setErrorMessage] = useState("");
+  const [connectedStores, setConnectedStores] = useState<StoreInfo[]>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState<string>("");
 
   const [selectedDate, setSelectedDate] = useState(initialDate || "");
   const [selectedStartTime, setSelectedStartTime] = useState(
@@ -88,7 +105,27 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
-          setUserData(userDoc.data() as UserData);
+          const userData = userDoc.data() as UserData;
+          setUserData(userData);
+
+          // ユーザーの店舗ドキュメントを取得
+          if (userData.storeId) {
+            console.log(
+              "Fetching store document for storeId:",
+              userData.storeId
+            );
+            const storeDoc = await getDoc(doc(db, "stores", userData.storeId));
+            if (storeDoc.exists()) {
+              const storeData = storeDoc.data();
+              console.log("Current store data:", storeData);
+              setCurrentStore(storeData);
+            } else {
+              console.log(
+                "Store document not found for storeId:",
+                userData.storeId
+              );
+            }
+          }
         }
         if (isEditMode && initialShiftId) {
           const shiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
@@ -105,6 +142,92 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 
     fetchUserData();
   }, [user, isEditMode, initialShiftId]);
+
+  // 連携店舗を取得
+  useEffect(() => {
+    const fetchConnectedStores = async () => {
+      console.log("ShiftCreateForm: fetchConnectedStores called");
+      if (!user?.uid || !userData) {
+        console.log("ShiftCreateForm: No user uid or userData available");
+        return;
+      }
+
+      try {
+        console.log("ShiftCreateForm: Starting store loading process...");
+        console.log("ShiftCreateForm: Current userData:", userData);
+
+        // 新しいアプローチ: ユーザーのconnectedStoresから直接取得
+        const userConnectedStores = userData.connectedStores || [];
+        console.log(
+          "ShiftCreateForm: User's connected stores from userData:",
+          userConnectedStores
+        );
+
+        let allStores: StoreInfo[] = [];
+
+        // 現在の店舗を追加
+        if (userData.storeId && currentStore) {
+          allStores.push({
+            storeId: userData.storeId,
+            storeName:
+              currentStore.storeName || currentStore.name || "現在の店舗",
+            adminUid: userData.uid,
+            adminNickname: userData.nickname || "",
+            isActive: true,
+            createdAt: new Date(),
+          });
+        }
+
+        // 連携店舗を追加
+        for (const connectedStoreId of userConnectedStores) {
+          try {
+            const storeDoc = await getDoc(doc(db, "stores", connectedStoreId));
+            if (storeDoc.exists()) {
+              const storeData = storeDoc.data();
+              allStores.push({
+                storeId: connectedStoreId,
+                storeName: storeData.storeName || storeData.name || "連携店舗",
+                adminUid: storeData.adminUid || "",
+                adminNickname: storeData.adminNickname || "",
+                isActive: true,
+                createdAt: storeData.createdAt || new Date(),
+              });
+            }
+          } catch (error) {
+            console.error(
+              `Failed to get store data for ${connectedStoreId}:`,
+              error
+            );
+          }
+        }
+
+        console.log("Final stores list:", allStores);
+        setConnectedStores(allStores);
+
+        // 初期選択店舗を設定
+        if (allStores.length > 0) {
+          setSelectedStoreId(userData.storeId || allStores[0].storeId);
+        }
+      } catch (error) {
+        console.error("Error fetching connected stores:", error);
+      }
+    };
+
+    if (user?.uid && userData) {
+      fetchConnectedStores();
+    }
+  }, [user?.uid, userData, currentStore]);
+
+  // connectedStoresとselectedStoreIdの状態を監視
+  useEffect(() => {
+    console.log(
+      "ShiftCreateForm: State update - connectedStores length:",
+      connectedStores.length
+    );
+    console.log("ShiftCreateForm: connectedStores:", connectedStores);
+    console.log("ShiftCreateForm: selectedStoreId:", selectedStoreId);
+  }, [connectedStores, selectedStoreId]);
+
   // 既存のシフトデータがある場合、それを使用してフォームを初期化
   useEffect(() => {
     if (existingShift) {
@@ -121,6 +244,11 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       setSelectedStartTime(existingShift.startTime);
       setSelectedEndTime(existingShift.endTime);
       setSelectedClasses(existingShift.classes || []);
+
+      // 編集モード時に既存シフトの店舗IDを設定
+      if (existingShift.storeId) {
+        setSelectedStoreId(existingShift.storeId);
+      }
     }
   }, [existingShift]);
 
@@ -268,7 +396,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 
         const shiftObject = {
           userId: user.uid,
-          storeId: user.storeId || "", // userオブジェクトからstoreIdを取得
+          storeId: selectedStoreId || "", // 選択された店舗IDを使用
           nickname: user.nickname || "Unknown",
           date,
           startTime: shiftData.startTime,
@@ -418,6 +546,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         showCalendar={showCalendar}
         showSuccess={showSuccess}
         fadeAnim={fadeAnim}
+        connectedStores={connectedStores}
+        selectedStoreId={selectedStoreId}
+        onStoreChange={setSelectedStoreId}
       />
     </>
   );

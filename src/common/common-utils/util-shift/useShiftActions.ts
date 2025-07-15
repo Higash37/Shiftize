@@ -4,7 +4,10 @@ import {
   addShift,
   updateShift,
   approveShiftChanges,
+  getUserAccessibleShifts,
 } from "@/services/firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/services/firebase/firebase";
 import { useAuth } from "@/services/auth/useAuth";
 import {
   Shift,
@@ -20,26 +23,40 @@ export const useShift = (storeId?: string) => {
 
   const fetchShifts = useCallback(async () => {
     if (!user) {
-      console.log("fetchShifts: no user");
       return;
     }
 
     try {
       setLoading(true);
-      console.log("fetchShifts called with:", {
-        storeId,
-        userUid: user?.uid,
-        role,
-      });
-      const allShifts = await getShifts(storeId || user?.storeId);
+
+      let allShifts: Shift[] = [];
+
+      if (role === "master") {
+        // 教室長の場合：指定されたstoreIdまたは自分のstoreIdのシフトを取得
+        allShifts = await getShifts(storeId || user?.storeId);
+      } else {
+        // 講師の場合：連携店舗も含む全てのアクセス可能なシフトを取得
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+
+          // 連携店舗も含むシフトを取得
+          allShifts = await getUserAccessibleShifts({
+            storeId: userData.storeId,
+            connectedStores: userData.connectedStores || [],
+          });
+        } else {
+          // ユーザーデータが見つからない場合は従来の方法
+          allShifts = await getShifts(storeId || user?.storeId);
+        }
+      }
+
       const filteredShifts =
         role === "master"
           ? allShifts
           : allShifts.filter((shift: Shift) => shift.userId === user?.uid);
-      console.log("fetchShifts result:", {
-        allShiftsCount: allShifts.length,
-        filteredShiftsCount: filteredShifts.length,
-      });
+
       setShifts(filteredShifts);
     } catch (error) {
       console.error("シフトの取得に失敗しました:", error);
@@ -62,7 +79,6 @@ export const useShift = (storeId?: string) => {
         storeId: shiftData.storeId || user?.storeId || "",
       };
 
-      console.log("シフトデータを送信:", shiftWithStoreId); // デバッグ用ログ
       await addShift(shiftWithStoreId);
       await fetchShifts(); // データを即時更新
     } catch (error) {

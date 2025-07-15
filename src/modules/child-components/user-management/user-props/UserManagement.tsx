@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { User } from "@/common/common-models/model-user/UserModel";
 import { UserList } from "./UserList";
 import { UserForm } from "./UserForm";
+import { InviteUserForm } from "./InviteUserForm";
 import { UserManagementProps } from "../user-types/components";
 import { colors, typography } from "@/common/common-constants/ThemeConstants";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 
 /**
  * ユーザー管理コンポーネント
@@ -17,6 +19,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userPasswords, setUserPasswords] = useState<Record<string, string>>(
     {}
@@ -116,6 +119,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
     }
   };
 
+  // 招待成功時の処理
+  const handleInviteSuccess = () => {
+    setShowInviteForm(false);
+    // ユーザーリストを再読み込み
+    fetchUsers();
+  };
+
   // フォームのキャンセル処理
   const handleCancelForm = () => {
     setShowForm(false);
@@ -125,7 +135,16 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>ユーザー管理</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>ユーザー管理</Text>
+        <TouchableOpacity
+          style={styles.inviteButton}
+          onPress={() => setShowInviteForm(true)}
+        >
+          <Ionicons name="person-add" size={20} color={colors.background} />
+          <Text style={styles.inviteButtonText}>ユーザー招待</Text>
+        </TouchableOpacity>
+      </View>
 
       {error && <Text style={styles.errorText}>{error}</Text>}
 
@@ -151,6 +170,19 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
           userPasswords={userPasswords}
         />
       )}
+
+      {/* 招待フォームのモーダル */}
+      <Modal
+        visible={showInviteForm}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowInviteForm(false)}
+      >
+        <InviteUserForm
+          onSuccess={handleInviteSuccess}
+          onCancel={() => setShowInviteForm(false)}
+        />
+      </Modal>
     </View>
   );
 };
@@ -160,11 +192,30 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
   title: {
     fontSize: typography.fontSize.xlarge,
     fontWeight: "700",
-    marginBottom: 24,
     color: colors.text.primary,
+  },
+  inviteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 8,
+  },
+  inviteButtonText: {
+    color: colors.background,
+    fontSize: typography.fontSize.medium,
+    fontWeight: "600",
   },
   errorText: {
     color: colors.error,

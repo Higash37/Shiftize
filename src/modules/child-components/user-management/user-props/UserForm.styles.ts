@@ -219,4 +219,68 @@ export const styles = StyleSheet.create({
     color: colors.text.primary,
     fontWeight: "600",
   },
+
+  // フォーム関連スタイル
+  formContainer: {
+    padding: layout.padding.large,
+    backgroundColor: colors.surface,
+    borderRadius: layout.borderRadius.medium,
+    margin: layout.padding.medium,
+    ...shadows.small,
+  },
+  formTitle: {
+    fontSize: typography.fontSize.xlarge,
+    fontWeight: "bold",
+    color: colors.text.primary,
+    marginBottom: layout.padding.small,
+    textAlign: "center",
+  },
+  formDescription: {
+    fontSize: typography.fontSize.medium,
+    color: colors.text.secondary,
+    marginBottom: layout.padding.large,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+
+  // 入力フィールド関連
+  inputContainer: {
+    marginBottom: layout.padding.large,
+  },
+  inputLabel: {
+    fontSize: typography.fontSize.medium,
+    fontWeight: "600",
+    color: colors.text.primary,
+    marginBottom: layout.padding.small,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: layout.borderRadius.small,
+    padding: layout.padding.medium,
+    fontSize: typography.fontSize.medium,
+    backgroundColor: colors.background,
+  },
+  inputHelper: {
+    fontSize: typography.fontSize.small,
+    color: colors.text.secondary,
+    marginTop: layout.padding.small,
+    fontStyle: "italic",
+  },
+
+  // ロールボタン関連
+  roleButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  roleButtonText: {
+    fontSize: typography.fontSize.medium,
+    color: colors.text.primary,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  roleButtonActiveText: {
+    color: colors.text.white,
+    fontWeight: "bold",
+  },
 });

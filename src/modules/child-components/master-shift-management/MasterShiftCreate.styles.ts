@@ -168,6 +168,11 @@ export const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
+  storeNameText: {
+    fontSize: 14,
+    color: colors.text.secondary,
+    fontStyle: "italic",
+  },
   noResultsText: {
     padding: 10,
     textAlign: "center",

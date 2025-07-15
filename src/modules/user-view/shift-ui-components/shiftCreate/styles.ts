@@ -208,4 +208,31 @@ export const shiftCreateFormStyles = StyleSheet.create({
     fontSize: 24,
     color: "#333",
   },
+  // 店舗選択関連のスタイル
+  storeSelectContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  storeSelectButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  storeSelectButtonSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  storeSelectText: {
+    fontSize: 14,
+    color: colors.text.primary,
+    textAlign: "center",
+  },
+  storeSelectTextSelected: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });

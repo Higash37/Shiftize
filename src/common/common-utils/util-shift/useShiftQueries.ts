@@ -12,7 +12,6 @@ export const useShifts = (storeId?: string) => {
   const fetchShifts = useCallback(async () => {
     // storeIdが未定義の場合は処理を停止
     if (!storeId) {
-      console.log("storeId is not provided, skipping fetch");
       setShifts([]);
       setLoading(false);
       return;
@@ -24,24 +23,12 @@ export const useShifts = (storeId?: string) => {
       // 必ずstoreIdでフィルタリング
       const q = query(shiftsRef, where("storeId", "==", storeId));
 
-      console.log("fetchShifts debug:", {
-        storeId,
-        hasStoreId: !!storeId,
-      });
-
       const querySnapshot = await getDocs(q);
-
-      console.log("fetchShifts result:", {
-        docsCount: querySnapshot.docs.length,
-      });
 
       // フィルタリング済みデータのみを処理
       const shiftsData = querySnapshot.docs
         .map((doc) => {
           const data = doc.data();
-          // デバッグ用: classesの内容を出力
-          console.log("shift data:", data);
-          console.log("shift extendedTasks:", data.extendedTasks);
 
           return {
             id: doc.id,

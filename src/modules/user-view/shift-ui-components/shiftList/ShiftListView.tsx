@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/services/firebase/firebase";
 import { ShiftCalendar } from "@/modules/child-components/calendar/calendar-components/calendar-main/ShiftCalendar";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
@@ -48,6 +50,9 @@ export const UserShiftList = () => {
   const [isCalendarMounted, setIsCalendarMounted] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [modalShift, setModalShift] = useState<any>(null);
+  const [currentUserStoreId, setCurrentUserStoreId] = useState<
+    string | undefined
+  >(undefined);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [taskCounts, setTaskCounts] = useState<{
     [key: string]: { count: number; time: number };
@@ -75,6 +80,25 @@ export const UserShiftList = () => {
   useEffect(() => {
     fetchShifts();
   }, []);
+
+  // ユーザーの店舗IDを取得
+  useEffect(() => {
+    const fetchUserStoreId = async () => {
+      if (!user?.uid) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setCurrentUserStoreId(userData.storeId);
+        }
+      } catch (error) {
+        console.error("Error fetching user store ID:", error);
+      }
+    };
+
+    fetchUserStoreId();
+  }, [user?.uid]);
 
   // カレンダーがマウントされた時に現在の月を設定
   const handleCalendarMount = () => {
@@ -273,6 +297,7 @@ export const UserShiftList = () => {
             shifts={monthlyShifts}
             selectedDate={selectedDate}
             currentMonth={currentMonth}
+            currentUserStoreId={currentUserStoreId}
             onDayPress={handleDayPress}
             onMonthChange={handleMonthChange}
             onMount={handleCalendarMount} // レスポンシブ対応のプロパティを追加
