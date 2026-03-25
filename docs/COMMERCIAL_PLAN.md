@@ -111,6 +111,44 @@
 | Context プロバイダー | 0 | 主要 5 Context |
 | ビジネスロジック | wageCalculator, shiftStatus | autoScheduler 追加 |
 
+### 2.7 React Native / Expo 監査（2026-03-14 実施）
+
+#### セキュリティ
+
+| # | 重要度 | 内容 | 対応方針 |
+|---|--------|------|---------|
+| RN-S1 | **HIGH** | 証明書ピンニングなし — 給与データにMITMリスク | `react-native-ssl-pinning` または Expo の証明書透過性検証を導入 |
+| RN-S2 | **HIGH** | AsyncStorage で Supabase セッション保存（ネイティブ環境） | `expo-secure-store` を Supabase のカスタムストレージアダプタとして設定 |
+| RN-S3 | **MEDIUM** | Deep link (`shiftize://`) の URL 検証なし | パス許可リスト + URL バリデーション追加 |
+| RN-S4 | **MEDIUM** | Metro config `keep_fnames: true` でコード難読化が無効 | 本番ビルドでは `keep_fnames: false` に変更 |
+
+#### アクセシビリティ（CRITICAL — 全欠落）
+
+| # | 重要度 | 内容 | 対応方針 |
+|---|--------|------|---------|
+| RN-A1 | **CRITICAL** | `accessibilityLabel` が全コードベースで 0 件 | 全ボタン・入力・ナビゲーション要素に追加（Phase 2） |
+| RN-A2 | **CRITICAL** | `accessibilityRole` が 0 件 | `button`, `header`, `link` 等のロール指定 |
+| RN-A3 | **CRITICAL** | `accessibilityHint` が 0 件 | 重要な操作（承認・削除等）にヒント追加 |
+
+> **法的リスク**: エンタープライズ顧客向けにはアクセシビリティ対応が契約条件になることがある。
+> Phase 2 の品質改善で最優先で対応する。
+
+#### パフォーマンス
+
+| # | 重要度 | 内容 | 対応方針 |
+|---|--------|------|---------|
+| RN-P1 | **MEDIUM** | FlatList に `getItemLayout` 未設定 | 固定高さのリスト（シフト一覧、ユーザー一覧）に追加 |
+| RN-P2 | **MEDIUM** | `InteractionManager` 未使用 | ガントチャートの初期データ読み込みに適用 |
+| RN-P3 | **MEDIUM** | render 内 `new Date()` が 53 ファイル | `useMemo` でメモ化 or 文字列操作に置換 |
+| RN-P4 | **MEDIUM** | ガントチャートにインライン style 228 箇所 | `StyleSheet.create()` に段階的に移行 |
+
+#### 設定
+
+| # | 重要度 | 内容 | 対応方針 |
+|---|--------|------|---------|
+| RN-C1 | **LOW** | New Architecture 未有効化 | `app.json` に `"newArchEnabled": true` 追加を検討 |
+| RN-C2 | **LOW** | `babel.config.js` に `react-native-web` ハードエイリアス | Metro の自動解決に任せて削除 |
+
 ---
 
 ## 3. 商用版の新規開発項目
@@ -633,9 +671,12 @@ cd Shiftize
 ### Phase 2: 品質（2 週間）
 > 目標: Copilot レビューに通るコード品質
 
+- [ ] **§2.7 アクセシビリティ対応（最優先）** — 全インタラクティブ要素に accessibilityLabel/Role 追加
 - [ ] §2.3 ロジックバグ修正（L1-L5: 日跨ぎ, TOCTOU, 負値ガード）
 - [ ] §2.4 パフォーマンス修正（P1-P6: select("*"), .find()→Map, memo最適化）
 - [ ] §2.5 型安全性（as any 除去, any 型 48 箇所修正）
+- [ ] §2.7 RN セキュリティ（RN-S1〜S4: 証明書ピンニング, SecureStore, Deep link検証）
+- [ ] §2.7 RN パフォーマンス（RN-P1〜P4: getItemLayout, InteractionManager, inline style移行）
 - [ ] テスト追加（残り 7 アダプタ + autoScheduler）
 
 ### Phase 3: 商用機能 + ネイティブ（3-4 週間）
