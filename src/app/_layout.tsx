@@ -105,6 +105,8 @@ import { useRouteGuard } from "@/common/common-hooks/useRouteGuard";
 import { VersionManager } from "@/services/version/VersionManager";
 // useBasicFonts: 基本フォントを読み込むカスタムフック
 import { useBasicFonts } from "@/common/common-utils/performance/fontLoader";
+// ErrorBoundary: コンポーネントクラッシュ時にフォールバックUIを表示
+import { ErrorBoundary } from "@/common/common-ui/ui-error/ErrorBoundary";
 // initializeServices: ServiceProviderにサービスインスタンスを登録する初期化関数
 import { initializeServices } from "@/services/initializeServices";
 // MD3ThemeProvider: Material Design 3テーマを提供するProvider
@@ -248,14 +250,16 @@ export default function RootLayout() {
 
   // Provider階層: 外側から内側へネストする
   return (
-    <SafeAreaProvider>
-      <MD3ThemeProvider>
-        <NavigationThemeBridge>
-          <AuthProvider>
-            <RootLayoutNav />
-          </AuthProvider>
-        </NavigationThemeBridge>
-      </MD3ThemeProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary name="アプリ全体">
+      <SafeAreaProvider>
+        <MD3ThemeProvider>
+          <NavigationThemeBridge>
+            <AuthProvider>
+              <RootLayoutNav />
+            </AuthProvider>
+          </NavigationThemeBridge>
+        </MD3ThemeProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
