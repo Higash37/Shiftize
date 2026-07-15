@@ -1,20 +1,18 @@
-/** @file SkeletonLoader.tsx @description 読み込み中のプレースホルダー表示用スケルトンコンポーネント群 */
+
 import React from "react";
 import { View, ViewStyle, DimensionValue } from "react-native";
 
-/** SkeletonBoxのProps */
 interface SkeletonBoxProps {
-  /** 幅 */
+
   width: DimensionValue;
-  /** 高さ */
+
   height: DimensionValue;
-  /** 角丸（デフォルト: 8） */
+
   borderRadius?: number;
-  /** スタイルのオーバーライド */
+
   style?: ViewStyle;
 }
 
-/** 単一のスケルトンボックス */
 export const SkeletonBox: React.FC<SkeletonBoxProps> = ({
   width,
   height,
@@ -35,7 +33,6 @@ export const SkeletonBox: React.FC<SkeletonBoxProps> = ({
   />
 );
 
-/** YouTube埋め込み風のスケルトン */
 export const YoutubeSkeleton: React.FC = () => (
   <View style={{ padding: 16 }}>
     <SkeletonBox width={"100%"} height={200} borderRadius={12} />
@@ -45,7 +42,6 @@ export const YoutubeSkeleton: React.FC = () => (
   </View>
 );
 
-/** ガントチャート風のグリッドスケルトン */
 export const GanttSkeleton: React.FC<{
   rows: number;
   columns: number;

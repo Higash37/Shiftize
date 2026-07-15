@@ -1,13 +1,4 @@
-/** @file AddShiftModalView.tsx
- *  @description シフト追加用のモーダルフォーム。
- *    ユーザー選択、開始/終了時間（プルダウンまたは手動入力）、途中時間の設定が可能。
- *    React.memo でラップしてパフォーマンスを最適化。
- */
 
-// 【このファイルの位置づけ】
-// - import元: ClassTimeEditor（途中時間エディタ）, TimeInput（時間入力コンポーネント）
-// - importされる先: ShiftModalRenderer（showAddModal === true 時に表示）
-// - 役割: 新規シフトの追加フォーム。ユーザー未選択でバリデーションエラーを表示する。
 
 import React, { useState, useEffect } from "react";
 import {
@@ -122,8 +113,8 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = React.memo(({
           style={styles.modalContent}
           onPress={(e) => e.stopPropagation()}
         >
-          <ScrollView 
-            contentContainerStyle={styles.scrollContainer} 
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
@@ -181,7 +172,7 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = React.memo(({
               {renderTimeInput("終了時間", "endTime")}
             </View>
 
-            {/* 手動入力切り替えボタン */}
+            {}
             <TouchableOpacity
               style={{
                 alignSelf: 'center',

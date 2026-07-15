@@ -1,18 +1,4 @@
-/**
- * @file MasterShiftCreate.tsx
- * @description マスターユーザー用のシフト作成フォーム。スタッフ・日付・時間帯を選んで
- *   シフトを一括作成できる。
- *
- * 【このファイルの位置づけ】
- *   reusable-widgets > master-shift-management 配下のフォームコンポーネント。
- *   MasterShiftCreateView から呼ばれる。
- *
- * 主な内部ロジック:
- *   - スタッフ選択（複数選択可）
- *   - 日付選択（MultiDatePicker でカレンダーから複数日選択）
- *   - 開始時間・終了時間の設定
- *   - バリデーション後に ServiceProvider.shifts で Supabase に保存
- */
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -34,7 +20,7 @@ import { calculateDurationHours } from "@/common/common-utils/util-shift/wageCal
 import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
-// import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
+
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import type { UserData } from "@/common/common-models/model-user/UserModel";
@@ -58,17 +44,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   const isEditMode = mode === "edit";
   const { user } = useAuth();
   const { users } = useUsers(user?.storeId);
-  const [connectedStoreUsers, setConnectedStoreUsers] = useState<
-    Array<{
-      uid: string;
-      nickname: string;
-      email: string;
-      role: string;
-      storeId: string;
-      storeName: string;
-      isFromOtherStore: boolean;
-    }>
-  >([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userData, setUserData] = useState<UserData | null>(null);
   const [existingShift, setExistingShift] = useState<Shift | null>(null);
@@ -89,11 +64,9 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   const [selectedStatus, setSelectedStatus] = useState<ShiftStatus>("approved");
   const [showUserPicker, setShowUserPicker] = useState<boolean>(false);
 
-  // AuthContextの情報から即座にuserData設定、追加データはバックグラウンドで取得
   useEffect(() => {
     if (!user) return;
 
-    // AuthContextのデータで即座にuserData設定
     setUserData({
       uid: user.uid,
       nickname: user.nickname || "",
@@ -102,7 +75,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       storeId: user.storeId,
     } as unknown as UserData);
 
-    // 追加プロフィールデータをバックグラウンドで取得
     ServiceProvider.users.getUserData(user.uid)
       .then((fetchedUserData) => {
         if (fetchedUserData) {
@@ -112,29 +84,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       .catch(() => {});
   }, [user]);
 
-  // 連携校舎のユーザーを取得
-  useEffect(() => {
-    const fetchConnectedStoreUsers = async () => {
-      if (!user?.uid) return;
-
-      // 現在のユーザー情報からstoreIdを取得
-      const currentUser = users.find((u) => u.uid === user.uid);
-      if (!currentUser?.storeId) return;
-
-      try {
-        const connectedUsers = await ServiceProvider.multiStore.getConnectedStoreUsers(
-          currentUser.storeId
-        );
-        setConnectedStoreUsers(connectedUsers);
-      } catch (error) {
-        // 連携校舎ユーザーの取得失敗は無視
-      }
-    };
-
-    fetchConnectedStoreUsers();
-  }, [user?.uid, users]);
-
-  // 編集モードの場合、既存のシフト情報を取得
   useEffect(() => {
     const fetchExistingShift = async () => {
       if (!isEditMode || !shiftId) return;
@@ -145,7 +94,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         if (shiftData) {
           setExistingShift(shiftData);
 
-          // 既存のシフトのユーザーを選択
           setSelectedUserId(shiftData.userId || "");
           setSelectedUserNickname(shiftData.nickname || "");
           setSelectedStatus(shiftData.status);
@@ -159,7 +107,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
           });
         }
       } catch (error) {
-        // シフトデータの取得失敗は無視（ローディング終了で処理）
+
       } finally {
         setIsLoading(false);
       }
@@ -168,7 +116,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     fetchExistingShift();
   }, [isEditMode, shiftId]);
 
-  // 日付確認ハンドラ
   const handleDatesConfirm = (dates: string[]) => {
     setShiftData({
       ...shiftData,
@@ -177,9 +124,8 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     setShowCalendar(false);
   };
 
-  // シフト作成ハンドラ
   const handleCreateShift = async () => {
-    // 必須項目チェック
+
     if (!selectedUserId) {
       setErrorMessage("ユーザーを選択してください");
       return;
@@ -199,7 +145,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       setIsLoading(true);
       setErrorMessage("");
 
-      // ユーザーのニックネーム取得
       let nickname = selectedUserNickname;
       if (!nickname) {
         const selectedUser = users.find((u) => u.uid === selectedUserId);
@@ -209,40 +154,36 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         }
       }
 
-      // シフトを各日付に登録（並列処理）
       {
         const createPromises = shiftData.dates.map(async (date) => {
           const durationHours = calculateDurationHours(shiftData.startTime, shiftData.endTime);
 
           const newShift = {
             userId: selectedUserId,
-            storeId: user?.storeId || "", // storeIdを追加
+            storeId: user?.storeId || "",
             nickname: nickname,
             date,
             startTime: shiftData.startTime,
             endTime: shiftData.endTime,
             type: shiftData.hasClass ? ("class" as const) : ("user" as const),
-            subject: "", // subjectフィールドを追加
-            isCompleted: false, // isCompletedフィールドを追加
-            duration: durationHours, // durationフィールドを追加
+            subject: "",
+            isCompleted: false,
+            duration: durationHours,
             classes: shiftData.classes,
-            status: selectedStatus, // マスターが選択したステータス
+            status: selectedStatus,
             createdAt: new Date(),
             updatedAt: new Date(),
           };
 
-          // useShiftのcreateShiftメソッドを使用
           await createShift(newShift);
-          // プログレス更新は削除（シンプルにする）
+
         });
 
         await Promise.all(createPromises);
       }
 
-      // ローディングを早めに解除
       setIsLoading(false);
 
-      // 成功通知を表示
       setShowSuccess(true);
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -250,7 +191,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         useNativeDriver: true,
       }).start();
 
-      // 800ms後に通知を消す
       setTimeout(() => {
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -261,7 +201,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         });
       }, 800);
 
-      // 入力内容をリセット
       setShiftData({
         startTime: "",
         endTime: "",
@@ -275,7 +214,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     }
   };
 
-  // シフト更新ハンドラ
   const handleUpdateShift = async () => {
     if (!existingShift) return;
 
@@ -297,15 +235,15 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
 
       const updatedShift = {
         userId: selectedUserId || existingShift.userId,
-        storeId: user?.storeId || existingShift.storeId || "", // storeIdを追加
+        storeId: user?.storeId || existingShift.storeId || "",
         nickname: selectedUserNickname || existingShift.nickname,
-        date: shiftData.dates[0], // 編集では最初の日付のみ使用
+        date: shiftData.dates[0],
         startTime: shiftData.startTime,
         endTime: shiftData.endTime,
         type: shiftData.hasClass ? ("class" as const) : ("user" as const),
-        subject: existingShift.subject || "", // 既存のsubjectを保持
-        isCompleted: existingShift.isCompleted || false, // 既存のisCompletedを保持
-        duration: durationHours, // 計算されたdurationを設定
+        subject: existingShift.subject || "",
+        isCompleted: existingShift.isCompleted || false,
+        duration: durationHours,
         classes: shiftData.classes,
         status: selectedStatus,
         updatedAt: new Date(),
@@ -323,7 +261,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     }
   };
 
-  // シフト削除ハンドラ
   const handleDelete = () => {
     if (!existingShift) return;
 
@@ -349,21 +286,16 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     ]);
   };
 
-  // 日付選択画面を表示
   const handleOpenCalendar = () => {
     setShowCalendar(true);
   };
 
-  // 全ユーザーリスト（本店舗+連携校舎のユーザー）
-  const allUsers = [...users, ...connectedStoreUsers];
-  
-
   useEffect(() => {
-    const selectedUser = allUsers.find((u) => u.uid === selectedUserId);
+    const selectedUser = users.find((u) => u.uid === selectedUserId);
     if (selectedUser) {
       setSelectedUserNickname(selectedUser.nickname);
     }
-  }, [selectedUserId, allUsers]);
+  }, [selectedUserId, users]);
 
   if (isLoading) {
     return null;
@@ -375,13 +307,13 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <MasterHeader title={isEditMode ? "シフト編集" : "シフト追加"} />
-      <View style={{ 
-        flex: 1, 
-        alignSelf: 'center', 
+      <View style={{
+        flex: 1,
+        alignSelf: 'center',
         width: isPC ? '60%' : '100%',
         maxWidth: isPC ? 800 : undefined
       }}>
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -392,10 +324,10 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             </View>
           ) : null}
 
-          {/* ユーザー選択セクション（マスター用） */}
+          {}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>ユーザー選択</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.userPickerButton}
               onPress={() => setShowUserPicker(true)}
             >
@@ -409,7 +341,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* ステータス設定セクション */}
+          {}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>ステータス設定</Text>
             <View style={styles.pickerContainer}>
@@ -426,7 +358,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             </View>
           </View>
 
-          {/* スタッフ時間セクション */}
+          {}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>スタッフ時間</Text>
             <TimeSelect
@@ -441,7 +373,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             />
           </View>
 
-          {/* 日付選択セクション */}
+          {}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>日付選択</Text>
             <TouchableOpacity
@@ -482,7 +414,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             )}
           </View>
 
-          {/* 授業時間セクション */}
+          {}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>途中時間</Text>
             <TouchableOpacity
@@ -555,7 +487,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             )}
           </View>
 
-          {/* ボタン */}
+          {}
           <TouchableOpacity
             style={styles.saveButton}
             onPress={isEditMode ? handleUpdateShift : handleCreateShift}
@@ -605,9 +537,9 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
           </Animated.View>
         )}
 
-      {/* ユーザー選択ドロップダウン */}
+      {}
       {showUserPicker && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.dropdownOverlay}
             activeOpacity={1}
             onPress={() => setShowUserPicker(false)}
@@ -621,15 +553,15 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
               }
             ]}>
               <ScrollView style={styles.dropdownList} showsVerticalScrollIndicator={false}>
-                {/* ユーザーリスト */}
-                {allUsers.length === 0 ? (
+                {}
+                {users.length === 0 ? (
                   <View style={styles.dropdownItem}>
                     <Text style={styles.noResultsText}>
                       ユーザーが見つかりません
                     </Text>
                   </View>
                 ) : (
-                  allUsers.map((user) => (
+                  users.map((user) => (
                     <TouchableOpacity
                       key={user.uid}
                       style={styles.dropdownItem}
@@ -646,11 +578,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
                         </Text>
                         <Text style={styles.dropdownUserRole}>
                           {user.role === "master" ? "管理者" : "ユーザー"}
-                          {"storeName" in user &&
-                            user.storeName &&
-                            user.isFromOtherStore && (
-                              ` - ${user.storeName}`
-                            )}
                         </Text>
                       </View>
                     </TouchableOpacity>

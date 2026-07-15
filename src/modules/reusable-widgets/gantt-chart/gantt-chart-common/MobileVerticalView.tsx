@@ -1,14 +1,4 @@
-/** @file MobileVerticalView.tsx
- *  @description タブレット・モバイル向けの分割レイアウトビュー。
- *    左側にカレンダー、右側に選択した日の1日ガントチャートを縦型で表示する。
- *    行=時間（30分刻み）、列=ユーザー の構成で、時間範囲切り替え機能付き。
- */
 
-// 【このファイルの位置づけ】
-// - import元: ShiftCalendar（カレンダー）, DateNavigator（日付ナビ）
-// - importされる先: GanttChartMonthView（deviceType が tablet/mobile の場合にこのビューを表示）
-// - 役割: PC版のガントチャートとは異なる、モバイル向けレイアウト。
-//   カレンダーで日付を選び、右側にその日のシフトを「縦軸=時間、横軸=人」で表示する。
 
 import React, { useState, useMemo, useCallback } from "react";
 import {
@@ -29,19 +19,16 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import type { MarkedDates } from "react-native-calendars/src/types";
 import { DateNavigator, SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
 
-/** 時刻文字列を分に変換 */
 function timeToMinutesLocal(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return (h ?? 0) * 60 + (m ?? 0);
 }
 
-/** time が [startTime, endTime) の範囲内かチェック */
 function isTimeInRange(time: string, startTime: string, endTime: string): boolean {
   const current = timeToMinutesLocal(time);
   return current >= timeToMinutesLocal(startTime) && current < timeToMinutesLocal(endTime);
 }
 
-/** シフトステータスに対応する色を取得 */
 const STATUS_COLORS: Record<string, string> = {
   approved: "#90caf9",
   pending: "#FFD700",
@@ -94,16 +81,13 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   const [calendarDisplayMonth, setCalendarDisplayMonth] = useState(
     format(selectedDate, "yyyy-MM-dd")
   );
-  const [hideEarlyHours, setHideEarlyHours] = useState(true); // デフォルトを13:00-22:00に変更
+  const [hideEarlyHours, setHideEarlyHours] = useState(true);
 
-  // 画面サイズを取得
   const screenWidth = Dimensions.get("window").width;
 
-  // 選択された日付の表示用文字列
   const displayDate =
     selectedCalendarDate || format(selectedDate, "yyyy-MM-dd");
 
-  // 選択された日のシフトを取得
   const selectedDayShifts = useMemo(() => {
     const targetDate = displayDate;
     return shifts.filter(
@@ -114,7 +98,6 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     );
   }, [shifts, displayDate]);
 
-  // その日にシフトがあるユーザーのみ取得
   const usersWithShifts = useMemo(() => {
     const userIdsWithShifts = new Set(
       selectedDayShifts.map((shift) => shift.userId)
@@ -122,11 +105,9 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     return users.filter((user) => userIdsWithShifts.has(user.uid));
   }, [users, selectedDayShifts]);
 
-  // マークされた日付を生成
   const markedDates = useMemo(() => {
     const marks: MarkedDates = {};
 
-    // 選択中の日付のスタイル
     if (selectedCalendarDate) {
       marks[selectedCalendarDate] = {
         selected: true,
@@ -135,7 +116,6 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
       };
     }
 
-    // 日付ごとにシフトをグループ化
     const shiftsByDate: Record<string, ShiftItem[]> = {};
     shifts.forEach((shift) => {
       if (shift.status !== "deleted" && shift.status !== "purged") {
@@ -147,11 +127,9 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
       }
     });
 
-    // 各日付にマークを設定（複数シフトの場合は複数ドットで表示）
     Object.entries(shiftsByDate).forEach(([date, dayShifts]) => {
       const existingMark = marks[date] || {};
 
-      // 各シフトの色を配列で保持
       const shiftDots = dayShifts.map((shift, index) => ({
         key: `${shift.id}-${index}`,
         color: getStatusColor(shift.status),
@@ -170,7 +148,6 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     return marks;
   }, [shifts, selectedCalendarDate]);
 
-  // 変換されたシフト
   const convertedShifts = useMemo(() => {
     return shifts.map((shift) => ({
       ...shift,
@@ -181,7 +158,6 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     }));
   }, [shifts]);
 
-  // 時間のラベル（9:00〜22:00、30分刻み または 13:00〜22:00、30分刻み）
   const timeLabels = useMemo(() => {
     const labels = [];
     const startHour = hideEarlyHours
@@ -190,19 +166,17 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     for (let hour = startHour; hour <= SHIFT_HOURS.END_HOUR_INCLUSIVE; hour++) {
       labels.push(`${hour}:00`);
       if (hour < SHIFT_HOURS.END_HOUR_INCLUSIVE) {
-        // 最終時刻（END_HOUR_INCLUSIVE）では:30を生成しない（22:30はシフト範囲外）
+
         labels.push(`${hour}:30`);
       }
     }
     return labels;
   }, [hideEarlyHours]);
 
-  // 特定日のユーザーのシフトを検索
   const getShiftForUser = (userId: string) => {
     return selectedDayShifts.find((shift) => shift.userId === userId);
   };
 
-  // シフトの色を取得
   const getShiftColor = useCallback(
     (shift: ShiftItem) => {
       if (colorMode === "user") {
@@ -214,13 +188,11 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     [colorMode, users]
   );
 
-  // カレンダーの日付選択ハンドラー
   const handleDayPress = (day: { dateString: string }) => {
     const targetDate = day.dateString;
     const selectedDateObj = new Date(targetDate);
     const currentDisplayMonth = new Date(calendarDisplayMonth);
 
-    // 同じ日付をもう一度押したときに選択を解除
     if (selectedCalendarDate === targetDate) {
       setSelectedCalendarDate("");
       return;
@@ -228,8 +200,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
 
     setSelectedCalendarDate(targetDate);
 
-    // 選択した日付が現在表示中の月と異なる場合、カレンダーとガントチャートも更新
-    if (selectedDateObj.getMonth() !== currentDisplayMonth.getMonth() || 
+    if (selectedDateObj.getMonth() !== currentDisplayMonth.getMonth() ||
         selectedDateObj.getFullYear() !== currentDisplayMonth.getFullYear()) {
       setCalendarDisplayMonth(format(selectedDateObj, "yyyy-MM-dd"));
       if (onMonthChange) {
@@ -238,31 +209,26 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     }
   };
 
-  // カレンダーの月変更ハンドラー
   const handleCalendarMonthChange = (month: { dateString: string }) => {
     const date = new Date(month.dateString);
     if (onMonthChange) {
       onMonthChange(date.getFullYear(), date.getMonth());
     }
-    
-    // カレンダー表示月を更新
+
     setCalendarDisplayMonth(format(date, "yyyy-MM-dd"));
-    
-    // 右側のガントチャートをその月の1日に変更
+
     const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     const firstDayStr = format(firstDayOfMonth, "yyyy-MM-dd");
     setSelectedCalendarDate(firstDayStr);
   };
 
-  // 前日・翌日移動ハンドラー
   const handlePrevDay = () => {
     if (selectedCalendarDate) {
       const currentDate = new Date(selectedCalendarDate);
       const prevDate = subDays(currentDate, 1);
       const prevDateStr = format(prevDate, "yyyy-MM-dd");
       setSelectedCalendarDate(prevDateStr);
-      
-      // 月が変わった場合、カレンダー表示月とガントチャート全体も更新
+
       if (currentDate.getMonth() !== prevDate.getMonth()) {
         setCalendarDisplayMonth(format(prevDate, "yyyy-MM-dd"));
         if (onMonthChange) {
@@ -278,8 +244,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
       const nextDate = addDays(currentDate, 1);
       const nextDateStr = format(nextDate, "yyyy-MM-dd");
       setSelectedCalendarDate(nextDateStr);
-      
-      // 月が変わった場合、カレンダー表示月とガントチャート全体も更新
+
       if (currentDate.getMonth() !== nextDate.getMonth()) {
         setCalendarDisplayMonth(format(nextDate, "yyyy-MM-dd"));
         if (onMonthChange) {
@@ -291,9 +256,9 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      {/* 左右分割レイアウト（モバイル用） */}
+      {}
       <View style={{ flexDirection: "row", flex: 1, height: "100%" }}>
-        {/* 左側：カレンダー */}
+        {}
         <View
           style={{
             flex: 1,
@@ -326,7 +291,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
           </View>
         </View>
 
-        {/* 右側：1日ガントチャート */}
+        {}
         <View
           style={{
             flex: 1,
@@ -334,7 +299,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
             paddingLeft: 2,
           }}
         >
-          {/* ヘッダー：選択日表示 */}
+          {}
           <View
             style={{
               backgroundColor: colors.surfaceElevated,
@@ -347,7 +312,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
               justifyContent: "space-between",
             }}
           >
-            {/* 左側：日付ナビゲーション */}
+            {}
             <View
               style={{
                 flex: 1,
@@ -366,7 +331,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
               />
             </View>
 
-            {/* 右側：時間範囲切り替えボタン */}
+            {}
             <TouchableOpacity
               style={{
                 paddingHorizontal: 8,
@@ -390,10 +355,10 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* 1日ビュー（行：時間、列：人名） */}
+          {}
           <ScrollView style={{ flex: 1 }}>
             <View style={{ flexDirection: "row" }}>
-              {/* 時間軸 */}
+              {}
               <View style={{ width: 30 }}>
                 <View style={{ height: 30 }} />
                 {timeLabels.map((time) => (
@@ -418,7 +383,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                 ))}
               </View>
 
-              {/* ユーザー列 */}
+              {}
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={{ flexDirection: "row" }}>
                   {usersWithShifts.length > 0 ? (
@@ -442,7 +407,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                               ),
                             }}
                           >
-                            {/* ユーザー名ヘッダー */}
+                            {}
                             <View
                               style={{
                                 height: 30,
@@ -468,7 +433,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                               </Text>
                             </View>
 
-                            {/* 時間スロット */}
+                            {}
                             <View style={{ position: "relative" }}>
                               {timeLabels.map((time) => {
                                 const isClassTime = userShift?.classes?.some(
@@ -496,7 +461,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                         onEmptyCellClick?.(displayDate, time, "")
                                       }
                                     />
-                                    {/* 授業時間のオーバーレイ */}
+                                    {}
                                     {isClassTime && userShift && (
                                       <View
                                         style={{
@@ -514,7 +479,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                 );
                               })}
 
-                              {/* シフトバー */}
+                              {}
                               {userShift &&
                                 (() => {
                                   const [startHour, startMin] =
@@ -523,7 +488,6 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                     .split(":")
                                     .map(Number);
 
-                                  // 30分刻みでの位置計算
                                   const baseHour = hideEarlyHours
                                     ? SHIFT_HOURS.AFTERNOON_START_HOUR_INCLUSIVE
                                     : SHIFT_HOURS.START_HOUR_INCLUSIVE;
@@ -551,7 +515,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                         justifyContent: "center",
                                         alignItems: "center",
                                         elevation: 0,
-                                        zIndex: 10, // 空白セルより上に配置
+                                        zIndex: 10,
                                       }}
                                       onPress={() => onShiftPress?.(userShift)}
                                     >
@@ -588,9 +552,8 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                       >
                                         {userShift.endTime}
                                       </Text>
-                                      
-                                      
-                                      {/* 授業追加ボタン */}
+
+                                      {}
                                       <TouchableOpacity
                                         style={{
                                           position: 'absolute',
@@ -618,7 +581,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                         );
                       })
                   ) : (
-                    // シフトがない場合の表示（タップで追加モーダル）
+
                     <TouchableOpacity
                       style={{
                         width: screenWidth / 2 - 30,

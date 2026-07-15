@@ -1,14 +1,4 @@
-/** @file PayrollDetailModal.tsx
- *  @description 月間給与詳細モーダル。
- *    選択月の承認済み/完了シフトからユーザー別の時間・金額を集計し、
- *    ランキング形式で一覧表示する。途中時間（給与除外分）は自動除外される。
- */
 
-// 【このファイルの位置づけ】
-// - import元: calculateTotalWage（給与計算ユーティリティ）
-// - importされる先: GanttChartMonthView（onPayrollPress 時に表示）
-// - 役割: ツールバーの金額表示をタップした際に開く詳細ポップアップ。
-//   PayrollList と似た集計ロジックだが、モーダル形式で大きく表示する。
 
 import React from "react";
 import {
@@ -23,7 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 
-// UserPayrollData: 1ユーザー分の月間集計結果
 interface UserPayrollData {
   uid: string;
   nickname: string;
@@ -49,19 +38,15 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
   users,
   selectedDate,
 }) => {
-  // 選択された月の年月を取得
+
   const selectedYear = selectedDate.getFullYear();
   const selectedMonth = selectedDate.getMonth() + 1;
 
-  // 個人別給与データを計算
   const calculateUserPayrollData = (): UserPayrollData[] => {
     const userDataMap = new Map<string, UserPayrollData>();
 
-    // O(1)ルックアップ用のユーザーMapを事前構築（O(n²) → O(n)に改善）
     const userLookup = new Map(users.map(u => [u.uid, u]));
 
-    // 選択された月のシフトをフィルタリング
-    // new Date(shift.date) の代わりに文字列スライスで年月を取得（Date生成コスト削減）
     const monthlyShifts = shifts.filter((shift) => {
       const shiftYear = Number(shift.date.slice(0, 4));
       const shiftMonth = Number(shift.date.slice(5, 7));
@@ -74,16 +59,14 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
       );
     });
 
-    // 各シフトを処理して個人別データを集計
     monthlyShifts.forEach((shift) => {
-      // Map.get()でO(1)ルックアップ（元のusers.find()はO(n)）
+
       const user = userLookup.get(shift.userId);
       if (!user) return;
 
-      const hourlyWage = user.hourlyWage || 1100; // デフォルト時給
+      const hourlyWage = user.hourlyWage || 1100;
       const classes = shift.classes || [];
 
-      // 時間と給与を計算
       const { totalMinutes, totalWage } = calculateTotalWage(
         {
           startTime: shift.startTime,
@@ -95,7 +78,6 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
 
       const totalHours = totalMinutes / 60;
 
-      // 既存データがあれば加算、なければ新規作成
       if (userDataMap.has(user.uid)) {
         const existing = userDataMap.get(user.uid)!;
         existing.totalHours += totalHours;
@@ -114,7 +96,6 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
       }
     });
 
-    // MapをArrayに変換し、金額でソート（降順）
     return Array.from(userDataMap.values()).sort(
       (a, b) => b.totalAmount - a.totalAmount
     );
@@ -149,7 +130,7 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
           style={styles.modalContent}
           onPress={(e) => e.stopPropagation()}
         >
-          {/* ヘッダー */}
+          {}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>
               {selectedYear}年{selectedMonth}月 給与詳細
@@ -159,7 +140,7 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
             </TouchableOpacity>
           </View>
 
-          {/* 総計表示 */}
+          {}
           <View style={styles.summaryContainer}>
             <Text style={styles.summaryTitle}>総計</Text>
             <View style={styles.summaryRow}>
@@ -179,9 +160,9 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
             </Text>
           </View>
 
-          {/* 個人別リスト */}
-          <ScrollView 
-            style={styles.listContainer} 
+          {}
+          <ScrollView
+            style={styles.listContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
@@ -194,15 +175,15 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
             ) : (
               payrollData.map((user, _index) => (
                 <View key={user.uid} style={styles.userRow}>
-                  {/* ユーザー色インジケーター */}
+                  {}
                   <View
                     style={[
                       styles.colorIndicator,
                       { backgroundColor: user.color || "#ccc" },
                     ]}
                   />
-                  
-                  {/* ユーザー情報 */}
+
+                  {}
                   <View style={styles.userInfo}>
                     <Text style={styles.userName}>{user.nickname}</Text>
                     <Text style={styles.userDetails}>
@@ -210,7 +191,7 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
                     </Text>
                   </View>
 
-                  {/* 時間・金額表示 */}
+                  {}
                   <View style={styles.userAmounts}>
                     <Text style={styles.userAmount}>
                       {user.totalAmount.toLocaleString()}円

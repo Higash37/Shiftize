@@ -1,4 +1,4 @@
-/** @file SupabaseAuditAdapter.ts @description シフト変更の監査ログ記録・履歴取得のSupabase実装 */
+
 
 import type { IAuditService } from "../interfaces/IAuditService";
 import type { ShiftItem } from "@/common/common-models/ModelIndex";
@@ -8,7 +8,7 @@ import type {
   ShiftHistoryEntry,
   ShiftChangeMetadata,
 } from "@/services/shift-history/shiftHistoryLogger";
-// shiftHistoryLoggerからヘルパー関数を共用する（重複コード削除）
+
 import {
   getStatusLabel,
   toHistorySnapshot,
@@ -16,9 +16,8 @@ import {
 } from "@/services/shift-history/shiftHistoryLogger";
 import { getSupabase } from "./supabase-client";
 
-/** 監査ログサービスのSupabase実装 */
 export class SupabaseAuditAdapter implements IAuditService {
-  /** シフト変更を監査ログに記録する */
+
   async logShiftChange(
     action: ShiftActionType,
     actor: ShiftHistoryActor,
@@ -59,7 +58,6 @@ export class SupabaseAuditAdapter implements IAuditService {
           }
         : null;
 
-      // null → undefined に変換（generateSummaryの型に合わせる）
       const summary = generateSummary(
         action,
         actor,
@@ -87,13 +85,11 @@ export class SupabaseAuditAdapter implements IAuditService {
       const supabase = getSupabase();
       await supabase.from("shift_change_logs").insert(row);
 
-      // ログ記録の失敗は業務処理をブロックしない
     } catch {
-      // ログ記録の失敗は業務処理をブロックしない
+
     }
   }
 
-  /** シフト一括承認を監査ログに記録する */
   async logBatchApprove(
     actor: ShiftHistoryActor,
     storeId: string,
@@ -110,7 +106,6 @@ export class SupabaseAuditAdapter implements IAuditService {
     );
   }
 
-  /** シフト変更履歴をリアルタイム購読する */
   onShiftHistory(
     options: {
       storeId: string;
@@ -158,10 +153,8 @@ export class SupabaseAuditAdapter implements IAuditService {
       callback(entries);
     };
 
-    // 初回データ取得
     fetchHistory().catch((err) => onError?.(err));
 
-    // Realtime購読
     channel = supabase
       .channel(`shift-history-${options.storeId}`)
       .on(

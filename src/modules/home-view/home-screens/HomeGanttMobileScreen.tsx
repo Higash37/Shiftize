@@ -1,17 +1,4 @@
-/**
- * @file HomeGanttMobileScreen.tsx
- * @description モバイル版ホーム画面。時計ウィジェット + シフト一覧モーダルの構成。
- *
- * 【このファイルの位置づけ】
- *   home-view > home-screens 配下の画面コンポーネント。
- *   HomeCommonScreen がモバイル幅の時に描画する。
- *
- * 主な内部ロジック:
- *   - ClockWidget でアナログ時計を表示
- *   - 下部にシフト情報カードとスタッフ数カードを表示
- *   - カードタップでモーダルを開く
- *   - GanttHalfSwitch で前半/後半の時間帯を切り替え
- */
+
 import React, { useState } from "react";
 import {
   View,
@@ -44,9 +31,9 @@ interface Props {
   selectedDate?: Date;
   onDateSelect?: (date: Date) => void;
   shiftsForDate?: any[];
-  maxHeight?: number; // カレンダー部分の最大高さ
-  showShiftListModal?: boolean; // シフト一覧モーダルの表示状態
-  onToggleShiftListModal?: (show: boolean) => void; // シフト一覧モーダルの開閉制御
+  maxHeight?: number;
+  showShiftListModal?: boolean;
+  onToggleShiftListModal?: (show: boolean) => void;
 }
 
 export const HomeGanttMobileScreen: React.FC<Props> = ({
@@ -58,13 +45,11 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
   showShiftListModal: showShiftListModalProp,
   onToggleShiftListModal,
 }) => {
-  // カレンダーのサイズを親の高さに合わせて計算
-  // padding分を引いて、適切なサイズに調整
-  const clockSize = maxHeight
-    ? Math.min(maxHeight - 60, 280) // 最大280px、padding考慮
-    : 300; // デフォルト300px
 
-  // 親から制御される場合はpropsを使用、そうでない場合は内部stateを使用
+  const clockSize = maxHeight
+    ? Math.min(maxHeight - 60, 280)
+    : 300;
+
   const [internalShowShiftListModal, setInternalShowShiftListModal] =
     useState(false);
   const showShiftListModal =
@@ -76,29 +61,24 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
     null
   );
 
-  // 選択された日付のシフトがあるユーザーとそのシフトを取得
   const daySchedules = sampleSchedule.filter(
     (col) => col.slots && col.slots.length > 0
   );
 
   const staffWorkingHours = groupConsecutiveSlots(sampleSchedule);
 
-  // シフトカードのレンダリング
   const renderShiftCard = (schedule: SampleScheduleColumn) => {
     const userName = schedule.position;
     const userSlots = schedule.slots;
 
-    // スタッフシフトと授業を分ける
     const staffSlots = userSlots.filter((s) => s.type !== "class");
     const classSlots = userSlots.filter((s) => s.type === "class");
 
-    // 最初と最後の時間を取得
     const firstSlot = staffSlots[0];
     const lastSlot = staffSlots.at(-1);
     const staffTimes =
       firstSlot && lastSlot ? `${firstSlot.start} - ${lastSlot.end}` : "";
 
-    // 現在の状態を判定
     const { currentStatus, statusIcon, statusColor } = getShiftStatus(
       selectedDate, staffSlots, classSlots
     );
@@ -155,7 +135,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
   return (
     <View style={styles.container}>
       <View style={styles.scrollView}>
-        {/* 時計を中央に配置 */}
+        {}
         <View style={styles.clockContainer}>
           <TouchableOpacity
             onPress={() => setShowShiftListModal(true)}
@@ -171,7 +151,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
         </View>
       </View>
 
-      {/* シフトカード一覧モーダル */}
+      {}
       <Modal
         visible={showShiftListModal}
         transparent
@@ -222,7 +202,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* シフト詳細モーダル */}
+      {}
       <Modal
         visible={selectedUser !== null}
         transparent

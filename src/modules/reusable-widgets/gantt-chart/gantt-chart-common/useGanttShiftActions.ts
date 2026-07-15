@@ -1,13 +1,4 @@
-/** @file useGanttShiftActions.ts
- *  @description シフトの保存・削除・ステータス更新を行うカスタムフック。
- *    ガントチャートのモーダルから呼ばれるCRUD操作をまとめている。
- */
 
-// 【このファイルの位置づけ】
-// - import元: ServiceProvider（Supabaseアクセス）, shiftHistoryLogger（監査ログ）
-// - importされる先: GanttChartMonthView（saveShift, deleteShift, updateShiftStatus を使う）
-// - 役割: シフトの「追加」「編集」「削除」「ステータス変更」をビジネスロジックとしてまとめる。
-//   コンポーネントから DB 操作を切り離して再利用しやすくする「カスタムフック」パターン。
 
 import { useCallback, useRef } from "react";
 import {
@@ -19,12 +10,11 @@ import { ServiceProvider } from "@/services/ServiceProvider";
 import { AuthError } from "@/common/common-errors/AppErrors";
 import { createActor } from "@/services/shift-history/shiftHistoryLogger";
 
-// UseGanttShiftActionsProps: このフックに渡すオプション
 export interface UseGanttShiftActionsProps {
   user: { uid: string; storeId?: string; nickname?: string; role?: string } | null;
   users?: Array<{ uid: string; color?: string; nickname?: string }>;
   onShiftUpdate?: () => Promise<void> | void;
-  refreshPage?: () => void; // 互換性のため残すが使用しない
+  refreshPage?: () => void; 
 }
 
 export function useGanttShiftActions({
@@ -33,13 +23,11 @@ export function useGanttShiftActions({
   onShiftUpdate,
   refreshPage: _refreshPage,
 }: UseGanttShiftActionsProps) {
-  // useRef で「保存処理中」フラグを管理。useState と違い、値を変えても再レンダリングされない。
-  // ボタン連打で二重保存されるのを防ぐ「排他制御」に使う。
+
   const savingRef = useRef(false);
 
   const buildActor = useCallback(() => createActor(user), [user]);
 
-  /** 既存シフトを編集する */
   const updateExistingShift = async (
     editingShift: ShiftItem,
     newShiftData: {
@@ -54,12 +42,10 @@ export function useGanttShiftActions({
   ) => {
     const actor = buildActor();
 
-    // 削除申請中のシフト → 却下に変更
     if (editingShift.status === "deletion_requested") {
       newShiftData.status = "rejected";
     }
 
-    // 却下の場合はそのまま更新して終了
     if (newShiftData.status === "rejected") {
       await ServiceProvider.shifts.updateShift(
         editingShift.id,
@@ -69,7 +55,6 @@ export function useGanttShiftActions({
       return;
     }
 
-    // 承認への変更 → approveShiftChanges を使用
     const isApproving =
       editingShift.status !== newShiftData.status &&
       newShiftData.status === "approved";
@@ -77,7 +62,6 @@ export function useGanttShiftActions({
     if (isApproving) {
       await ServiceProvider.shifts.approveShiftChanges(editingShift.id, actor);
 
-      // ステータス以外の変更がある場合は追加で更新
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { status, ...otherChanges } = newShiftData;
       if (Object.keys(otherChanges).length > 0) {
@@ -90,7 +74,6 @@ export function useGanttShiftActions({
       return;
     }
 
-    // その他の変更は直接更新
     await ServiceProvider.shifts.updateShift(
       editingShift.id,
       { ...newShiftData, updatedAt: new Date() },
@@ -98,7 +81,6 @@ export function useGanttShiftActions({
     );
   };
 
-  /** 新規シフトを作成する */
   const createNewShift = async (
     newShiftData: {
       date: string;
@@ -130,7 +112,6 @@ export function useGanttShiftActions({
     );
   };
 
-  // シフト保存（追加・編集の振り分け）
   const saveShift = useCallback(
     async (
       editingShift: ShiftItem | null,
@@ -154,7 +135,6 @@ export function useGanttShiftActions({
           await createNewShift(newShiftData);
         }
 
-        // リアルタイムリスナーが自動反映するため、onShiftUpdateはバックグラウンドで実行
         onShiftUpdate?.();
       } finally {
         savingRef.current = false;
@@ -163,7 +143,6 @@ export function useGanttShiftActions({
     [user, users, onShiftUpdate]
   );
 
-  // シフト削除（ステータスに関わらず完全削除）
   const deleteShift = useCallback(
     async (shift: { id: string; status: string }) => {
       await ServiceProvider.shifts.markShiftAsDeleted(shift.id, buildActor());

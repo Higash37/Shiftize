@@ -1,4 +1,4 @@
-/** @file SupabaseStoreAdapter.ts @description 店舗（グループ）の作成・取得・存在確認のSupabase実装 */
+
 
 import type {
   IStoreService,
@@ -10,14 +10,12 @@ import { AESEncryption } from "@/common/common-utils/security/encryptionUtils";
 import { toAsciiEmail } from "./utils/asciiEmail";
 import { ValidationError, NetworkError } from "@/common/common-errors/AppErrors";
 
-// メール自動生成（ASCII変換付き）
 const buildGeneratedEmail = (storeId: string, nickname: string): string => {
   return toAsciiEmail(`${storeId}${nickname}@example.com`);
 };
 
-/** 店舗サービスのSupabase実装 */
 export class SupabaseStoreAdapter implements IStoreService {
-  /** 店舗IDで店舗情報を取得する */
+
   async getStore(storeId: string): Promise<{ storeId: string; storeName: string; adminUid?: string; adminNickname?: string; [key: string]: any } | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -36,7 +34,6 @@ export class SupabaseStoreAdapter implements IStoreService {
     };
   }
 
-  /** 店舗IDが既に存在するか確認する */
   async checkStoreIdExists(storeId: string): Promise<boolean> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -46,14 +43,13 @@ export class SupabaseStoreAdapter implements IStoreService {
       .maybeSingle();
 
     if (error) {
-      if (error.code === "PGRST116") return false; // not found
+      if (error.code === "PGRST116") return false;
       throw new NetworkError("店舗ID確認に失敗しました");
     }
 
     return data !== null;
   }
 
-  /** 重複しない4桁の店舗IDを生成する */
   async generateUniqueStoreId(): Promise<string> {
     let attempts = 0;
     const maxAttempts = 10;
@@ -71,22 +67,16 @@ export class SupabaseStoreAdapter implements IStoreService {
     throw new Error("ユニークな店舗IDの生成に失敗しました");
   }
 
-  /**
-   * グループ（店舗+管理者+初期メンバー）を一括作成する
-   * TODO: Auth作成→DB挿入の孤児リスクあり。将来的にEdge Functionに移行すべき。
-   */
   async createGroup(data: CreateGroupData): Promise<GroupCreationResult> {
     let createdAdminUid: string | null = null;
     try {
       const supabase = getSupabase();
 
-      // 1. 店舗ID重複チェック
       const storeIdExists = await this.checkStoreIdExists(data.storeId);
       if (storeIdExists) {
         throw new ValidationError("この店舗IDは既に使用されています");
       }
 
-      // 2. Supabase Authで管理者アカウント作成
       let adminEmail = buildGeneratedEmail(data.storeId, data.adminNickname);
       const { data: signUpData, error: signUpError } =
         await supabase.auth.signUp({
@@ -95,7 +85,7 @@ export class SupabaseStoreAdapter implements IStoreService {
         });
 
       if (signUpError) {
-        // メールアドレスが重複した場合のフォールバック（status codeで判定）
+
         const isAlreadyRegistered =
           (signUpError as any).status === 422 ||
           (signUpError as any).code === "user_already_exists" ||
@@ -125,8 +115,6 @@ export class SupabaseStoreAdapter implements IStoreService {
       const adminUid = signUpData.user.id;
       createdAdminUid = adminUid;
 
-      // signUpで自動ログインされるのでセッションを確認
-      // メール確認が有効な場合sessionがnullになるため、明示的にsignInする
       const { data: { session: signUpSession } } = await supabase.auth.getSession();
       if (!signUpSession) {
         await supabase.auth.signInWithPassword({
@@ -135,7 +123,6 @@ export class SupabaseStoreAdapter implements IStoreService {
         });
       }
 
-      // 3. stores テーブルに保存
       const { error: storeError } = await supabase.from("stores").insert({
         store_id: data.storeId,
         store_name: data.groupName,
@@ -146,7 +133,6 @@ export class SupabaseStoreAdapter implements IStoreService {
 
       if (storeError) throw storeError;
 
-      // 4. users テーブルに管理者を保存
       const hashedPassword = AESEncryption.hashPassword(data.adminPassword);
       const { error: userError } = await supabase.from("users").insert({
         uid: adminUid,
@@ -160,10 +146,8 @@ export class SupabaseStoreAdapter implements IStoreService {
 
       if (userError) throw userError;
 
-      // 5. 管理者セッションを保存（メンバー作成のため）
       const { data: { session: adminSession } } = await supabase.auth.getSession();
 
-      // 6. 初期メンバー作成
       if (data.initialMembers && data.initialMembers.length > 0) {
         for (const member of data.initialMembers) {
           try {
@@ -185,7 +169,6 @@ export class SupabaseStoreAdapter implements IStoreService {
 
             if (memberError || !memberSignUp.user) continue;
 
-            // 管理者セッションを復元（signUpで変わるため）
             if (adminSession) {
               await supabase.auth.setSession({
                 access_token: adminSession.access_token,
@@ -208,11 +191,10 @@ export class SupabaseStoreAdapter implements IStoreService {
               is_active: true,
             });
           } catch (_) {
-            // 個別メンバー失敗は全体の失敗にしない
+
           }
         }
 
-        // 管理者セッションを復元
         if (adminSession) {
           try {
             await supabase.auth.setSession({
@@ -231,9 +213,9 @@ export class SupabaseStoreAdapter implements IStoreService {
         message: "グループが正常に作成されました",
       };
     } catch (error: any) {
-      // Auth作成済みだがDB挿入失敗した場合は孤児ユーザー警告
+
       if (createdAdminUid) {
-        // createGroup failed after Auth user creation - orphan user may exist
+
       }
 
       let errorMessage = "グループの作成に失敗しました";
@@ -255,7 +237,6 @@ export class SupabaseStoreAdapter implements IStoreService {
     }
   }
 
-  /** グループが存在するか確認する */
   async checkGroupExists(
     storeId: string
   ): Promise<{ exists: boolean; groupName?: string }> {

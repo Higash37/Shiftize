@@ -1,16 +1,4 @@
-/**
- * @file MasterShiftListView.tsx
- * @description 月間シフト一覧画面。カレンダー + 編集モーダルの構成。
- *
- * 【このファイルの位置づけ】
- *   master-view > master-shift-list 配下の画面コンポーネント。
- *   マスターの「シフト一覧」タブで描画される。
- *
- * 主な内部ロジック:
- *   - ShiftCalendar で月間カレンダーを表示
- *   - 日付タップで ShiftModal を開く
- *   - シフトの作成・編集・削除をモーダル経由で実行
- */
+
 import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
@@ -40,13 +28,11 @@ import { calculateDurationHours, compareByDateThenTime } from "@/common/common-u
 import { DEFAULT_SHIFT_STATUS_CONFIG } from "@/common/common-models/model-shift/shiftTypes";
 import { createGanttChartMonthViewStyles } from "@/modules/reusable-widgets/gantt-chart/GanttChartMonthView.styles";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
-import { QuickShiftUrlModal } from "@/modules/master-view/quick-shift-url/QuickShiftUrlModal";
 
 interface MasterShiftListViewProps {
-  targetMonth: "this" | "next"; // 今月または来月
+  targetMonth: "this" | "next";
 }
 
-// 時間オプション（9:00-22:00を15分刻み）— 静的定数
 const TIME_OPTIONS: string[] = (() => {
   const options: string[] = [];
   for (let hour = SHIFT_HOURS.START_HOUR_INCLUSIVE; hour <= SHIFT_HOURS.END_HOUR_INCLUSIVE; hour++) {
@@ -89,14 +75,12 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   const scrollViewRef = useRef<ScrollView | null>(null);
   const shiftPositionsRef = useRef<Record<string, number>>({});
 
-  // ガントチャートスタイル（MD3テーマ対応）+ モバイル用幅オーバーライド
   const ganttBaseStyles = useThemedStyles(createGanttChartMonthViewStyles);
   const mobileGanttStyles = useMemo(() => ({
     ...ganttBaseStyles,
     modalContent: [ganttBaseStyles.modalContent, { width: "90%", maxWidth: 500 }],
   }), [ganttBaseStyles]);
 
-  // 編集モーダル用の状態
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
   const [newShiftData, setNewShiftData] = useState<{
@@ -121,12 +105,8 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // URL発行モーダル用の状態
-  const [showUrlModal, setShowUrlModal] = useState(false);
-
   const timeOptions = TIME_OPTIONS;
 
-  // ステータス設定（削除済み・purgedはピッカーから除外）
   const statusConfigs = useMemo(
     () => DEFAULT_SHIFT_STATUS_CONFIG.filter(
       (c) => c.status !== "deleted" && c.status !== "purged"
@@ -134,7 +114,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     []
   );
 
-  // 月ごとにシフトをグループ化（全員分）
   const monthlyShifts = useMemo(() => {
     if (!displayMonth) {
       return [];
@@ -144,11 +123,9 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     const year = displayMonthDate.getFullYear();
     const month = displayMonthDate.getMonth();
 
-    // 月の最初の日と最後の日を取得
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
 
-    // 月の最後の日を週末まで拡張
     const adjustedLastDay = new Date(lastDay);
     adjustedLastDay.setDate(
       adjustedLastDay.getDate() + (7 - adjustedLastDay.getDay())
@@ -171,7 +148,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     return filteredShifts;
   }, [shifts, displayMonth]);
 
-  // カレンダーがマウントされた時に現在の月を設定
   const handleCalendarMount = () => {
     setIsCalendarMounted(true);
     setDisplayMonth(currentMonth);
@@ -185,12 +161,11 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     setSelectedDate("");
     setSelectedShiftId(null);
 
-    // 月が変わったらシフトを取得
     changeMonth(date.getFullYear(), date.getMonth());
   };
 
   const handleDayPress = (day: { dateString: string }) => {
-    // 同じ日付をもう一度押したときに選択を解除
+
     if (selectedDate === day.dateString) {
       setSelectedDate("");
       return;
@@ -200,20 +175,18 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     const targetMonthString = format(targetDate, "yyyy-MM");
     const currentMonthString = currentMonth;
 
-    // 違う月の日付がクリックされた場合、月を切り替える
     if (targetMonthString !== currentMonthString) {
       handleMonthChange({ dateString: `${targetMonthString}-01` });
-      // 月切り替え後に日付を選択
+
       setTimeout(() => {
         setSelectedDate(day.dateString);
       }, 100);
     } else {
-      // 同じ月の日付の場合、そのまま選択
+
       setSelectedDate(day.dateString);
     }
   };
 
-  // 選択された日付のシフトにスクロール
   useEffect(() => {
     if (!selectedDate) return;
     const selectedShift = monthlyShifts.find(
@@ -227,9 +200,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     }, 120);
   }, [selectedDate, monthlyShifts]);
 
-  // useShiftsByMonth が初回マウント時に自動取得するため手動fetchは不要
-
-  // シフトカードをタップしたときのハンドラー（編集モーダルを開く）
   const handleShiftPress = (shift: ShiftItem) => {
     setEditingShift(shift);
     setNewShiftData({
@@ -246,7 +216,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     setShowEditModal(true);
   };
 
-  // シフト保存ハンドラー
   const handleSaveShift = async () => {
     if (!newShiftData.id) return;
 
@@ -280,7 +249,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     }
   };
 
-  // シフト削除ハンドラー
   const handleDeleteShift = async () => {
     if (!editingShift) return;
 
@@ -301,7 +269,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   const title = targetMonth === "next" ? "来月のシフト" : "今月のシフト";
   const cs = useMD3Theme();
 
-  // サブヘッダー用の月ナビゲーション
   const subHeaderLabel = useMemo(() => {
     const d = new Date(currentMonth + "-01");
     const validDate = Number.isNaN(d.getTime()) ? new Date() : d;
@@ -327,7 +294,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   return (
     <View style={styles.container}>
       <MasterHeader title={title} />
-      {/* サブヘッダー：年月ピッカー */}
+      {}
       <View style={{
         height: SUB_HEADER_HEIGHT,
         justifyContent: "center",
@@ -348,7 +315,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
           shifts={monthlyShifts}
           selectedDate={selectedDate}
           currentMonth={currentMonth + "-01"}
-          currentUserStoreId={""} // マスター用なので空文字（全員分表示）
+          currentUserStoreId={""}
           onDayPress={handleDayPress}
           onMonthChange={handleMonthChange}
           onMount={handleCalendarMount}
@@ -413,7 +380,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
         </ScrollView>
       )}
 
-      {/* シフト編集モーダル */}
+      {}
       {showEditModal && (
         <EditShiftModalView
           visible={showEditModal}
@@ -432,16 +399,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
           }}
           onSave={handleSaveShift}
           onDelete={handleDeleteShift}
-        />
-      )}
-
-      {/* クイックURL発行モーダル */}
-      {user?.storeId && user?.uid && (
-        <QuickShiftUrlModal
-          visible={showUrlModal}
-          storeId={user.storeId}
-          userId={user.uid}
-          onClose={() => setShowUrlModal(false)}
         />
       )}
     </View>

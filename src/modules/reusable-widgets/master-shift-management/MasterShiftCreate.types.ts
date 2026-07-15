@@ -1,7 +1,4 @@
-/**
- * @file MasterShiftCreate.types.ts
- * @description MasterShiftCreate のProps型・フォームデータ型の定義。
- */
+
 import type { ShiftFormMode } from "@/modules/master-view/master-shift-create-view/MasterShiftCreateView.types";
 
 export interface ShiftData {

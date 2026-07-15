@@ -1,22 +1,4 @@
-/**
- * @file ChangePassword.tsx
- * @description パスワード変更モーダル。現在のパスワードと新しいパスワードを入力して
- *   パスワードを更新する。
- *
- * 【このファイルの位置づけ】
- *   reusable-widgets > user-management > user-props 配下のモーダル。
- *   SettingsView のヘッダーボタンから開く。
- *
- * 主な内部ロジック:
- *   - 現在のパスワード + 新しいパスワード + 確認用パスワードの3フィールド
- *   - バリデーション: 6文字以上、確認用と一致チェック
- *   - ServiceProvider.auth.changePassword() でパスワード更新
- *   - 成功時は1.5秒後に自動でモーダルを閉じる
- *
- * 主要Props:
- *   - userId?: 対象ユーザーのUID（省略時は自分自身）
- *   - onComplete: 完了時コールバック
- */
+
 import React, { useState } from "react";
 import { View, Text, Modal, TouchableOpacity } from "react-native";
 import Input from "@/common/common-ui/ui-forms/FormInput";
@@ -26,10 +8,6 @@ import { createChangePasswordStyles } from "./ChangePassword.styles";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { ChangePasswordProps } from "../user-types/components";
 
-/**
- * パスワード変更コンポーネント
- * ユーザー自身のパスワードを変更するためのインターフェース
- */
 const ChangePassword: React.FC<ChangePasswordProps> = ({
   userId: _userId,
   onComplete,
@@ -69,18 +47,16 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
 
     setIsLoading(true);
     try {
-      // ServiceProviderを使用してパスワードを変更
+
       await ServiceProvider.auth.changePassword(currentPassword, newPassword);
 
       setMessage("パスワードが正常に更新されました");
       setIsSuccess(true);
 
-      // フォームをリセット
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
 
-      // 完了コールバックがあれば実行
       if (onComplete) {
         setTimeout(() => {
           onComplete();
@@ -88,7 +64,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
       }
     } catch (error: any) {
       setIsSuccess(false);
-      // サービスからのエラーメッセージをそのまま使用
+
       setMessage(error.message || "パスワード変更中にエラーが発生しました");
     } finally {
       setIsLoading(false);
@@ -110,7 +86,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
         <TouchableOpacity
           style={styles.modalContent}
           activeOpacity={1}
-          onPress={() => {}} // 内側をタップしても閉じない
+          onPress={() => {}}
         >
           <Text style={styles.title}>パスワード変更</Text>
 

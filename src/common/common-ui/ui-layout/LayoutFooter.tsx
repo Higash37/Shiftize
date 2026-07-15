@@ -1,4 +1,4 @@
-/** @file LayoutFooter.tsx @description 講師用フッターナビゲーション。ホーム/当日/シフト追加/シフト一覧のタブを提供 */
+
 import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
@@ -28,13 +28,10 @@ import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { MD3ColorScheme } from "@/common/common-theme/md3/MD3Colors";
 
 import { BREAKPOINTS } from "@/common/common-constants/BoundaryConstants";
-import { useTodoBadge } from "@/common/common-context/TodoBadgeContext";
 
-// レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < BREAKPOINTS.SMALL_DEVICE_MAX_WIDTH_EXCLUSIVE;
 
-/** タブ設定をテーマカラーに応じて生成 */
 const createUserTabs = (cs: MD3ColorScheme): TabItem[] => [
   {
     name: "home",
@@ -43,19 +40,6 @@ const createUserTabs = (cs: MD3ColorScheme): TabItem[] => [
     icon: (active: boolean) => (
       <MaterialIcons
         name="home"
-        size={IS_SMALL_DEVICE ? 20 : 24}
-        color={active ? cs.primary : cs.onSurfaceVariant}
-      />
-    ),
-    isUnderDevelopment: false,
-  },
-  {
-    name: "today",
-    label: "当日",
-    path: "/user/today",
-    icon: (active: boolean) => (
-      <Ionicons
-        name="today-outline"
         size={IS_SMALL_DEVICE ? 20 : 24}
         color={active ? cs.primary : cs.onSurfaceVariant}
       />
@@ -100,22 +84,18 @@ function isStandalonePWA() {
   return false;
 }
 
-/** 講師用フッターナビゲーション。募集期間のツールチップ表示にも対応 */
 export function Footer(_props: Readonly<FooterProps>) {
-  // --- Hooks ---
+
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
   const styles = useThemedStyles(createFooterStyles);
   const { colorScheme } = useMD3Theme();
   const userTabs = useMemo(() => createUserTabs(colorScheme), [colorScheme]);
-  const { todayUnreadCount } = useTodoBadge();
   useExtendedFonts();
 
-  // --- State ---
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
 
-  // --- Effects ---
   useEffect(() => {
     if (user?.storeId) {
       loadActivePeriod();
@@ -129,7 +109,7 @@ export function Footer(_props: Readonly<FooterProps>) {
       );
       setPeriod(periods?.[0] ?? null);
     } catch (error) {
-      // 期間ロード失敗は無視
+
     }
   };
 
@@ -143,14 +123,12 @@ export function Footer(_props: Readonly<FooterProps>) {
     return ServiceProvider.shiftSubmissions.isWithinPeriod(period);
   };
 
-  // --- Handlers ---
   const handleTabPress = (tab: TabItem) => {
     if (tab.isUnderDevelopment) {
       Alert.alert("開発中です！", "この機能は現在開発中です。");
       return;
     }
 
-    // シフト追加タブの場合は期間チェックのみ実施
     if (tab.name === "create" && period) {
       const canSubmit = isWithinPeriod();
       const daysLeft = getDaysUntilDeadline();
@@ -167,12 +145,11 @@ export function Footer(_props: Readonly<FooterProps>) {
     router.replace(tab.path);
   };
 
-  // --- Render ---
   return (
     <>
       <View style={styles.footer}>
         {userTabs.map((tab, _index) => {
-          // シフトタブは /user/shifts で始まるパスすべてをアクティブとする
+
           const active = tab.name === "shifts"
             ? pathname.startsWith(tab.path)
             : pathname === tab.path;
@@ -185,18 +162,6 @@ export function Footer(_props: Readonly<FooterProps>) {
             >
               <View style={{ position: "relative" }}>
                 {tab.icon(active)}
-                {tab.name === "today" && todayUnreadCount > 0 && (
-                  <View style={{
-                    position: "absolute", top: -4, right: -8,
-                    minWidth: 16, height: 16, borderRadius: 8,
-                    backgroundColor: "#D32F2F", justifyContent: "center", alignItems: "center",
-                    paddingHorizontal: 3,
-                  }}>
-                    <Text style={{ fontSize: 9, fontWeight: "700", color: "#fff" }}>
-                      {todayUnreadCount > 99 ? "99+" : todayUnreadCount}
-                    </Text>
-                  </View>
-                )}
               </View>
               <Text
                 style={[
@@ -208,14 +173,14 @@ export function Footer(_props: Readonly<FooterProps>) {
                 {tab.label}
               </Text>
 
-              {/* シフト追加アイコンの上にツールチップを表示 */}
+              {}
               {tab.name === "create" && period && (
                 <View
                   style={{
                     position: "absolute",
-                    bottom: "100%", // タブの真上
-                    left: "50%", // タブの中央
-                    transform: [{ translateX: -30 }], // ツールチップの中央を合わせる
+                    bottom: "100%",
+                    left: "50%",
+                    transform: [{ translateX: -30 }],
                     backgroundColor: "#FF9800",
                     borderRadius: 6,
                     paddingVertical: 6,
@@ -231,7 +196,7 @@ export function Footer(_props: Readonly<FooterProps>) {
                     marginBottom: 8,
                   }}
                 >
-                  {/* 吹き出しの三角形 */}
+                  {}
                   <View
                     style={{
                       position: "absolute",

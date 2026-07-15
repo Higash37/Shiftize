@@ -1,18 +1,4 @@
-/** @file ShiftCreateFormContent.tsx
- *  @description シフト作成フォームの表示担当（プレゼンテーション）コンポーネント。
- *    ShiftCreateForm からデータとハンドラを受け取り、UI を組み立てる。
- *    店舗選択、日付選択、時間選択、途中時間設定、送信/削除ボタンを表示する。
- *
- *  【このファイルの位置づけ】
- *  - 依存: React / React Native / AntDesign（アイコン）/ TimeSelect /
- *          CalendarModal / date-fns / 共通スタイル・定数
- *  - 利用先: ShiftCreateForm から呼び出される
- *  - ロジックは親（ShiftCreateForm）が持ち、このコンポーネントは表示のみ担当
- *
- *  【コンポーネント概要】
- *  - 表示内容: 店舗選択 → 日付選択 → 時間選択 → 途中時間 → 送信/削除ボタン
- *  - 主要Props: 各種入力値とハンドラ（下記 interface 参照）
- */
+
 import React from "react";
 import {
   View,
@@ -31,14 +17,12 @@ import { ja } from "date-fns/locale";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { shiftCreateFormStyles as styles } from "./styles";
 import type { ShiftData } from "./types";
-import type { StoreInfo } from "@/services/interfaces/IMultiStoreService";
 
-/** ShiftCreateFormContent に渡す全 Props */
 interface ShiftCreateFormContentProps {
   containerStyle: ViewStyle;
   selectedDate: string;
   setShowCalendar: (value: boolean) => void;
-  handleDateSelect: (dates: string[]) => void; // Update type to accept multiple dates
+  handleDateSelect: (dates: string[]) => void;
   shiftData: ShiftData;
   handleTimeChange: (
     type: "start" | "end" | "classStart" | "classEnd",
@@ -54,9 +38,6 @@ interface ShiftCreateFormContentProps {
   showCalendar: boolean;
   showSuccess: boolean;
   fadeAnim: Animated.Value;
-  connectedStores: StoreInfo[];
-  selectedStoreId: string;
-  onStoreChange: (storeId: string) => void;
   isLoading: boolean;
   isDeleting: boolean;
 }
@@ -77,13 +58,10 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
   showCalendar,
   showSuccess,
   fadeAnim,
-  connectedStores,
-  selectedStoreId,
-  onStoreChange,
   isLoading,
   isDeleting,
 }) => {
-  // --- Render ---
+
   return (
     <>
       <View style={{ width: "100%" }}></View>
@@ -93,41 +71,7 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
         contentContainerStyle={{ paddingBottom: 20 }}
       >
         <View style={styles.formContainer}>
-          {/* 店舗選択 - デバッグ用の表示 */}
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>勤務店舗</Text>
-            {connectedStores.length > 0 ? (
-              <View style={styles.storeSelectContainer}>
-                {connectedStores.map((store) => (
-                  <TouchableOpacity
-                    key={store.storeId}
-                    style={[
-                      styles.storeSelectButton,
-                      selectedStoreId === store.storeId &&
-                        styles.storeSelectButtonSelected,
-                    ]}
-                    onPress={() => onStoreChange(store.storeId)}
-                  >
-                    <Text
-                      style={[
-                        styles.storeSelectText,
-                        selectedStoreId === store.storeId &&
-                          styles.storeSelectTextSelected,
-                      ]}
-                    >
-                      {store.storeName}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ) : (
-              <Text style={styles.storeSelectText}>
-                店舗情報を読み込み中...
-              </Text>
-            )}
-          </View>
-
-          {/* 日付選択 */}
+          {}
           <View style={styles.formSection}>
             <Text style={styles.sectionTitle}>日付</Text>
             <TouchableOpacity
@@ -142,13 +86,13 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
                           locale: ja,
                         })
                       )
-                      .join("\n") // 複数日を改行で表示
+                      .join("\n")
                   : "日付を選択"}
               </Text>
               <AntDesign name="calendar" size={24} color={colors.primary} />
             </TouchableOpacity>
           </View>
-          {/* 時間選択 */}
+          {}
           <View style={styles.formSection}>
             <Text style={styles.sectionTitle}>時間</Text>
             <View style={styles.timeContainer}>
@@ -169,7 +113,7 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
               </View>
             </View>
           </View>
-          {/* 授業設定 */}
+          {}
           <View style={styles.formSection}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>途中時間</Text>

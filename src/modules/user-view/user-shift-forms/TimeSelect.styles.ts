@@ -1,7 +1,4 @@
-/**
- * @file TimeSelect.styles.ts
- * @description TimeSelect のスタイル定義（レスポンシブ対応）。
- */
+
 import { StyleSheet } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 import { TimeSelectStyles } from "./TimeSelect.types";

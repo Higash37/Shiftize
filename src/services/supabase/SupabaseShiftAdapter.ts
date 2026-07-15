@@ -1,4 +1,4 @@
-/** @file SupabaseShiftAdapter.ts @description シフトCRUD・リアルタイム購読・監査ログ連携のSupabase実装 */
+
 
 import type { IShiftService } from "../interfaces/IShiftService";
 import type { Shift, ShiftItem, ShiftType, ShiftStatus, ClassTimeSlot } from "@/common/common-models/ModelIndex";
@@ -9,9 +9,7 @@ import {
   logShiftChange,
   determineActionType,
 } from "@/services/shift-history/shiftHistoryLogger";
-import { ServiceProvider } from "../ServiceProvider";
 
-/** Supabase shifts テーブルの行型 */
 interface ShiftRow {
   id: string;
   user_id?: string;
@@ -30,39 +28,18 @@ interface ShiftRow {
   updated_at?: string;
   classes?: ClassTimeSlot[];
   requested_changes?: Shift["requestedChanges"] | null;
-  google_calendar_event_id?: string;
   approved_by?: string;
   rejected_reason?: string;
 }
 
-/** チャンネル名の一意性を保証するカウンター */
 let channelCounter = 0;
 
-/**
- * validateStoreId - store_id のバリデーション（Realtimeフィルタインジェクション対策）
- *
- * Supabase Realtimeのフィルタ文字列にstoreIdを直接埋め込むため、
- * 英数字・ハイフン・アンダースコアのみ許可して不正な文字列の注入を防ぐ。
- *
- * @param storeId - 検証する店舗ID
- * @throws Error 不正な文字が含まれる場合
- */
 const validateStoreId = (storeId: string): void => {
   if (!storeId || !/^[a-zA-Z0-9_-]+$/.test(storeId)) {
     throw new Error(`不正な店舗IDです: store_id に使用できない文字が含まれています`);
   }
 };
 
-/**
- * validateRealtimeParams - Realtimeサブスクリプション用パラメータのバリデーション
- *
- * storeId, year, month の各パラメータを検証する。
- * フィルタインジェクション防止のため、Realtime購読前に必ず呼び出す。
- *
- * @param storeId - 店舗ID
- * @param year - 年（オプション）
- * @param month - 月（オプション、0-11）
- */
 const validateRealtimeParams = (storeId: string, year?: number, month?: number): void => {
   validateStoreId(storeId);
   if (year !== undefined && (!Number.isInteger(year) || year < 2000 || year > 2100)) {
@@ -73,13 +50,8 @@ const validateRealtimeParams = (storeId: string, year?: number, month?: number):
   }
 };
 
-/**
- * ShiftItem取得用の必要列のみ指定（select("*") による不要列転送を削減）
- * toShiftItemFromRow が参照する全列を列挙している。
- */
-const SHIFT_ITEM_COLUMNS = "id,user_id,store_id,nickname,date,start_time,end_time,type,subject,notes,is_completed,status,duration,created_at,updated_at,classes,google_calendar_event_id,requested_changes" as const;
+const SHIFT_ITEM_COLUMNS = "id,user_id,store_id,nickname,date,start_time,end_time,type,subject,notes,is_completed,status,duration,created_at,updated_at,classes,requested_changes" as const;
 
-/** リアルタイム購読のデバウンス間隔（ミリ秒） */
 const REALTIME_DEBOUNCE_MS = 300;
 
 const toShiftItemFromRow = (row: ShiftRow): ShiftItem => {
@@ -101,7 +73,6 @@ const toShiftItemFromRow = (row: ShiftRow): ShiftItem => {
   if (row.subject != null) item.subject = row.subject;
   if (row.notes != null) item.notes = row.notes;
   if (row.classes) item.classes = row.classes;
-  if (row.google_calendar_event_id) item.googleCalendarEventId = row.google_calendar_event_id;
   const firstChange = row.requested_changes?.[0];
   if (firstChange) item.requestedChanges = { startTime: firstChange.startTime, endTime: firstChange.endTime };
   return item;
@@ -127,7 +98,6 @@ const toShiftFromRow = (row: ShiftRow): Shift => {
   if (row.duration != null) shift.duration = row.duration;
   if (row.classes) shift.classes = row.classes;
   if (row.requested_changes) shift.requestedChanges = row.requested_changes;
-  if (row.google_calendar_event_id) shift.googleCalendarEventId = row.google_calendar_event_id;
   return shift;
 };
 
@@ -214,9 +184,6 @@ const mergeShiftForLogging = (
   return { prev, next: merged };
 };
 
-// --- 副作用ヘルパー（監査ログ / Google Calendar 同期） ---
-
-/** 監査ログを記録する。ログ失敗時は握りつぶさず警告のみ。 */
 const recordAuditLog = async (
   actor: ShiftHistoryActor,
   prev: ShiftItem | null,
@@ -227,21 +194,6 @@ const recordAuditLog = async (
   await logShiftChange(action, actor, storeId, next, prev);
 };
 
-/** Google Calendar にシフトを同期する（fire-and-forget）。 */
-const syncCalendar = (shift: Shift & { id: string }) => {
-  ServiceProvider.googleCalendar
-    .syncShiftToCalendar(shift)
-    .catch(() => {/* Google Calendar同期失敗は無視 */});
-};
-
-/** Google Calendar からシフトを削除する（fire-and-forget）。 */
-const removeFromCalendar = (shiftId: string, eventId: string) => {
-  ServiceProvider.googleCalendar
-    .removeShiftFromCalendar(shiftId, eventId)
-    .catch(() => {/* Google Calendarイベント削除失敗は無視 */});
-};
-
-/** シフトサービスのSupabase実装 */
 export class SupabaseShiftAdapter implements IShiftService {
   private async fetchShiftById(id: string): Promise<Shift | null> {
     const supabase = getSupabase();
@@ -249,7 +201,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     return data ? toShiftFromRow(data) : null;
   }
 
-  /** IDでシフトを1件取得する */
   async getShift(id: string): Promise<Shift | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -262,7 +213,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     return toShiftFromRow(data);
   }
 
-  /** 店舗のシフト一覧を取得する */
   async getShifts(storeId?: string): Promise<Shift[]> {
     const supabase = getSupabase();
     let query = supabase.from("shifts").select("*");
@@ -279,7 +229,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     return (data || []).map(toShiftFromRow);
   }
 
-  /** シフトを追加して監査ログを記録する */
   async addShift(
     shift: Omit<Shift, "id">,
     actor?: ShiftHistoryActor
@@ -305,14 +254,9 @@ export class SupabaseShiftAdapter implements IShiftService {
       await recordAuditLog(actor, null, next);
     }
 
-    if (shift.status === "approved") {
-      syncCalendar({ id: shiftId, ...shift } as Shift & { id: string });
-    }
-
     return shiftId;
   }
 
-  /** シフトを更新して監査ログ・Calendar同期を行う */
   async updateShift(
     id: string,
     shift: Partial<Shift>,
@@ -334,15 +278,8 @@ export class SupabaseShiftAdapter implements IShiftService {
         await recordAuditLog(actor, prev, next);
       }
     }
-
-    const merged = { ...previousData, ...shift, id } as Shift & { id: string };
-    const shouldSync = merged.status === "approved" || merged.googleCalendarEventId;
-    if (shouldSync) {
-      syncCalendar(merged);
-    }
   }
 
-  /** シフトを削除してCalendarからも除去する */
   async markShiftAsDeleted(
     id: string,
     deletedBy?: ShiftHistoryActor,
@@ -351,10 +288,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     const supabase = getSupabase();
 
     const shiftData = await this.fetchShiftById(id);
-
-    if (shiftData?.googleCalendarEventId) {
-      removeFromCalendar(id, shiftData.googleCalendarEventId);
-    }
 
     const { error } = await supabase.from("shifts").delete().eq("id", id);
     if (error) throw error;
@@ -365,12 +298,11 @@ export class SupabaseShiftAdapter implements IShiftService {
     }
   }
 
-  /** シフトの変更リクエストを承認して適用する */
   async approveShiftChanges(
     id: string,
     approver?: ShiftHistoryActor
   ): Promise<void> {
-    // 1. 現在のシフトデータを取得
+
     const shiftData = await this.fetchShiftById(id);
     if (!shiftData) return;
 
@@ -378,16 +310,8 @@ export class SupabaseShiftAdapter implements IShiftService {
     const hasRequestedChanges = shiftData.requestedChanges;
     if (!isPending && !hasRequestedChanges) return;
 
-    // 2. DB更新：変更リクエスト適用 or 単純ステータス変更
     await this.applyApproval(id, shiftData);
 
-    // 3. Google Calendar同期（fire-and-forget）
-    const updatedShift = await this.fetchShiftById(id);
-    if (updatedShift) {
-      syncCalendar({ ...updatedShift, id } as Shift & { id: string });
-    }
-
-    // 4. 監査ログ
     if (approver) {
       const updates = this.buildApprovalUpdates(shiftData);
       const { prev, next } = mergeShiftForLogging(id, shiftData, updates);
@@ -397,13 +321,12 @@ export class SupabaseShiftAdapter implements IShiftService {
     }
   }
 
-  /** 承認時のDB更新を実行する */
   private async applyApproval(id: string, shiftData: Shift): Promise<void> {
     const supabase = getSupabase();
     const hasRequestedChanges = shiftData.requestedChanges;
 
     if (!hasRequestedChanges) {
-      // 単純承認：ステータスのみ変更
+
       const { error } = await supabase
         .from("shifts")
         .update({ status: "approved" })
@@ -412,12 +335,10 @@ export class SupabaseShiftAdapter implements IShiftService {
       return;
     }
 
-    // 変更リクエスト適用：リクエスト内容をシフトに反映
     const changes = Array.isArray(hasRequestedChanges)
       ? hasRequestedChanges[0]
       : hasRequestedChanges;
 
-    // 空配列だった場合、適用する変更がないので単純承認にフォールバック
     if (!changes) {
       const { error } = await supabase
         .from("shifts")
@@ -444,7 +365,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     if (error) throw error;
   }
 
-  /** 承認内容から監査ログ用の更新差分を構築する */
   private buildApprovalUpdates(shiftData: Shift): Partial<Shift> {
     const hasRequestedChanges = shiftData.requestedChanges;
     if (!hasRequestedChanges) {
@@ -455,7 +375,6 @@ export class SupabaseShiftAdapter implements IShiftService {
       ? hasRequestedChanges[0]
       : hasRequestedChanges;
 
-    // 空配列で changes が undefined の場合は単純承認と同じ
     if (!changes) {
       return { status: "approved", updatedAt: new Date() };
     }
@@ -469,7 +388,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     return updates;
   }
 
-  /** シフトを完了状態にする */
   async markShiftAsCompleted(id: string): Promise<void> {
     const supabase = getSupabase();
     const { error } = await supabase
@@ -479,7 +397,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     if (error) throw error;
   }
 
-  /** シフトの業務報告を保存する */
   async addShiftReport(
     shiftId: string,
     reportData: {
@@ -496,48 +413,9 @@ export class SupabaseShiftAdapter implements IShiftService {
     if (error) throw error;
   }
 
-  /** 複数店舗のシフト一覧を取得する */
-  async getShiftsFromMultipleStores(storeIds: string[]): Promise<Shift[]> {
-    if (storeIds.length === 0) return [];
-
-    const supabase = getSupabase();
-    const { data, error } = await supabase
-      .from("shifts")
-      .select("*")
-      .in("store_id", storeIds)
-      .order("date", { ascending: true })
-      .order("start_time", { ascending: true });
-
-    if (error) throw error;
-    return (data || []).map(toShiftFromRow);
-  }
-
-  /** ユーザーがアクセス可能な全店舗のシフトを取得する */
-  async getUserAccessibleShifts(userData: {
-    storeId?: string;
-    connectedStores?: string[];
-  }): Promise<Shift[]> {
-    const accessibleStoreIds: string[] = [];
-
-    if (userData.storeId) {
-      accessibleStoreIds.push(userData.storeId);
-    }
-
-    if (userData.connectedStores) {
-      userData.connectedStores.forEach((storeId) => {
-        if (!accessibleStoreIds.includes(storeId)) {
-          accessibleStoreIds.push(storeId);
-        }
-      });
-    }
-
-    return this.getShiftsFromMultipleStores(accessibleStoreIds);
-  }
-
-  /** 店舗のシフトをShiftItem形式で取得する */
   async getShiftItems(storeId: string): Promise<ShiftItem[]> {
     const supabase = getSupabase();
-    // 必要列のみ取得してデータ転送量を削減
+
     const { data, error } = await supabase
       .from("shifts")
       .select(SHIFT_ITEM_COLUMNS)
@@ -549,20 +427,19 @@ export class SupabaseShiftAdapter implements IShiftService {
     return (data || []).map(toShiftItemFromRow);
   }
 
-  /** シフト変更をリアルタイム購読する（デバウンス付き） */
   onShiftsChanged(
     storeId: string,
     callback: (shifts: ShiftItem[]) => void,
     onError?: (error: Error) => void
   ): () => void {
-    // セキュリティ修正: Realtimeフィルタインジェクション防止のため storeId をバリデーション
+
     validateRealtimeParams(storeId);
 
     const supabase = getSupabase();
     let channel: RealtimeChannel | null = null;
 
     const fetchAsShiftItems = async (): Promise<ShiftItem[]> => {
-      // 必要列のみ取得してデータ転送量を削減
+
       const { data, error } = await supabase
         .from("shifts")
         .select(SHIFT_ITEM_COLUMNS)
@@ -587,12 +464,10 @@ export class SupabaseShiftAdapter implements IShiftService {
       }, REALTIME_DEBOUNCE_MS);
     };
 
-    // 初回データ取得（デバウンスなし）
     fetchAsShiftItems()
       .then((items) => { if (!aborted) callback(items); })
       .catch((err) => { if (!aborted) onError?.(err); });
 
-    // Realtime購読（デバウンスあり）
     channel = supabase
       .channel(`shifts-${storeId}-${++channelCounter}`)
       .on(
@@ -616,7 +491,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     };
   }
 
-  /** 指定月のシフトを取得する */
   async getShiftsByMonth(
     storeId: string,
     year: number,
@@ -626,7 +500,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
     const endDate = `${year}-${String(month + 1).padStart(2, "0")}-31`;
 
-    // 必要列のみ取得してデータ転送量を削減
     const { data, error } = await supabase
       .from("shifts")
       .select(SHIFT_ITEM_COLUMNS)
@@ -640,7 +513,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     return (data || []).map(toShiftItemFromRow);
   }
 
-  /** 指定月のシフト変更をリアルタイム購読する */
   onShiftsByMonth(
     storeId: string,
     year: number,
@@ -648,7 +520,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     callback: (shifts: ShiftItem[]) => void,
     onError?: (error: Error) => void
   ): () => void {
-    // セキュリティ修正: Realtimeフィルタインジェクション防止のため全パラメータをバリデーション
+
     validateRealtimeParams(storeId, year, month);
 
     const supabase = getSupabase();
@@ -658,7 +530,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     const endDate = `${year}-${String(month + 1).padStart(2, "0")}-31`;
 
     const fetchMonthShifts = async () => {
-      // 必要列のみ取得してデータ転送量を削減
+
       const { data, error } = await supabase
         .from("shifts")
         .select(SHIFT_ITEM_COLUMNS)
@@ -686,12 +558,10 @@ export class SupabaseShiftAdapter implements IShiftService {
       }, REALTIME_DEBOUNCE_MS);
     };
 
-    // 初回データ取得（デバウンスなし）
     fetchMonthShifts()
       .then((items) => { if (!aborted) callback(items); })
       .catch((err) => { if (!aborted) onError?.(err); });
 
-    // Realtime購読（デバウンスあり）
     channel = supabase
       .channel(`shifts-month-${storeId}-${year}-${month}-${++channelCounter}`)
       .on(

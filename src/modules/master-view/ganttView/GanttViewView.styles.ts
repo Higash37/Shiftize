@@ -1,19 +1,11 @@
-/** @file GanttViewView.styles.ts
- *  @description ガントチャート閲覧画面のスタイル定義。
- *    コンテナのスクロールバー非表示と PWA セーフエリアを管理する。
- *
- *  【このファイルの位置づけ】
- *  - 依存: react-native の StyleSheet
- *  - 利用先: GanttViewView コンポーネント
- *  - Web(PWA) 環境では DOM を直接操作して CSS を注入している
- */
+
 import { StyleSheet } from "react-native";
 
 export const ganttViewViewStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    // Web環境でのスクロールバー非表示
+
     ...(typeof window !== "undefined" && {
       // @ts-ignore Web only styles
       overflow: "hidden",
@@ -21,7 +13,6 @@ export const ganttViewViewStyles = StyleSheet.create({
   },
 });
 
-// Web環境専用のCSS（PWA対応）
 if (typeof document !== "undefined") {
   const style = document.createElement("style");
   style.textContent = `
@@ -35,26 +26,26 @@ if (typeof document !== "undefined") {
       -ms-overflow-style: none !important;
       scrollbar-width: none !important;
     }
-    
+
     /* 全てのスクロール可能要素でスクロールバーを非表示 */
-    .gantt-view-container *, 
+    .gantt-view-container *,
     .gantt-view-container *::-webkit-scrollbar {
       display: none !important;
       width: 0 !important;
       height: 0 !important;
     }
-    
+
     /* React Native WebのScrollView向け */
     .gantt-view-container .RNSVScrollView::-webkit-scrollbar,
     .gantt-view-container [data-focusable="true"]::-webkit-scrollbar {
       display: none !important;
     }
-    
+
     /* ガントチャート内の全ての要素 */
     .gantt-view-container [style*="overflow"]::-webkit-scrollbar {
       display: none !important;
     }
-    
+
     /* PWA環境での安全な表示 */
     @media (display-mode: standalone) {
       .gantt-view-container {

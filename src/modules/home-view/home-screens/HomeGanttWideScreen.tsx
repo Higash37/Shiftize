@@ -1,17 +1,4 @@
-/**
- * @file HomeGanttWideScreen.tsx
- * @description PC版ホーム画面。時計 + ウィジェット + ガントチャートの3カラム構成。
- *
- * 【このファイルの位置づけ】
- *   home-view > home-screens 配下の画面コンポーネント。
- *   HomeCommonScreen がPC幅（Wide）の時に描画する。
- *
- * 主な内部ロジック:
- *   - 左カラム: ClockWidget
- *   - 中央カラム: ガントチャート（GanttHeaderRow + GanttRow）
- *   - 右カラム: NextShiftWidget + TodayStaffWidget
- *   - DateNavigator で日付ナビゲーション
- */
+
 import React, { useState, useMemo } from "react";
 import {
   View,
@@ -47,10 +34,10 @@ interface Props {
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
   allTimes: string[];
-  shifts: ShiftItem[]; // カレンダーのドット表示用の全シフトデータ
-  shiftsForDate: ShiftItem[]; // 選択された日付のシフトデータ（時計ウィジェット用）
-  currentYearMonth: { year: number; month: number }; // 現在の年月
-  currentUserStoreId?: string | undefined; // ユーザーの店舗ID
+  shifts: ShiftItem[];
+  shiftsForDate: ShiftItem[];
+  currentYearMonth: { year: number; month: number };
+  currentUserStoreId?: string | undefined;
 }
 
 export const HomeGanttWideScreen: React.FC<Props> = ({
@@ -65,7 +52,6 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
 }) => {
   const [selectedUser, setSelectedUser] = useState<SampleScheduleColumn | null>(null);
 
-  // 選択された日付のシフトがあるユーザーとそのシフトを取得
   const daySchedules = sampleSchedule.filter(
     (col) => col.slots && col.slots.length > 0
   );
@@ -75,16 +61,13 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
     [sampleSchedule]
   );
 
-  // シフトカードのレンダリング（まとめた形式）
   const renderShiftCard = (schedule: SampleScheduleColumn) => {
     const userName = schedule.position;
     const userSlots = schedule.slots;
 
-    // スタッフシフトと授業を分ける
     const staffSlots = userSlots.filter((s) => s.type !== "class");
     const classSlots = userSlots.filter((s) => s.type === "class");
 
-    // 最初と最後の時間を取得
     const firstStaffSlot = staffSlots[0];
     const lastStaffSlot = staffSlots.at(-1);
     const hasStaffSlots = staffSlots.length > 0 && firstStaffSlot && lastStaffSlot;
@@ -92,7 +75,6 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
       ? `${firstStaffSlot.start} - ${lastStaffSlot.end}`
       : "";
 
-    // 現在の状態を判定
     const { currentStatus, statusIcon, statusColor } = getShiftStatus(
       selectedDate, staffSlots, classSlots
     );
@@ -138,7 +120,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
 
   return (
     <View style={styles.container}>
-      {/* 左列：カレンダー */}
+      {}
       <View style={styles.leftColumn}>
         <ShiftCalendar
           shifts={shifts}
@@ -159,9 +141,9 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
         />
       </View>
 
-      {/* 中央列：年月日ピッカー + 時計 */}
+      {}
       <View style={styles.centerColumn}>
-        {/* 年月日ピッカー */}
+        {}
         <View style={styles.columnHeaderBar}>
           <DateNavigator
             label={format(selectedDate, "yyyy年M月d日 (E)", { locale: ja })}
@@ -178,7 +160,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
           />
         </View>
 
-        {/* 時計ウィジェット */}
+        {}
         <View style={styles.clockSection}>
           <ClockWidget
             staffSchedules={staffWorkingHours}
@@ -189,7 +171,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
         </View>
       </View>
 
-      {/* 右列：シフトカード一覧 */}
+      {}
       <View style={styles.rightColumn}>
         <View style={styles.columnHeaderBar}>
           <Text style={styles.columnTitle}>
@@ -216,7 +198,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
         </ScrollView>
       </View>
 
-      {/* シフト詳細モーダル */}
+      {}
       <Modal
         visible={selectedUser !== null}
         transparent
@@ -239,7 +221,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
 
                     <ScrollView style={styles.modalScrollView}>
                       {selectedUser.slots.map((slot, index) => {
-                        // スタッフシフトの場合は白文字、それ以外は通常の文字色
+
                         const isStaffSlot = slot.type !== "class";
                         const textColor = isStaffSlot ? "#FFFFFF" : colors.text.primary;
 
@@ -396,7 +378,7 @@ const styles = StyleSheet.create({
     color: colors.text.disabled,
     marginTop: layout.padding.medium,
   },
-  // モーダル用スタイル（UserDayGanttModalと同じスタイル）
+
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",

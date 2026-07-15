@@ -1,12 +1,4 @@
-/**
- * @file GanttRowTablet.tsx
- * @description タブレット版ガントチャートの1行分。サンプルデータ用のセルを描画する。
- *
- * 【このファイルの位置づけ】
- *   home-view > home-components > home-gantt 配下の UIパーツ。
- *   HomeGanttTabletScreen で使われる。
- *   モバイル版 GanttRowMobile と同様の構造だが、タブレット向けにレイアウトを調整。
- */
+
 import React from "react";
 import { View, Text } from "react-native";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
@@ -68,18 +60,18 @@ export const GanttRowTablet: React.FC<GanttRowTabletProps> = ({
                 backgroundColor: slot
                   ? slot.type === "class"
                     ? theme.colorScheme.surfaceContainerHigh
-                    : undefined // スタッフのときは背景色なし
+                    : undefined
                   : undefined,
                 borderColor: slot
                   ? slot.type === "class"
                     ? theme.colorScheme.outlineVariant
-                    : theme.colorScheme.primary // スタッフのときは青枠
+                    : theme.colorScheme.primary
                   : undefined,
                 borderWidth: slot ? 1 : 0,
                 opacity: slot ? 1 : 0.1,
                 justifyContent: "center",
                 alignItems: "center",
-                flexDirection: "row", // アイコンとテキストを横並び
+                flexDirection: "row",
               },
             ]}
             onTouchEnd={() => onCellPress && onCellPress(name)}
@@ -98,7 +90,7 @@ export const GanttRowTablet: React.FC<GanttRowTabletProps> = ({
               <Text
                 style={[
                   styles.taskText,
-                  slot.type !== "class" && { color: theme.colorScheme.primary }, // スタッフのときは青文字
+                  slot.type !== "class" && { color: theme.colorScheme.primary },
                 ]}
               >
                 {slot.task}

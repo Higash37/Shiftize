@@ -1,15 +1,4 @@
-/** @file ShiftPrintModal.tsx
- *  @description シフト表の印刷・PDF出力モーダル。
- *    ユーザー選択、印刷形式（リスト/カレンダー/統一カレンダー/全形式）の選択、
- *    プレビュー表示、ブラウザ印刷・PDF保存機能を提供する。
- *    Web版（Platform.OS === "web"）専用。html2canvas + jsPDF でPDF生成。
- */
 
-// 【このファイルの位置づけ】
-// - import元: jsPDF（PDF生成）, html2canvas（HTMLをCanvas画像に変換）, escapeHtml（XSS対策）
-// - importされる先: PrintButton
-// - 役割: シフト表を印刷用HTMLとして組み立て、ブラウザの window.print() または
-//   jsPDF で PDF ファイルを生成する。
 
 import React, { useState } from "react";
 import {
@@ -53,7 +42,7 @@ interface UserShiftData {
     dayOfWeek: string;
     startTime: string;
     endTime: string;
-    hasClasses?: boolean; // 授業途中あり/なしの情報
+    hasClasses?: boolean;
   }>;
 }
 
@@ -68,9 +57,8 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
   const [showPreview, setShowPreview] = useState(false);
   const [printFormat, setPrintFormat] = useState<
     "list" | "calendar" | "unified-calendar" | "all"
-  >("all"); // 印刷形式の選択
+  >("all");
 
-  // ユーザーごとのシフトデータを整理
   const getUserShiftData = (): UserShiftData[] => {
     const selectedYear = selectedDate.getFullYear();
     const selectedMonth = selectedDate.getMonth();
@@ -110,7 +98,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
               endTime: shift.endTime,
               hasClasses: Array.isArray(shift.classes)
                 ? shift.classes.length > 0
-                : false, // 授業時間があるかをboolean化
+                : false,
             };
           })
           .sort((a, b) => {
@@ -168,7 +156,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
 
   const handlePrint = () => {
     if (Platform.OS === "web") {
-      // WebではHTMLを生成してprint
+
       const printWindow = window.open("", "_blank");
       if (printWindow) {
         const htmlContent = generatePrintHTML();
@@ -284,7 +272,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
       return null;
     }
 
-    // PDF生成時に使用する形式を決定
     const pdfFormat =
       forceFormat || (printFormat === "all" ? "list" : printFormat);
     const htmlContent = generatePrintHTMLForPDF(pdfFormat);
@@ -292,7 +279,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
     tempDiv.style.position = "absolute";
     tempDiv.style.left = "-9999px";
     tempDiv.style.top = "0";
-    tempDiv.style.width = "210mm"; // A4 width
+    tempDiv.style.width = "210mm";
     tempDiv.style.backgroundColor = "white";
     tempDiv.innerHTML = htmlContent;
     document.body.appendChild(tempDiv);
@@ -346,13 +333,13 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
       const monthYear = format(selectedDate, "yyyy年M月", { locale: ja });
 
       if (printFormat === "all") {
-        // 全ての場合は3つのPDFを生成
+
         const listBlob = await generatePdfBlob("list");
         const calendarBlob = await generatePdfBlob("calendar");
         const unifiedCalendarBlob = await generatePdfBlob("unified-calendar");
 
         if (listBlob && calendarBlob && unifiedCalendarBlob) {
-          // リスト形式のファイル
+
           const listFile = new File(
             [listBlob],
             `スタッフ勤務表_リスト形式_${monthYear}.pdf`,
@@ -361,7 +348,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             }
           );
 
-          // カレンダー形式のファイル
           const calendarFile = new File(
             [calendarBlob],
             `スタッフ勤務表_カレンダー形式_${monthYear}.pdf`,
@@ -370,7 +356,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             }
           );
 
-          // 統合カレンダー形式のファイル
           const unifiedCalendarFile = new File(
             [unifiedCalendarBlob],
             `スタッフ勤務表_統合カレンダー形式_${monthYear}.pdf`,
@@ -379,7 +364,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             }
           );
 
-          // 個別に共有
           if (
             navigator.share &&
             navigator.canShare &&
@@ -410,7 +394,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           }
         }
       } else {
-        // 単一形式の場合
+
         const blob = await generatePdfBlob(printFormat);
         if (blob) {
           const formatName =
@@ -454,7 +438,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
       );
     }
   };
-  // PDF生成専用のHTML生成関数
+
   const generatePrintHTMLForPDF = (
     pdfFormat: "list" | "calendar" | "unified-calendar"
   ): string => {
@@ -522,7 +506,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             size: A4 portrait;
             margin: 8mm;
           }
-          body { 
+          body {
             margin: 0;
             background-color: #fff;
             font-family: 'Noto Sans JP', sans-serif;
@@ -530,8 +514,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           .printable-content {
             margin: 0;
           }
-          
-          /* 既存のシフト表スタイル */
+
           .header {
             background-color: #1e3a8a;
             color: white;
@@ -599,8 +582,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             background-color: white;
             height: 100px;
           }
-          
-          /* カレンダー形式のスタイル */
+
           .calendar-page {
             page-break-before: always;
           }
@@ -618,7 +600,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(3, 1fr);
             gap: 8px;
-            height: 250mm; /* A4の高さから余白を引いた固定値 */
+            height: 250mm;
             min-height: 250mm;
           }
           .calendar-container {
@@ -626,7 +608,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: 80mm; /* 各カレンダーの固定高さ */
+            height: 80mm;
             min-height: 80mm;
           }
           .calendar-title {
@@ -636,15 +618,15 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             text-align: center;
             font-weight: bold;
             font-size: 11px;
-            flex-shrink: 0; /* タイトル部分は縮小しない */
+            flex-shrink: 0;
           }
           .calendar-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 8px;
             table-layout: fixed;
-            flex: 1; /* 残りの空間を使用 */
-            height: calc(100% - 30px); /* タイトル分を引いた高さ */
+            flex: 1;
+            height: calc(100% - 30px);
           }
           .calendar-table th {
             background-color: #f0f0f0;
@@ -652,13 +634,13 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             padding: 1px;
             text-align: center;
             font-weight: bold;
-            font-size: 12px; /* 1.5倍程度に調整 */
+            font-size: 12px;
             width: 14.28%;
-            height: 8mm; /* ヘッダーの固定高さ */
+            height: 8mm;
           }
           .calendar-day {
             border: 1px solid #ccc;
-            height: 10mm; /* セルの固定高さを大きく */
+            height: 10mm;
             width: 14.28%;
             vertical-align: top;
             padding: 1px;
@@ -671,19 +653,19 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           }
           .empty-day {
             border: 1px solid #ccc;
-            height: 10mm; /* セルの固定高さを大きく */
+            height: 10mm;
             width: 14.28%;
             background-color: #ffffff;
             box-sizing: border-box;
           }
           .day-number {
             font-weight: bold;
-            font-size: 10px; /* 1.5倍程度に調整 */
+            font-size: 10px;
             margin-bottom: 1px;
             line-height: 1;
           }
           .shift-info {
-            font-size: 9px; /* 1.45倍程度に調整（元5px→7px） */
+            font-size: 9px;
             line-height: 1.1;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -695,15 +677,15 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             margin: 0;
             padding: 0;
             display: block;
-            font-size: 9px; /* 1.45倍程度に調整（元5px→7px） */
+            font-size: 9px;
           }
           .break-info {
             color: #666;
-            font-size: 8px; /* 1.45倍程度に調整（元4px→6px） */
+            font-size: 8px;
             margin-top: 1px;
             line-height: 1.1;
           }
-          /* 統合カレンダー専用スタイル */
+
           .unified-calendar-page {
             page-break-before: always;
           }
@@ -728,15 +710,15 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             padding: 1px;
             text-align: center;
             font-weight: bold;
-            font-size: 12px; /* 1.5倍程度に調整 */
+            font-size: 12px;
             width: 14.28%;
           }
           .unified-calendar-day {
             border: 1px solid #ccc;
-            height: 75px; /* 高さをさらに大きく（文字が切れないように） */
+            height: 75px;
             width: 14.28%;
             vertical-align: top;
-            padding: 3px; /* パディングを大きく */
+            padding: 3px;
             position: relative;
             box-sizing: border-box;
             overflow: hidden;
@@ -746,50 +728,50 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           }
           .unified-empty-day {
             border: 1px solid #ccc;
-            height: 75px; /* 高さをより大きく */
+            height: 75px;
             width: 14.28%;
             background-color: #ffffff;
             box-sizing: border-box;
           }
           .unified-day-number {
             font-weight: bold;
-            font-size: 16px; /* 日付番号をさらに大きく */
+            font-size: 16px;
             margin-bottom: 2px;
             line-height: 1;
           }
           .unified-shifts-container {
             display: flex;
             flex-direction: column;
-            height: calc(100% - 25px); /* 日付番号分のスペースを確保 */
+            height: calc(100% - 25px);
             justify-content: flex-start;
           }
           .unified-shift-item {
-            font-size: 11px; /* フォントサイズを11pxに */
-            line-height: 1.2; /* 行間を少し狭く */
+            font-size: 11px;
+            line-height: 1.2;
             overflow: hidden;
             text-overflow: ellipsis;
             margin-bottom: 1px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            white-space: nowrap; /* 文字の折り返しを防ぐ */
+            white-space: nowrap;
           }
           .unified-shift-name {
             font-weight: bold;
-            font-size: 11px; /* 名前のフォントサイズを11pxに */
+            font-size: 11px;
             color: #333;
-            flex-shrink: 1; /* 名前が長い場合は縮小可能に */
+            flex-shrink: 1;
             margin-right: 3px;
-            max-width: 60%; /* 名前の最大幅を制限 */
+            max-width: 60%;
             overflow: hidden;
             text-overflow: ellipsis;
           }
           .unified-shift-time {
             color: #666;
-            font-size: 11px; /* 時間のフォントサイズを11pxに */
+            font-size: 11px;
             flex-shrink: 0;
-            min-width: 40%; /* 時間表示の最小幅を確保 */
-            font-weight: 600; /* 時間も少し太く */
+            min-width: 40%;
+            font-weight: 600;
           }
         </style>
       </head>
@@ -805,22 +787,18 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
     const userShiftData = getUserShiftData();
     const monthYear = format(selectedDate, "yyyy年M月", { locale: ja });
 
-    // 月の全日付を取得
     const monthStart = startOfMonth(selectedDate);
     const monthEnd = endOfMonth(selectedDate);
     const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-    // カレンダーグリッドを生成（日曜日始まり）
-    const firstDayOfWeek = monthStart.getDay(); // 日曜日を0とする
+    const firstDayOfWeek = monthStart.getDay();
     const calendarDays = Array(firstDayOfWeek).fill(null).concat(monthDays);
 
-    // 6週分確保するため、必要に応じて最後に空セルを追加
     const totalCells = Math.ceil(calendarDays.length / 7) * 7;
     while (calendarDays.length < totalCells) {
       calendarDays.push(null);
     }
 
-    // 6人ずつグループに分ける
     const userGroups = [];
     for (let i = 0; i < userShiftData.length; i += 6) {
       userGroups.push(userShiftData.slice(i, i + 6));
@@ -836,7 +814,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
         <div class="calendar-grid-container">
           ${group
             .map((userData) => {
-              // このユーザーのシフトをマッピング
+
               const userShiftsMap = userData.shifts.reduce((acc, shift) => {
                 const dayMatch = shift.date.match(/(\d+)月(\d+)日/);
                 if (dayMatch) {
@@ -863,7 +841,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
 
                       calendarDays.forEach((day, index) => {
                         if (index % 7 === 0 && currentWeek.length > 0) {
-                          // 週が完成したら配列に追加し、新しい週を開始
+
                           while (currentWeek.length < 7) {
                             currentWeek.push(null);
                           }
@@ -872,7 +850,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                         }
                         currentWeek.push(day);
                       });
-                      // 最後の週を処理
+
                       if (currentWeek.length > 0) {
                         while (currentWeek.length < 7) {
                           currentWeek.push(null);
@@ -882,7 +860,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
 
                       weeks.forEach((week) => {
                         html += "<tr>";
-                        // 週の7日分すべてを処理
+
                         for (let i = 0; i < 7; i++) {
                           const day = week[i];
                           if (day === null) {
@@ -917,7 +895,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                                     }</div>
                                   </div>
                                 `
-                                    : `<div class="shift-info">&nbsp;</div>` // 空のシフト情報でレイアウト統一
+                                    : `<div class="shift-info">&nbsp;</div>`
                                 }
                               </td>
                             `;
@@ -941,27 +919,22 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
       .join("");
   };
 
-  // 統合カレンダーHTML生成関数
   const generateUnifiedCalendarHTML = (): string => {
     const userShiftData = getUserShiftData();
     const monthYear = format(selectedDate, "yyyy年M月", { locale: ja });
 
-    // 月の全日付を取得
     const monthStart = startOfMonth(selectedDate);
     const monthEnd = endOfMonth(selectedDate);
     const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-    // カレンダーグリッドを生成（日曜日始まり）
-    const firstDayOfWeek = monthStart.getDay(); // 日曜日を0とする
+    const firstDayOfWeek = monthStart.getDay();
     const calendarDays = Array(firstDayOfWeek).fill(null).concat(monthDays);
 
-    // 6週分確保するため、必要に応じて最後に空セルを追加
     const totalCells = Math.ceil(calendarDays.length / 7) * 7;
     while (calendarDays.length < totalCells) {
       calendarDays.push(null);
     }
 
-    // 全ユーザーのシフトを日付別に整理
     const shiftsByDate: Record<
       number,
       Array<{ startTime: string; endTime: string; nickname: string }>
@@ -984,7 +957,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
       });
     });
 
-    // 各日のシフトを時間順にソート
     Object.keys(shiftsByDate).forEach((day) => {
       shiftsByDate[Number.parseInt(day, 10)]?.sort((a, b) =>
         a.startTime.localeCompare(b.startTime)
@@ -1072,7 +1044,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             })()}
           </tbody>
         </table>
-        
+
         <!-- 翌月カレンダー -->
         <div class="next-month-calendar">
           <div class="next-month-header">${format(
@@ -1088,7 +1060,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             </thead>
             <tbody>
               ${(() => {
-                // 翌月のカレンダー生成
+
                 const nextMonth = addMonths(selectedDate, 1);
                 const nextMonthStart = startOfMonth(nextMonth);
                 const nextMonthEnd = endOfMonth(nextMonth);
@@ -1107,7 +1079,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                   nextCalendarDays.push(null);
                 }
 
-                // 翌月のシフトデータ取得
                 const nextMonthShifts = shifts.filter((shift) => {
                   const shiftDate = new Date(shift.date);
                   return (
@@ -1127,7 +1098,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                   }>
                 > = {};
 
-                // 選択されたユーザーのシフトのみを対象
                 const selectedUserNicknames = users
                   .filter((user) => selectedUsers.includes(user.uid))
                   .reduce((acc, user) => {
@@ -1150,7 +1120,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                   }
                 });
 
-                // 各日のシフトを時間順にソート
                 Object.keys(nextShiftsByDate).forEach((day) => {
                   nextShiftsByDate[Number.parseInt(day, 10)]?.sort((a, b) =>
                     a.startTime.localeCompare(b.startTime)
@@ -1340,9 +1309,9 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
           @page {
             size: A4 portrait;
-            margin: 8mm; /* マージンを少し小さく */
+            margin: 8mm;
           }
-          body { 
+          body {
             margin: 0;
             background-color: #fff;
             font-family: 'Noto Sans JP', sans-serif;
@@ -1350,8 +1319,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           .printable-content {
             margin: 0;
           }
-          
-          /* 既存のシフト表スタイル */
+
           .header {
             background-color: #1e3a8a;
             color: white;
@@ -1419,8 +1387,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             background-color: white;
             height: 100px;
           }
-          
-          /* カレンダー形式のスタイル */
+
           .calendar-page {
             page-break-before: always;
           }
@@ -1438,7 +1405,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(3, 1fr);
             gap: 8px;
-            height: calc(100vh - 60px); /* ヘッダー分を引いた高さ */
+            height: calc(100vh - 60px);
           }
           .calendar-container {
             border: 2px solid #000;
@@ -1449,15 +1416,15 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           .calendar-title {
             background-color: #60a5fa;
             color: white;
-            padding: 4px; /* パディングを少し大きく */
+            padding: 4px;
             text-align: center;
             font-weight: bold;
-            font-size: 11px; /* タイトルサイズを少し大きく */
+            font-size: 11px;
           }
           .calendar-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 8px; /* フォントサイズを大きく */
+            font-size: 8px;
             table-layout: fixed;
           }
           .calendar-table th {
@@ -1466,15 +1433,15 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             padding: 1px;
             text-align: center;
             font-weight: bold;
-            font-size: 12px; /* 1.5倍程度に調整 */
+            font-size: 12px;
             width: 14.28%;
           }
           .calendar-day {
             border: 1px solid #ccc;
-            height: 42px; /* 高さをさらに大きく */
+            height: 42px;
             width: 14.28%;
             vertical-align: top;
-            padding: 2px; /* パディングも少し大きく */
+            padding: 2px;
             position: relative;
             box-sizing: border-box;
             overflow: hidden;
@@ -1484,20 +1451,20 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           }
           .empty-day {
             border: 1px solid #ccc;
-            height: 42px; /* 高さをさらに大きく */
+            height: 42px;
             width: 14.28%;
             background-color: #ffffff;
             box-sizing: border-box;
           }
           .day-number {
             font-weight: bold;
-            font-size: 14px; /* 1.5倍程度に調整 */
+            font-size: 14px;
             margin-bottom: 1px;
             line-height: 1;
           }
           .shift-info {
-            font-size: 10px; /* 1.45倍程度に調整（元7px→10px） */
-            line-height: 1.2; /* 行間を少し広く */
+            font-size: 10px;
+            line-height: 1.2;
             overflow: hidden;
             text-overflow: ellipsis;
           }
@@ -1507,16 +1474,16 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             line-height: 1.2;
             margin: 0;
             padding: 0;
-            display: block; /* ブロック要素にして改行 */
-            font-size: 10px; /* 1.45倍程度に調整（元7px→10px） */
+            display: block;
+            font-size: 10px;
           }
           .break-info {
             color: #666;
-            font-size: 9px; /* 1.45倍程度に調整（元6px→9px） */
+            font-size: 9px;
             margin-top: 1px;
             line-height: 1.2;
           }
-          /* 統合カレンダー専用スタイル */
+
           .unified-calendar-page {
             page-break-before: always;
           }
@@ -1541,15 +1508,15 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             padding: 1px;
             text-align: center;
             font-weight: bold;
-            font-size: 12px; /* 1.5倍程度に調整 */
+            font-size: 12px;
             width: 14.28%;
           }
           .unified-calendar-day {
             border: 1px solid #ccc;
-            height: 75px; /* 高さをさらに大きく（文字が切れないように） */
+            height: 75px;
             width: 14.28%;
             vertical-align: top;
-            padding: 3px; /* パディングを大きく */
+            padding: 3px;
             position: relative;
             box-sizing: border-box;
             overflow: hidden;
@@ -1559,50 +1526,50 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           }
           .unified-empty-day {
             border: 1px solid #ccc;
-            height: 75px; /* 高さをより大きく */
+            height: 75px;
             width: 14.28%;
             background-color: #ffffff;
             box-sizing: border-box;
           }
           .unified-day-number {
             font-weight: bold;
-            font-size: 16px; /* 日付番号をさらに大きく */
+            font-size: 16px;
             margin-bottom: 2px;
             line-height: 1;
           }
           .unified-shifts-container {
             display: flex;
             flex-direction: column;
-            height: calc(100% - 25px); /* 日付番号分のスペースを確保 */
+            height: calc(100% - 25px);
             justify-content: flex-start;
           }
           .unified-shift-item {
-            font-size: 11px; /* フォントサイズを11pxに */
-            line-height: 1.2; /* 行間を少し狭く */
+            font-size: 11px;
+            line-height: 1.2;
             overflow: hidden;
             text-overflow: ellipsis;
             margin-bottom: 1px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            white-space: nowrap; /* 文字の折り返しを防ぐ */
+            white-space: nowrap;
           }
           .unified-shift-name {
             font-weight: bold;
-            font-size: 11px; /* 名前のフォントサイズを11pxに */
+            font-size: 11px;
             color: #333;
-            flex-shrink: 1; /* 名前が長い場合は縮小可能に */
+            flex-shrink: 1;
             margin-right: 3px;
-            max-width: 60%; /* 名前の最大幅を制限 */
+            max-width: 60%;
             overflow: hidden;
             text-overflow: ellipsis;
           }
           .unified-shift-time {
             color: #666;
-            font-size: 13px; /* 時間のフォントサイズをさらに大きく */
+            font-size: 13px;
             flex-shrink: 0;
-            min-width: 40%; /* 時間表示の最小幅を確保 */
-            font-weight: 600; /* 時間も少し太く */
+            min-width: 40%;
+            font-weight: 600;
           }
         </style>
       </head>
@@ -1714,7 +1681,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           </View>
         )}
 
-        {/* 印刷形式選択 */}
+        {}
         {selectedUsers.length > 0 && !showPreview && (
           <View style={styles.formatSelectionHeader}>
             <Text style={styles.formatSelectionTitle}>印刷形式を選択</Text>
@@ -1841,12 +1808,12 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             </ScrollView>
           )}
 
-          {/* 詳細プレビュー */}
+          {}
           {showPreview && selectedUsers.length > 0 && (
             <ScrollView style={styles.fullPreviewContainer}>
               {(() => {
                 const userShiftData = getUserShiftData();
-                // 縦2列に配置 - 左列と右列に分ける
+
                 const leftColumn: UserShiftData[] = [];
                 const rightColumn: UserShiftData[] = [];
 

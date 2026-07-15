@@ -1,4 +1,4 @@
-/** @file FeedbackError.styles.ts @description ErrorMessageコンポーネントのスタイル定義 */
+
 import { StyleSheet } from "react-native";
 import { theme } from "../../common-theme/ThemeDefinition";
 import { layout } from "../../common-constants/LayoutConstants";

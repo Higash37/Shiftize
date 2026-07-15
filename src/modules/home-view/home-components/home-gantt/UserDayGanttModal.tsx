@@ -1,18 +1,4 @@
-/**
- * @file UserDayGanttModal.tsx
- * @description ユーザーの1日ガントチャートをモーダル表示するコンポーネント。
- *   30分刻みのスロットでシフト状況を可視化する。
- *
- * 【このファイルの位置づけ】
- *   home-view > home-components > home-gantt 配下のモーダル。
- *   HomeGanttMobileScreen / HomeGanttTabletScreen からスタッフタップ時に開く。
- *
- * 主要Props:
- *   - visible: モーダル表示フラグ
- *   - userName: 表示対象のスタッフ名
- *   - shifts: そのユーザーの当日シフト配列
- *   - onClose: 閉じるコールバック
- */
+
 import React from "react";
 import {
   Modal,
@@ -45,17 +31,16 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
   userName,
   sampleSchedule,
 }) => {
-  // ユーザーのその日の全シフトを抽出
+
   const userSlots = sampleSchedule
     .flatMap((col) => col.slots)
     .filter((s) => s.name === userName);
 
-  // 30分刻みで全スロットを生成
   const slotRows = [];
   for (let i = 0; i < timeSlots.length - 1; i++) {
     const start = timeSlots[i];
     const end = timeSlots[i + 1];
-    // このスロットに該当するシフトを探す
+
     const slot = userSlots.find((s) => {
       if (!start || !s.start || !s.end) return false;
       return isSlotActiveAtTime(start, s);
@@ -67,7 +52,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
       color: slot
         ? slot.type === "class"
           ? colors.surfaceElevated
-          : slot.color || colors.primary + "1A" // スタッフはカラーか薄いアクセント
+          : slot.color || colors.primary + "1A"
         : undefined,
       type: slot ? slot.type : undefined,
     });
@@ -87,7 +72,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
               <Text style={modalStyles.title}>
                 {userName} の1日ガントチャート
               </Text>
-              {/* その日のシフト開始～終了時間 */}
+              {}
               {userSlots.length > 0 && (
                 <Text
                   style={{
@@ -100,7 +85,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
                   {userSlots[0]?.start || "unknown"} ～ {userSlots.at(-1)?.end || "unknown"}
                 </Text>
               )}
-              {/* 30分刻みで全スロット表示 */}
+              {}
               <ScrollView
                 style={{
                   width: "100%",
@@ -109,7 +94,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
                 }}
               >
                 {slotRows.map((row, idx) => {
-                  // スタッフシフトの場合は白文字、それ以外は通常の文字色
+
                   const isStaffSlot = row.type !== "class" && row.task;
                   const textColor = isStaffSlot ? "#FFFFFF" : row.task ? colors.text.primary : colors.text.secondary;
                   const timeColor = isStaffSlot ? "#FFFFFF" : colors.primary;
@@ -129,7 +114,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
                           color: timeColor,
                           fontWeight: "bold",
                           minWidth: 90,
-                          textAlign: "center", // 中央揃え
+                          textAlign: "center",
                         }}
                       >
                         {row.start}~{row.end}

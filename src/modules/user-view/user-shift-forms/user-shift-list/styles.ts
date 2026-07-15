@@ -1,19 +1,7 @@
-/** @file styles.ts (user-shift-list)
- *  @description シフト一覧画面のスタイル定義。
- *    ShiftListItem（個々のシフト行）、ShiftListView（一覧全体）、
- *    確認モーダル、シフト追加FAB、確定ボタンなどのレイアウトを管理する。
- *    3つのファクトリ関数をエクスポートする。
- *
- *  【このファイルの位置づけ】
- *  - 依存: react-native の StyleSheet / MD3Theme
- *  - 利用先: ShiftListItem / ShiftListView（UserShiftList）コンポーネント
- *  - createShiftListItemStyles / createShiftListViewStyles / createModalStyles
- *    の3関数をエクスポート
- */
+
 import { StyleSheet } from "react-native";
 import type { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
-/** デバイスサイズ判定情報。各ファクトリ関数の引数で使う */
 type BreakpointInfo = {
   isMobile: boolean;
   isTablet: boolean;
@@ -218,7 +206,7 @@ export const createShiftListViewStyles = (
       alignItems: "center",
       ...theme.elevation.level3.shadow,
     },
-    // Confirm button styles
+
     confirmButtonWrapper: {
       alignItems: "center",
       marginVertical: 0,
@@ -239,7 +227,7 @@ export const createShiftListViewStyles = (
       color: theme.colorScheme.onPrimary,
       fontWeight: "600",
     },
-    // Confirm modal styles
+
     confirmModalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0, 0, 0, 0.5)",

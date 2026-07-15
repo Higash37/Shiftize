@@ -1,15 +1,4 @@
-/** @file MobileShiftModal.tsx
- *  @description モバイル端末向けのシフト追加/編集モーダル。
- *    ボトムシート風のUIで、ユーザー選択・時間選択・ステータス選択を
- *    それぞれ別のサブモーダルとして表示する。
- *    React.memo でラップしてパフォーマンスを最適化。
- */
 
-// 【このファイルの位置づけ】
-// - importされる先: GanttChartMonthView（モバイルビュー時のシフト操作）
-// - 役割: モバイルに最適化されたシフトフォーム。
-//   PC版の EditShiftModalView/AddShiftModalView とは別のUIだが、同じデータを扱う。
-//   animationType="slide" でボトムシート風に表示される。
 
 import React, { useState } from "react";
 import {
@@ -117,7 +106,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
       >
         <View style={styles.overlay}>
           <View style={styles.container}>
-            {/* ヘッダー */}
+            {}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
                 <Text style={styles.title}>
@@ -132,16 +121,16 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
               </TouchableOpacity>
             </View>
 
-            <ScrollView 
-              style={styles.content} 
+            <ScrollView
+              style={styles.content}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              {/* ユーザー選択 */}
+              {}
               {isMaster && (
                 <View style={styles.section}>
                   <Text style={styles.label}>担当者</Text>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.selector}
                     onPress={() => setShowUserPicker(true)}
                   >
@@ -153,21 +142,21 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
                 </View>
               )}
 
-              {/* 時間選択 */}
+              {}
               <View style={styles.section}>
                 <Text style={styles.label}>時間</Text>
                 <View style={styles.timeRow}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={[styles.timeSelector, { flex: 1, marginRight: 8 }]}
                     onPress={() => setShowTimePicker("start")}
                   >
                     <Text style={styles.selectorText}>{shiftData.startTime}</Text>
                     <Ionicons name="time-outline" size={20} color={colors.text.secondary} />
                   </TouchableOpacity>
-                  
+
                   <Text style={styles.timeSeparator}>〜</Text>
-                  
-                  <TouchableOpacity 
+
+                  <TouchableOpacity
                     style={[styles.timeSelector, { flex: 1, marginLeft: 8 }]}
                     onPress={() => setShowTimePicker("end")}
                   >
@@ -177,11 +166,11 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
                 </View>
               </View>
 
-              {/* ステータス選択（マスターのみ） */}
+              {}
               {isMaster && (
                 <View style={styles.section}>
                   <Text style={styles.label}>ステータス</Text>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.selector}
                     onPress={() => setShowStatusPicker(true)}
                   >
@@ -193,7 +182,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
                 </View>
               )}
 
-              {/* 件名 */}
+              {}
               <View style={styles.section}>
                 <Text style={styles.label}>件名</Text>
                 <TextInput
@@ -205,7 +194,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
                 />
               </View>
 
-              {/* メモ */}
+              {}
               <View style={styles.section}>
                 <Text style={styles.label}>メモ</Text>
                 <TextInput
@@ -220,10 +209,10 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
               </View>
             </ScrollView>
 
-            {/* ボタン */}
+            {}
             <View style={styles.footer}>
               {isEdit && onDelete && (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.button, styles.deleteButton]}
                   onPress={handleDeleteConfirm}
                 >
@@ -231,8 +220,8 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
                   <Text style={styles.deleteButtonText}>削除</Text>
                 </TouchableOpacity>
               )}
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.button, styles.saveButton, isEdit && onDelete && { flex: 1, marginLeft: 12 }]}
                 onPress={onSave}
                 disabled={isLoading}
@@ -253,7 +242,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
         </View>
       </Modal>
 
-      {/* ユーザー選択モーダル */}
+      {}
       <Modal
         visible={showUserPicker}
         transparent={true}
@@ -268,8 +257,8 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView 
-              style={styles.pickerContent} 
+            <ScrollView
+              style={styles.pickerContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
@@ -290,7 +279,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
         </View>
       </Modal>
 
-      {/* 時間選択モーダル */}
+      {}
       <Modal
         visible={showTimePicker !== null}
         transparent={true}
@@ -307,8 +296,8 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView 
-              style={styles.pickerContent} 
+            <ScrollView
+              style={styles.pickerContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
@@ -329,7 +318,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
         </View>
       </Modal>
 
-      {/* ステータス選択モーダル */}
+      {}
       <Modal
         visible={showStatusPicker}
         transparent={true}
@@ -344,8 +333,8 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView 
-              style={styles.pickerContent} 
+            <ScrollView
+              style={styles.pickerContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
@@ -508,8 +497,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 8,
   },
-  
-  // ピッカーモーダルのスタイル
+
   pickerOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",

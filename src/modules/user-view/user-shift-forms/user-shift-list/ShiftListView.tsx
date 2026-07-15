@@ -1,20 +1,4 @@
-/** @file ShiftListView.tsx
- *  @description ユーザーのシフト一覧画面。
- *    月別カレンダー + シフトリスト + シフト確定ボタンを表示する。
- *    シフトタップで報告/編集モーダルを開く。
- *
- *  【このファイルの位置づけ】
- *  - 依存: React / React Native / expo-router / ServiceProvider /
- *          ShiftCalendar / ShiftListItem / ShiftDetailsView /
- *          ShiftModal / ShiftReportModal / ChangePassword /
- *          DateNavigator / useShift / useAuth / useMD3Theme / useBreakpoint
- *  - 利用先: ユーザー画面のシフト一覧ルート（/(main)/user/shifts）
- *
- *  【コンポーネント概要】
- *  - 表示内容: ヘッダー → 月ナビゲーション → カレンダー → シフトリスト
- *              + シフト確定ボタン + 各種モーダル
- *  - 主要Props: なし（内部でデータ取得を行う）
- */
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
   View,
@@ -49,64 +33,54 @@ export const UserShiftList = () => {
   const router = useRouter();
   const navigation = useNavigation();
   const { user } = useAuth();
-  /** useShift フックからシフト一覧と取得関数を取得 */
+
   const { shifts, fetchShifts } = useShift();
 
-  // --- State ---
-  /** カレンダーで選択中の日付（"yyyy-MM-dd" 形式、空文字 = 未選択） */
   const [selectedDate, setSelectedDate] = useState("");
-  /** 現在表示中の月（"yyyy-MM" 形式）。初期値は今月 */
+
   const [currentMonth, setCurrentMonth] = useState(() => {
     const today = new Date();
     return format(today, "yyyy-MM");
   });
-  /** 表示用の月文字列（カレンダーマウント後にセットされる） */
+
   const [displayMonth, setDisplayMonth] = useState<string | null>(null);
-  /** 詳細展開中のシフトID */
+
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
-  /** カレンダーがマウント済みかどうか */
+
   const [isCalendarMounted, setIsCalendarMounted] = useState(false);
-  /** シフト操作モーダル（報告/変更選択）の表示フラグ */
+
   const [isModalVisible, setModalVisible] = useState(false);
-  /** モーダル操作対象のシフト */
+
   const [modalShift, setModalShift] = useState<ShiftItem | null>(null);
-  /** 現在のユーザーの店舗ID */
+
   const [currentUserStoreId, setCurrentUserStoreId] = useState<
     string | undefined
   >(user?.storeId);
-  /** シフト報告モーダルの表示フラグ */
+
   const [reportModalVisible, setReportModalVisible] = useState(false);
-  /** 報告時のコメント */
+
   const [comments, setComments] = useState("");
-  /** シフトリストの ScrollView 参照（日付選択時の自動スクロールに使用） */
+
   const scrollViewRef = useRef<ScrollView | null>(null);
-  /** 各シフトの Y 座標位置を記録する辞書（自動スクロール用） */
+
   const shiftPositionsRef = useRef<Record<string, number>>({});
-  /** パスワード変更モーダルの表示フラグ */
+
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  // --- Theme / Style ---
   const theme = useMD3Theme();
   const bp = useBreakpoint();
-  /** テーマとブレークポイントが変わった時だけスタイルを再生成 */
+
   const styles = useMemo(
     () => createShiftListViewStyles(theme, bp),
     [theme, bp]
   );
 
-  // --- シフト確定ボタン用の状態 ---
-  /** アクティブな提出期間 */
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
-  /** ユーザーがシフト確定済みかどうか */
+
   const [isCompleted, setIsCompleted] = useState(false);
-  /** シフト確定確認モーダルの表示フラグ */
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // --- Effects ---
-  /**
-   * 画面がフォーカスされた時にシフトデータを再取得する。
-   * 初回マウント時の fetch は useShift 内の useEffect で実行されるため不要。
-   */
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       fetchShifts();
@@ -115,14 +89,12 @@ export const UserShiftList = () => {
     return unsubscribe;
   }, [navigation, fetchShifts]);
 
-  // 期間設定を読み込む
   useEffect(() => {
     if (user?.storeId) {
       loadActivePeriod();
     }
   }, [user?.storeId]);
 
-  /** アクティブな提出期間と確定状況をロードする */
   const loadActivePeriod = async () => {
     try {
       const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(
@@ -131,7 +103,6 @@ export const UserShiftList = () => {
       const currentPeriod = periods[0] ?? null;
       setPeriod(currentPeriod ?? null);
 
-      // 確定状況もロード
       if (currentPeriod && user?.uid) {
         const isConfirmed =
           await ServiceProvider.shiftConfirmations.getUserConfirmationStatus(
@@ -141,18 +112,13 @@ export const UserShiftList = () => {
         setIsCompleted(isConfirmed);
       }
     } catch {
-      // 期間ロード失敗は無視
+
     }
   };
 
-  // --- Handlers ---
-  /**
-   * シフト確定ボタン押下時のハンドラ。
-   * 確定済みなら取り消し確認、未確定なら確認モーダルを表示する。
-   */
   const handleShiftConfirm = () => {
     if (isCompleted) {
-      // 確定済みの場合は取り消しを確認
+
       Alert.alert("確認", "シフト確定を取り消しますか？", [
         {
           text: "キャンセル",
@@ -177,12 +143,11 @@ export const UserShiftList = () => {
         },
       ]);
     } else {
-      // 未確定の場合は確認モーダルを表示
+
       setShowConfirmModal(true);
     }
   };
 
-  /** シフト確定を実行する（確認モーダルで「決定」を押した時） */
   const handleConfirmComplete = async () => {
     try {
       const canConfirm = user?.uid && user?.storeId && period?.id;
@@ -200,14 +165,12 @@ export const UserShiftList = () => {
     }
   };
 
-  // AuthContextのstoreIdを同期
   useEffect(() => {
     if (user?.storeId) {
       setCurrentUserStoreId(user.storeId);
     }
   }, [user?.storeId]);
 
-  // カレンダーがマウントされた時に現在の月を設定
   const handleCalendarMount = () => {
     setIsCalendarMounted(true);
     setDisplayMonth(currentMonth);
@@ -222,11 +185,6 @@ export const UserShiftList = () => {
     setSelectedShiftId(null);
   };
 
-  // --- 派生データ ---
-  /**
-   * 現在表示中の月に該当するシフトを抽出してソートする。
-   * useMemo で shifts / displayMonth / user が変わった時だけ再計算する。
-   */
   const monthlyShifts = useMemo(() => {
     if (!displayMonth || !user) {
       return [];
@@ -236,11 +194,9 @@ export const UserShiftList = () => {
     const year = displayMonthDate.getFullYear();
     const month = displayMonthDate.getMonth();
 
-    // 月の最初の日と最後の日を取得
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
 
-    // 月の最後の日を週末まで拡張
     const adjustedLastDay = new Date(lastDay);
     adjustedLastDay.setDate(
       adjustedLastDay.getDate() + (7 - adjustedLastDay.getDay())
@@ -277,12 +233,8 @@ export const UserShiftList = () => {
     }, 120);
   }, [selectedDate, monthlyShifts]);
 
-  /**
-   * カレンダーの日付タップ時のハンドラ。
-   * 同じ日付を再タップすると選択解除。別の月の日付なら月を切り替える。
-   */
   const handleDayPress = (day: { dateString: string }) => {
-    // 同じ日付をもう一度押したときに選択を解除
+
     if (selectedDate === day.dateString) {
       setSelectedDate("");
       return;
@@ -292,19 +244,18 @@ export const UserShiftList = () => {
     const targetMonthString = format(targetDate, "yyyy-MM");
     const currentMonthString = currentMonth;
 
-    // 違う月の日付がクリックされた場合、月を切り替える
     if (targetMonthString !== currentMonthString) {
       handleMonthChange({ dateString: `${targetMonthString}-01` });
-      // 月切り替え後に日付を選択
+
       setTimeout(() => {
         setSelectedDate(day.dateString);
       }, 100);
     } else {
-      // 同じ月の日付の場合、そのまま選択
+
       setSelectedDate(day.dateString);
     }
   };
-  /** シフト編集画面に遷移する。classes は JSON 文字列でパラメータに渡す */
+
   const handleShiftEdit = (shift: ShiftItem) => {
     router.push({
       pathname: "/(main)/user/shifts/create",
@@ -319,10 +270,6 @@ export const UserShiftList = () => {
     });
   };
 
-  /**
-   * シフト行タップ時のハンドラ。
-   * 承認済みなら操作選択モーダルを表示、それ以外は直接編集画面へ遷移する。
-   */
   const handleShiftPress = (shift: ShiftItem) => {
     if (shift.status === "approved") {
       setModalShift(shift);
@@ -346,34 +293,28 @@ export const UserShiftList = () => {
     setModalVisible(false);
   };
 
-  // --- Render 準備 ---
-  /** タブレットの場合は中央に 80% 幅で表示、それ以外はフル幅 */
   const containerStyle = bp.isTablet
     ? styles.tabletContainer
     : styles.defaultContainer;
 
-  /** サブヘッダーに表示する「yyyy年M月」ラベル */
   const subHeaderLabel = useMemo(() => {
     const d = new Date(currentMonth + "-01");
     const validDate = Number.isNaN(d.getTime()) ? new Date() : d;
     return `${validDate.getFullYear()}年${validDate.getMonth() + 1}月`;
   }, [currentMonth]);
 
-  /** 前月に移動するハンドラ */
   const handlePrevMonth = useCallback(() => {
     const d = new Date(currentMonth + "-01");
     d.setMonth(d.getMonth() - 1);
     handleMonthChange({ dateString: format(d, "yyyy-MM-dd") });
   }, [currentMonth]);
 
-  /** 次月に移動するハンドラ */
   const handleNextMonth = useCallback(() => {
     const d = new Date(currentMonth + "-01");
     d.setMonth(d.getMonth() + 1);
     handleMonthChange({ dateString: format(d, "yyyy-MM-dd") });
   }, [currentMonth]);
 
-  // --- Render ---
   return (
     <>
       <Header
@@ -381,7 +322,7 @@ export const UserShiftList = () => {
         onPressSettings={() => setShowPasswordModal(true)}
       />
       <View style={containerStyle}>
-        {/* サブヘッダー：年月ピッカー */}
+        {}
         <View style={{
           height: SUB_HEADER_HEIGHT,
           justifyContent: "center",
@@ -429,7 +370,7 @@ export const UserShiftList = () => {
             <View
               style={styles.listContainer}
             >
-            {/* シフト確定ボタン */}
+            {}
             {period && (
               <View style={styles.confirmButtonWrapper}>
                 <TouchableOpacity
@@ -449,7 +390,7 @@ export const UserShiftList = () => {
 
             {monthlyShifts.length > 0 ? (
               monthlyShifts.map((shift) => {
-                // シフトの表示
+
                 const isSelected = selectedShiftId === shift.id;
                 const timeSlots = isSelected
                   ? splitShiftIntoTimeSlots(shift)
@@ -514,7 +455,7 @@ export const UserShiftList = () => {
         <ChangePassword onComplete={() => setShowPasswordModal(false)} />
       </Modal>
 
-      {/* シフト確定確認モーダル */}
+      {}
       <Modal
         visible={showConfirmModal}
         transparent={true}

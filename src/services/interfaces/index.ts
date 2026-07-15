@@ -1,4 +1,4 @@
-/** @file index.ts @description サービスインターフェースの再エクスポート */
+
 
 export type { IAuthService } from "./IAuthService";
 export type { IUserService } from "./IUserService";

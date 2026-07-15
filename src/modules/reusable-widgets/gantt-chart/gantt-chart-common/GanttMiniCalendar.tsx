@@ -1,11 +1,4 @@
-/** @file GanttMiniCalendar.tsx
- *  @description ガントチャート内に埋め込む小型カレンダーウィジェット。
- *    シフトがある日にドットマーカーを表示し、日付タップで日付選択をコールバックする。
- */
 
-// 【このファイルの位置づけ】
-// - importされる先: GanttChartMonthView 等（インラインカレンダーとして使用）
-// - 役割: 小さなスペースに収まるミニカレンダー。月ナビ付き。
 
 import React, { useState, useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
@@ -22,7 +15,6 @@ interface GanttMiniCalendarProps {
   onMonthChange?: (year: number, month: number) => void;
   width: number;
   shifts?: ShiftItem[];
-  currentUserStoreId?: string;
 }
 
 export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
@@ -31,7 +23,6 @@ export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
   onMonthChange,
   width,
   shifts = [],
-  currentUserStoreId = "",
 }) => {
   const [viewingMonth, setViewingMonth] = useState(startOfMonth(currentDate));
 
@@ -51,31 +42,27 @@ export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
     onDateSelect(date);
   };
 
-  // カレンダーの日付を生成（最初の日曜日から最後の土曜日まで）
   const monthStart = startOfMonth(viewingMonth);
   const monthEnd = endOfMonth(viewingMonth);
   const startDate = new Date(monthStart);
-  startDate.setDate(startDate.getDate() - getDay(monthStart)); // 最初の日曜日
+  startDate.setDate(startDate.getDate() - getDay(monthStart));
   const endDate = new Date(monthEnd);
-  endDate.setDate(endDate.getDate() + (6 - getDay(monthEnd))); // 最後の土曜日
+  endDate.setDate(endDate.getDate() + (6 - getDay(monthEnd)));
 
   const days = eachDayOfInterval({ start: startDate, end: endDate });
-  
-  // 週ごとにグループ化
+
   const weeks = [];
   for (let i = 0; i < days.length; i += 7) {
     weeks.push(days.slice(i, i + 7));
   }
 
-  const cellSize = (width - 4) / 7; // 7日分、パディング考慮
+  const cellSize = (width - 4) / 7;
 
-  // ShiftCalendarと同じマーク処理
   const markedDates = useMemo(() => {
     const marks: MarkedDates = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 選択中の日付のスタイル
     const currentDateString = format(currentDate, 'yyyy-MM-dd');
     marks[currentDateString] = {
       selected: true,
@@ -83,22 +70,15 @@ export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
       selectedTextColor: "#fff",
     };
 
-    // 予定がある日付にドットマーカーを追加
     shifts.forEach((shift) => {
       const shiftDate = new Date(shift.date);
       shiftDate.setHours(0, 0, 0, 0);
-      // 他店舗のシフトかどうかを判定
-      const isFromOtherStore =
-        currentUserStoreId &&
-        shift.storeId &&
-        shift.storeId !== currentUserStoreId;
-      const dotColor = isFromOtherStore ? "#8B5CF6" : "#2196f3"; // 他店舗は紫、自店舗は青
 
       const existingMark = marks[shift.date] || {};
       marks[shift.date] = {
         ...existingMark,
         marked: true,
-        dotColor: dotColor,
+        dotColor: "#2196f3",
         selected: currentDateString === shift.date,
         selectedColor: "#2196f3",
         selectedTextColor: "#fff",
@@ -106,11 +86,11 @@ export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
     });
 
     return marks;
-  }, [shifts, currentDate, currentUserStoreId]);
+  }, [shifts, currentDate]);
 
   return (
     <View style={[styles.container, { width }]}>
-      {/* 月選択ヘッダー */}
+      {}
       <View style={styles.header}>
         <TouchableOpacity onPress={handlePrevMonth} style={styles.navButton}>
           <Ionicons name="chevron-back" size={8} color="#666" />
@@ -123,7 +103,7 @@ export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* 曜日ヘッダー */}
+      {}
       <View style={styles.weekHeader}>
         {["日", "月", "火", "水", "木", "金", "土"].map((day, index) => (
           <View key={day} style={[styles.weekDayCell, { width: cellSize }]}>
@@ -138,7 +118,7 @@ export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
         ))}
       </View>
 
-      {/* カレンダーグリッド */}
+      {}
       <ScrollView style={styles.calendarContainer} showsVerticalScrollIndicator={false}>
         {weeks.map((week, weekIndex) => (
           <View key={weekIndex} style={styles.weekRow}>
@@ -176,11 +156,11 @@ export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
                       {format(date, "d")}
                     </Text>
                     {hasShift && (
-                      <View 
+                      <View
                         style={[
-                          styles.shiftDot, 
+                          styles.shiftDot,
                           { backgroundColor: dateMarks.dotColor || "#2196f3" }
-                        ]} 
+                        ]}
                       />
                     )}
                   </View>
@@ -235,7 +215,7 @@ const styles = StyleSheet.create({
     color: "#4dabf7",
   },
   calendarContainer: {
-    maxHeight: 140, // スクロール可能な高さ制限
+    maxHeight: 140,
   },
   weekRow: {
     flexDirection: "row",
@@ -258,7 +238,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   dayText: {
-    fontSize: 8, // 6から8に拡大
+    fontSize: 8,
     color: colors.text.primary,
     fontWeight: "500",
   },

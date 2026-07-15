@@ -1,21 +1,10 @@
-/** @file UnifiedButtonStyles.ts
- *  @description ガントチャート全体で使う統一ボタンスタイルの定義。
- *    primary（青）、secondary（グレー）、danger（赤）、success（緑）、toolbar 等の
- *    ボタンバリエーションを StyleSheet.create でまとめて定義し、
- *    getButtonStyle / getButtonTextStyle ヘルパー関数で簡単に取得できるようにしている。
- */
 
-// 【このファイルの位置づけ】
-// - importされる先: MonthSelectorBar, PrintButton, PeriodSettingModal, ColorToggleButton, ViewToggleButton
-// - 役割: ボタンのスタイルを1箇所で管理し、全体で統一された見た目を保つ。
 
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 
-// StyleSheet.create: React Native でスタイルオブジェクトを作成する関数。
-// 通常の JS オブジェクトより最適化される（内部でIDに変換される）。
 export const UnifiedButtonStyles = StyleSheet.create({
-  // 基本ボタンスタイル
+
   baseButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -27,7 +16,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
     minHeight: 26,
   },
 
-  // プライマリボタン（青系）
   primaryButton: {
     backgroundColor: "#2196F3",
     borderColor: "#2196F3",
@@ -38,7 +26,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // セカンダリボタン（グレー系）
   secondaryButton: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
@@ -49,7 +36,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // 危険ボタン（赤系）
   dangerButton: {
     backgroundColor: "#F44336",
     borderColor: "#F44336",
@@ -60,7 +46,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // 成功ボタン（緑系）
   successButton: {
     backgroundColor: "#4CAF50",
     borderColor: "#4CAF50",
@@ -71,7 +56,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // 切り替えボタン（アクティブ状態）
   toggleActiveButton: {
     backgroundColor: colors.primary + "1A",
     borderColor: colors.primary + "66",
@@ -82,7 +66,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // 切り替えボタン（非アクティブ状態）
   toggleInactiveButton: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
@@ -93,7 +76,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // アイコンとテキストの共通スタイル
   buttonIcon: {
     marginRight: 4,
   },
@@ -102,7 +84,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // 小さなボタン（コンパクト）
   compactButton: {
     paddingHorizontal: 6,
     paddingVertical: 5,
@@ -113,7 +94,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // ツールバーボタン（統一ニュートラルトーン・フッター相当サイズ）
   toolbarButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -139,9 +119,6 @@ export const UnifiedButtonStyles = StyleSheet.create({
   },
 });
 
-// --- ヘルパー関数 ---
-// getButtonStyle: ボタンタイプの文字列を渡すと、対応するスタイル配列を返す。
-// 戻り値は配列。React Native では style={[スタイルA, スタイルB]} で複数スタイルを合成できる。
 export const getButtonStyle = (type: 'primary' | 'secondary' | 'danger' | 'success' | 'toggle-active' | 'toggle-inactive' | 'toolbar') => {
   const base = UnifiedButtonStyles.baseButton;
 

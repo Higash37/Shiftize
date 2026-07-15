@@ -1,13 +1,12 @@
-/** @file SupabaseSettingsAdapter.ts @description アプリ設定の取得・保存・リアルタイム監視のSupabase実装 */
+
 
 import type { ISettingsService } from "../interfaces/ISettingsService";
 import type { AppSettings } from "@/common/common-utils/util-settings/useAppSettings";
 import { getSupabase } from "./supabase-client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-/** 設定サービスのSupabase実装 */
 export class SupabaseSettingsAdapter implements ISettingsService {
-  /** アプリ設定を取得する */
+
   async getSettings(): Promise<AppSettings | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -20,11 +19,9 @@ export class SupabaseSettingsAdapter implements ISettingsService {
     return data.data as AppSettings;
   }
 
-  /** 設定を保存する（既存設定があればマージ） */
   async saveSettings(settings: Partial<AppSettings>): Promise<void> {
     const supabase = getSupabase();
 
-    // 既存設定を取得してマージ
     const { data: existing } = await supabase
       .from("settings")
       .select("data, store_id")
@@ -40,7 +37,7 @@ export class SupabaseSettingsAdapter implements ISettingsService {
         .eq("store_id", existing.store_id);
       if (error) throw error;
     } else {
-      // store_idはユーザーのstore_idから取得
+
       const { data: userData } = await supabase
         .from("users")
         .select("store_id")
@@ -58,7 +55,6 @@ export class SupabaseSettingsAdapter implements ISettingsService {
     }
   }
 
-  /** 設定をデフォルト値にリセットする */
   async resetSettings(defaults: AppSettings): Promise<void> {
     const supabase = getSupabase();
 
@@ -93,17 +89,14 @@ export class SupabaseSettingsAdapter implements ISettingsService {
     }
   }
 
-  /** アプリ設定の変更をリアルタイム監視する */
   onSettingsChanged(
     callback: (settings: AppSettings | null) => void
   ): () => void {
     const supabase = getSupabase();
     let channel: RealtimeChannel | null = null;
 
-    // 初期値を取得
     this.getSettings().then(callback).catch(() => callback(null));
 
-    // Supabase Realtimeで変更監視
     channel = supabase
       .channel("settings-changes")
       .on(
@@ -133,12 +126,10 @@ export class SupabaseSettingsAdapter implements ISettingsService {
     };
   }
 
-  /** シフトステータス設定の変更をリアルタイム監視する */
   onShiftStatusConfigChanged(callback: (configs: Record<string, any> | null) => void): () => void {
     const supabase = getSupabase();
     let channel: RealtimeChannel | null = null;
 
-    // 初期値を取得（store_idでフィルタして別店舗の設定を拾わないようにする）
     (async () => {
       const { data: userData } = await supabase
         .from("users")
@@ -155,7 +146,6 @@ export class SupabaseSettingsAdapter implements ISettingsService {
         .maybeSingle();
       callback(data?.data || null);
 
-      // Supabase Realtimeで変更監視（store_idもフィルタ）
       channel = supabase
         .channel(`settings-shift-status-${storeId}`)
         .on(
@@ -167,7 +157,7 @@ export class SupabaseSettingsAdapter implements ISettingsService {
             filter: `settings_key=eq.shiftStatus`,
           },
           (payload) => {
-            // store_idが一致する場合のみコールバック
+
             const row = payload.new as any;
             if (row?.store_id === storeId && row?.data) {
               callback(row.data);

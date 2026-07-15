@@ -1,16 +1,4 @@
-/**
- * @file HomeGanttTabletScreen.tsx
- * @description タブレット版ホーム画面。左に時計+ウィジェット、右にガントチャートの2カラム構成。
- *
- * 【このファイルの位置づけ】
- *   home-view > home-screens 配下の画面コンポーネント。
- *   HomeCommonScreen がタブレット幅の時に描画する。
- *
- * 主な内部ロジック:
- *   - 左カラム: ClockWidget + NextShiftWidget + TodayStaffWidget
- *   - 右カラム: ガントチャート（GanttHeaderRowTablet + GanttRowTablet）
- *   - DateNavigator で日付ナビゲーション
- */
+
 import React, { useState } from "react";
 import {
   View,
@@ -47,7 +35,7 @@ interface Props {
   onDateSelect: (date: Date) => void;
   allTimes: string[];
   shifts: ShiftItem[];
-  shiftsForDate: ShiftItem[]; // 選択された日付のシフトデータ（時計ウィジェット用）
+  shiftsForDate: ShiftItem[];
   currentYearMonth: { year: number; month: number };
   currentUserStoreId?: string | undefined;
 }
@@ -64,23 +52,19 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
 }) => {
   const [selectedUser, setSelectedUser] = useState<SampleScheduleColumn | null>(null);
 
-  // 選択された日付のシフトがあるユーザーとそのシフトを取得
   const daySchedules = sampleSchedule.filter(
     (col) => col.slots && col.slots.length > 0
   );
 
   const staffWorkingHours = groupConsecutiveSlots(sampleSchedule);
 
-  // シフトカードのレンダリング（まとめた形式）
   const renderShiftCard = (schedule: SampleScheduleColumn) => {
     const userName = schedule.position;
     const userSlots = schedule.slots;
 
-    // スタッフシフトと授業を分ける
     const staffSlots = userSlots.filter((s) => s.type !== "class");
     const classSlots = userSlots.filter((s) => s.type === "class");
 
-    // 最初と最後の時間を取得
     const firstStaffSlot = staffSlots[0];
     const lastStaffSlot = staffSlots.at(-1);
     const hasStaffSlots = staffSlots.length > 0 && firstStaffSlot && lastStaffSlot;
@@ -88,7 +72,6 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
       ? `${firstStaffSlot.start} - ${lastStaffSlot.end}`
       : "";
 
-    // 現在の状態を判定
     const { currentStatus, statusIcon, statusColor } = getShiftStatus(
       selectedDate, staffSlots, classSlots
     );
@@ -134,16 +117,16 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
 
   return (
     <View style={styles.container}>
-      {/* 左列：時計 + カレンダー */}
+      {}
       <View style={styles.leftColumn}>
-        {/* ヘッダー */}
+        {}
         <View style={styles.columnHeaderBar}>
           <Text style={styles.columnTitle}>
             {format(selectedDate, "M月d日(E)", { locale: ja })}
           </Text>
         </View>
 
-        {/* 時計 */}
+        {}
         <View style={styles.clockSection}>
           <ClockWidget
             staffSchedules={staffWorkingHours}
@@ -153,7 +136,7 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
           />
         </View>
 
-        {/* カレンダー */}
+        {}
         <View style={styles.calendarSection}>
           <ShiftCalendar
             shifts={shifts}
@@ -175,7 +158,7 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
         </View>
       </View>
 
-      {/* 右列：シフトカード一覧 */}
+      {}
       <View style={styles.rightColumn}>
         <View style={styles.columnHeaderBar}>
           <Text style={styles.columnTitle}>
@@ -202,7 +185,7 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
         </ScrollView>
       </View>
 
-      {/* シフト詳細モーダル */}
+      {}
       <Modal
         visible={selectedUser !== null}
         transparent
@@ -225,7 +208,7 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
 
                     <ScrollView style={styles.modalScrollView}>
                       {selectedUser.slots.map((slot, index) => {
-                        // スタッフシフトの場合は白文字、それ以外は通常の文字色
+
                         const isStaffSlot = slot.type !== "class";
                         const textColor = isStaffSlot ? "#FFFFFF" : colors.text.primary;
 
@@ -352,7 +335,7 @@ const styles = StyleSheet.create({
     color: colors.text.disabled,
     marginTop: layout.padding.medium,
   },
-  // モーダル用スタイル（UserDayGanttModalと同じスタイル）
+
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",

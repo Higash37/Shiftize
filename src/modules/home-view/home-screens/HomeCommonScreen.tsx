@@ -1,24 +1,5 @@
-/**
- * @file HomeCommonScreen.tsx
- * @description ホーム画面の共通ラッパー。画面幅に応じて Wide / Tablet / Mobile の
- *   レイアウトを自動で切り替える。
- *
- * 【このファイルの位置づけ】
- *   home-view > home-screens 配下の画面コンポーネント。
- *   アプリの「ホーム」タブで最初に描画されるルートコンポーネント。
- *   内部で HomeGanttWideScreen / HomeGanttTabletScreen / HomeGanttMobileScreen を
- *   ブレークポイントに応じて出し分ける。
- *
- * 主な内部ロジック:
- *   - useBreakpoint() で画面幅を判定
- *   - Wide(PC): 3カラムレイアウト
- *   - Tablet: 2カラムレイアウト
- *   - Mobile: 1カラム + モーダルで切り替え
- */
-// 共通ホーム画面（リファクタリング後）
-// 旧: app/(main)/HomeCommonScreen.tsx
-// スタイル分割済み（home-view-styles.ts）
-// 型定義分割済み（home-view-types.ts）
+
+
 import React, { useState, useMemo } from "react";
 import { View, Modal, StyleSheet, useWindowDimensions } from "react-native";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
@@ -61,12 +42,10 @@ export default function HomeCommonScreen() {
       return next;
     });
 
-  // scheduleForSelectedDateをフィルタリングして承認済みのシフトのみを表示
   const approvedAndCompletedSchedule = gantt.scheduleForSelectedDate.filter(
     (shift) => shift.status === "approved" || shift.status === "completed"
   );
 
-  // ユーザーの次のシフトを取得
   const nextShift = useMemo(() => {
     if (!user?.uid) return null;
 
@@ -88,7 +67,6 @@ export default function HomeCommonScreen() {
     return userFutureShifts[0] || null;
   }, [gantt.shifts, user?.uid]);
 
-  // ユーザーの今後のシフト一覧（モーダル用）
   const userFutureShifts = useMemo(() => {
     if (!user?.uid) return [];
 
@@ -106,19 +84,16 @@ export default function HomeCommonScreen() {
         );
       })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 10); // 最大10件
+      .slice(0, 10);
   }, [gantt.shifts, user?.uid]);
 
-  // カレンダーとウィジェットを6:4の固定比率で表示（flex使用）
-  // カレンダー部分の最大高さを計算（ヘッダー・フッターを除いた60%）
   const calendarMaxHeight = useMemo(() => {
     const navBarHeight = 50;
     const footerHeight = 80;
     const availableHeight = height - navBarHeight - footerHeight;
-    return availableHeight * 0.6; // 60%
+    return availableHeight * 0.6;
   }, [height]);
 
-  // レイアウト分岐を独立したステートメントに抽出
   const renderGanttScreen = useMemo(() => {
     if (gantt.isWide) {
       return (
@@ -171,7 +146,7 @@ export default function HomeCommonScreen() {
 
     return (
       <View style={{ flex: 1 }}>
-        {/* カレンダー部分（60%） */}
+        {}
         <View style={{ flex: 6 }}>
           <HomeGanttMobileScreen
             namesFirst={[]}
@@ -196,7 +171,7 @@ export default function HomeCommonScreen() {
           />
         </View>
 
-        {/* モバイル版のみ：左右ウィジェット（40%） */}
+        {}
         <View style={{ flex: 4 }}>
           <View style={widgetStyles.widgetContainer}>
             <NextShiftWidget
@@ -230,12 +205,9 @@ export default function HomeCommonScreen() {
     nextShift,
   ]);
 
-  // リアルタイムリスナーによりローディング状態は不要
-  // データは即座に反映され、UXが向上
-
   return (
     <View style={[styles.container, { flex: 1 }]}>
-      {/* PC版以外のみDateNavBarを表示 */}
+      {}
       {!gantt.isWide && (
         <DateNavBar
           isMobile={!gantt.isWide}
@@ -259,10 +231,10 @@ export default function HomeCommonScreen() {
         }}
       />
 
-      {/* レイアウト分岐 */}
+      {}
       {renderGanttScreen}
 
-      {/* ユーザー1日ガントチャートモーダル */}
+      {}
       <UserDayGanttModal
         visible={!!gantt.modalUser}
         onClose={() => gantt.setModalUser(null)}
@@ -270,7 +242,7 @@ export default function HomeCommonScreen() {
         sampleSchedule={gantt.scheduleForSelectedDate}
       />
 
-      {/* パスワード変更モーダル */}
+      {}
       <Modal
         visible={showPasswordModal}
         animationType="slide"
@@ -279,7 +251,7 @@ export default function HomeCommonScreen() {
         <ChangePassword onComplete={() => setShowPasswordModal(false)} />
       </Modal>
 
-      {/* 次のシフト詳細モーダル */}
+      {}
       <NextShiftDetailModal
         visible={showNextShiftModal}
         onClose={() => setShowNextShiftModal(false)}

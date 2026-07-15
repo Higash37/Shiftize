@@ -1,15 +1,4 @@
-/** @file EditShiftModalView.tsx
- *  @description シフト編集用のモーダルフォーム。
- *    既存シフトのユーザー、時間、ステータスの変更と削除が可能。
- *    途中時間（授業等）の追加・編集サブ画面を内包する。
- *    マスターロールのみステータス変更プルダウンが表示される。
- */
 
-// 【このファイルの位置づけ】
-// - import元: ClassTimeEditor, TimeInput, useAuth（ロール判定）
-// - importされる先: ShiftModalRenderer（showEditModal === true 時に表示）
-// - 役割: 既存シフトの編集フォーム。isAddingClassTime フラグで
-//   メイン編集画面と途中時間追加画面を切り替える。
 
 import React from "react";
 import {
@@ -67,7 +56,6 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
   const [isAddingClassTime, setIsAddingClassTime] = React.useState(false);
   const [isManualInput, setIsManualInput] = React.useState(false);
 
-  // visible=false 時は shiftId を渡さずDB fetchをスキップ
   const { canUndo, canRedo, undo, redo, historyCount, currentIndex } =
     useShiftUndoRedo(visible ? shiftId : undefined, user?.storeId);
 
@@ -102,7 +90,6 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
     }
   }, [visible]);
 
-  // 全フックの後で早期リターン（フックルール遵守）
   if (!visible) return null;
 
   const renderTimeInput = (label: string, field: "startTime" | "endTime") => (
@@ -153,7 +140,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
           onPress={(e) => e.stopPropagation()}
         >
           {isAddingClassTime ? (
-            // 授業時間追加モーダル
+
             <ScrollView
               style={{ flex: 1 }}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
@@ -181,7 +168,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
               </TouchableOpacity>
             </ScrollView>
           ) : (
-            // メインのシフト編集画面
+
             <ScrollView
               style={{ flex: 1 }}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
@@ -291,7 +278,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
                 {renderTimeInput("終了時間", "endTime")}
               </View>
 
-              {/* 手動入力切り替えボタン */}
+              {}
               <TouchableOpacity
                 style={{
                   alignSelf: 'center',

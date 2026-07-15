@@ -1,17 +1,8 @@
-/** @file LoadingOverlay.tsx
- *  @description 読み込み中に画面全体を覆う半透明オーバーレイ。
- *    isLoading が true の場合だけ表示される。
- */
 
-// 【このファイルの位置づけ】
-// - importされる先: GanttChartMonthView
-// - 役割: シフト保存中などに画面操作を一時的にブロックするオーバーレイ。
-//   position: absolute で親要素全体を覆い、pointerEvents: "auto" でタッチを吸収する。
 
 import React from "react";
 import { View, StyleSheet } from "react-native";
 
-// React.FC<{ isLoading: boolean }>: isLoading を boolean で受け取る関数コンポーネントの型。
 const LoadingOverlay: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   if (!isLoading) return null;
 

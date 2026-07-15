@@ -1,18 +1,4 @@
-/**
- * @file ShiftEditCardView.tsx
- * @description 日別のシフト一覧を編集・削除可能なカード形式で表示するコンポーネント。
- *
- * 【このファイルの位置づけ】
- *   master-view > ganttView 配下の UIパーツ。
- *   ShiftCardView の編集版。ガントチャートの編集モードで使われる。
- *
- * 主要Props:
- *   - date: 表示対象の日付
- *   - shifts: その日のシフト配列
- *   - users: スタッフ情報配列
- *   - onEdit: シフト編集コールバック
- *   - onDelete: シフト削除コールバック
- */
+
 import React, { useState } from "react";
 import {
   View,
@@ -62,7 +48,6 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
 
-  // モーダル状態管理
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit" | "delete">(
     "create"
@@ -94,7 +79,6 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
     onMonthChange(nextDate.getFullYear(), nextDate.getMonth());
   };
 
-  // モーダル処理関数
   const openCreateModal = (date: string) => {
     setSelectedDate(date);
     setSelectedShift(null);
@@ -125,7 +109,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
   const handleShiftSave = async (data: ShiftData) => {
     try {
       await onShiftSave?.(data);
-      onShiftUpdate(); // 一覧を更新
+      onShiftUpdate();
     } catch (error) {
       throw error;
     }
@@ -134,7 +118,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
   const handleShiftDelete = async (shiftId: string) => {
     try {
       await onShiftDelete?.(shiftId);
-      onShiftUpdate(); // 一覧を更新
+      onShiftUpdate();
     } catch (error) {
       throw error;
     }
@@ -169,7 +153,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
           )}
         </TouchableOpacity>
 
-        {/* 編集・削除ボタン */}
+        {}
         <View style={styles.shiftActions}>
           <TouchableOpacity
             style={[styles.actionButton, styles.editButton]}
@@ -216,7 +200,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
             </Text>
           </View>
 
-          {/* シフト追加ボタン */}
+          {}
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => openCreateModal(date)}
@@ -238,7 +222,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* 月選択ヘッダー */}
+      {}
       <View style={styles.monthHeader}>
         <TouchableOpacity style={styles.monthButton} onPress={handlePrevMonth}>
           <Ionicons name="chevron-back" size={24} color={colors.primary} />
@@ -257,7 +241,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* 日別カード一覧 */}
+      {}
       <ScrollView
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -268,7 +252,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
         </View>
       </ScrollView>
 
-      {/* シフト編集モーダル */}
+      {}
       <ShiftModal
         visible={modalVisible}
         mode={modalMode}

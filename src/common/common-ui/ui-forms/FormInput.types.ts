@@ -1,8 +1,7 @@
-/** @file FormInput.types.ts @description Inputコンポーネントの型定義 */
+
 import { TextInputProps, StyleProp, TextStyle } from "react-native";
 import { BaseComponentProps } from "../componentTypes";
 
-/** Inputのスタイル名 */
 export type InputStyleName =
   | "container"
   | "label"
@@ -11,32 +10,17 @@ export type InputStyleName =
   | "helperText"
   | "errorText";
 
-/** InputコンポーネントのProps。label, error, helperを受け取る */
 export interface InputProps
   extends Omit<TextInputProps, "style">,
     BaseComponentProps {
-  /**
-   * 入力フィールドのラベル
-   */
+
   label?: string;
 
-  /**
-   * エラーメッセージ（存在する場合、赤色で表示）
-   */
   error?: string;
 
-  /**
-   * ヘルパーテキスト（入力フィールドの下に表示）
-   */
   helper?: string;
 
-  /**
-   * ラベルのスタイル
-   */
   labelStyle?: StyleProp<TextStyle>;
 
-  /**
-   * ヘルパーテキストのスタイル
-   */
   helperStyle?: StyleProp<TextStyle>;
 }
