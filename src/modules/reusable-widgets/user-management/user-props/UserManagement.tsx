@@ -1,17 +1,4 @@
-/**
- * @file UserManagement.tsx
- * @description ユーザー管理の統合コンポーネント。一覧表示・追加・編集・削除を管理する。
- *
- * 【このファイルの位置づけ】
- *   reusable-widgets > user-management > user-props 配下の統合コンポーネント。
- *   InfoDashboard の「スタッフ一覧」タブで使われる。
- *
- * 主な内部ロジック:
- *   - showForm フラグで UserList と UserForm を切り替え
- *   - fetchUsers() で Supabase からユーザー一覧を取得
- *   - handleSubmitUser() でユーザーの追加/更新
- *   - handleDeleteUser() でユーザー削除
- */
+
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { User, UserRole } from "@/common/common-models/model-user/UserModel";
@@ -21,10 +8,6 @@ import { UserForm } from "./UserForm";
 import { UserManagementProps } from "../user-types/components";
 import { colors, typography } from "@/common/common-constants/ThemeConstants";
 
-/**
- * ユーザー管理コンポーネント
- * ユーザー一覧の表示、追加、編集、削除などの管理機能を提供します
- */
 const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
   const [userList, setUserList] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +17,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
   const [userPasswords, setUserPasswords] = useState<Record<string, string>>(
     {}
   );
-  // ユーザーデータを取得する
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -51,20 +34,17 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
   useEffect(() => {
     fetchUsers();
   }, []);
-  // ユーザーを編集する
+
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
     setShowForm(true);
   };
 
-  // ユーザーを削除する
   const handleDeleteUser = async (userId: string) => {
-    // 削除処理は実際には実装しないでダミー実装とする
+
     setLoading(true);
     try {
-      // 実際にSupabaseからユーザーを削除する処理が入る
 
-      // 削除後に一覧を更新
       setUserList(userList.filter((user: User) => user.uid !== userId));
     } catch (err) {
       setError("ユーザーの削除に失敗しました");
@@ -73,7 +53,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
     }
   };
 
-  // ユーザーの追加/更新
   const handleSubmitUser = async (data: {
     email: string;
     password?: string;
@@ -83,9 +62,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
     setLoading(true);
     try {
       if (selectedUser) {
-        // 既存ユーザーの更新処理（実際には実装しない）
 
-        // ユーザー一覧を更新
         const updatedUsers = userList.map((user: User) =>
           user.uid === selectedUser.uid
             ? { ...user, nickname: data.nickname, role: data.role }
@@ -93,10 +70,9 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
         );
         setUserList(updatedUsers);
       } else {
-        // 新規ユーザーの追加処理（実際には実装しない）
+
         const newUserId = `user_${Date.now()}`;
 
-        // 追加したユーザーを一覧に追加
         const newUser: User = {
           uid: newUserId,
           nickname: data.nickname,
@@ -104,7 +80,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
         };
         setUserList([...userList, newUser]);
 
-        // 仮パスワードを保存
         if (data.password) {
           setUserPasswords({
             ...userPasswords,
@@ -113,7 +88,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
         }
       }
 
-      // フォームを閉じる
       setShowForm(false);
       setSelectedUser(null);
     } catch (err) {
@@ -123,7 +97,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
     }
   };
 
-  // フォームのキャンセル処理
   const handleCancelForm = () => {
     setShowForm(false);
     setSelectedUser(null);

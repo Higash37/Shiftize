@@ -1,20 +1,4 @@
-/**
- * @file useUser.ts
- * @description ユーザーCRUD操作を提供するカスタムフック。
- *   ユーザーの取得・追加・編集・削除をServiceProvider経由で実行する。
- *
- * 【このファイルの位置づけ】
- *   reusable-widgets > user-management > user-hooks 配下のフック。
- *   UserManagement / InfoDashboard などから利用される。
- *
- * 返り値:
- *   - users: ユーザー配列
- *   - loading / error: ローディング・エラー状態
- *   - addUser(): 新規ユーザー作成（バリデーション + メール重複チェック + Auth登録）
- *   - editUser(): ユーザー情報更新
- *   - removeUser(): ユーザー削除
- *   - refreshUsers(): 手動リフレッシュ
- */
+
 import { useState, useEffect } from "react";
 import { User, UserRole } from "@/common/common-models/model-user/UserModel";
 import { ServiceProvider } from "@/services/ServiceProvider";
@@ -44,13 +28,12 @@ export const useUser = (storeId?: string) => {
     }
   };
 
-  // loading状態を変えずにバックグラウンドでデータを同期
   const silentRefresh = async () => {
     try {
       const userData = await ServiceProvider.users.getUsers(storeId);
       setUsers(userData);
     } catch {
-      // サイレントなので無視
+
     }
   };
   const addUser = async (
@@ -84,8 +67,6 @@ export const useUser = (storeId?: string) => {
         }
       }
 
-      // 実際のメールアドレスが提供された場合はそれを使用、なければ自動生成
-      // メールアドレスを正規化（Unicodeの文字/数字は維持）
       const sanitizeForEmail = (str: string) =>
         str
           .normalize("NFKC")
@@ -101,7 +82,6 @@ export const useUser = (storeId?: string) => {
               nickname,
             )}@example.com`);
 
-      // メールアドレスの重複チェック（タイムアウト付き）
       try {
         const emailExists = await ServiceProvider.users.checkEmailExists(userEmail, storeId);
         if (emailExists) {
@@ -113,7 +93,7 @@ export const useUser = (storeId?: string) => {
         }
       } catch (emailCheckError: any) {
         if (emailCheckError.message === "Query timeout after 10 seconds") {
-          // タイムアウトの場合は処理を継続（重複の可能性はあるがSupabase Authでエラーになる）
+
         } else {
           throw emailCheckError;
         }
@@ -130,7 +110,6 @@ export const useUser = (storeId?: string) => {
         furigana,
       );
 
-      // リストを更新
       await fetchUsers();
       return newUser;
     } catch (err: any) {

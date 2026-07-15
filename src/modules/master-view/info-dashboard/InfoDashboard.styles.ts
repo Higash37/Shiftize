@@ -1,16 +1,4 @@
-/** @file InfoDashboard.styles.ts
- *  @description 情報ダッシュボード画面のスタイル定義。
- *    サマリーカード、予算カード、スタッフグリッド、コスト内訳、
- *    効率指標、タスク管理、配置マトリクス、モーダル、タブバーなど
- *    ダッシュボード全体のレイアウトを一括管理する。
- *
- *  【このファイルの位置づけ】
- *  - 依存: react-native の StyleSheet / MD3Theme（テーマトークン）
- *  - 利用先: InfoDashboard コンポーネント
- *  - テーマファクトリ関数パターン:
- *    createInfoDashboardStyles(theme, breakpoint) を呼ぶと
- *    ブレークポイントに応じたスタイルシートが返る
- */
+
 import { StyleSheet } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
@@ -42,7 +30,6 @@ export const createInfoDashboardStyles = (
       paddingBottom: theme.spacing.xxxl,
     },
 
-    // Section title
     sectionTitle: {
       ...theme.typography.labelLarge,
       fontWeight: "700",
@@ -50,7 +37,6 @@ export const createInfoDashboardStyles = (
       marginBottom: theme.spacing.sm,
     },
 
-    // Budget button
     budgetButton: {
       flexDirection: "row",
       alignItems: "center",
@@ -73,7 +59,6 @@ export const createInfoDashboardStyles = (
       marginTop: 2,
     },
 
-    // Summary card (3-column horizontal)
     summaryCard: {
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.small,
@@ -102,7 +87,6 @@ export const createInfoDashboardStyles = (
       textAlign: "center",
     },
 
-    // Mini card — individual metric box
     miniCard: {
       flex: 1,
       minWidth: isDesktop ? 140 : isTablet ? 120 : 100,
@@ -125,7 +109,6 @@ export const createInfoDashboardStyles = (
       marginTop: 1,
     },
 
-    // Staff grid
     staffSection: {
       marginBottom: theme.spacing.md,
     },
@@ -178,7 +161,6 @@ export const createInfoDashboardStyles = (
       textAlign: "right",
     },
 
-    // Budget vs Actual card
     budgetCard: {
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.small,
@@ -224,7 +206,6 @@ export const createInfoDashboardStyles = (
       fontWeight: "600",
     },
 
-    // Cost breakdown card
     costCard: {
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.small,
@@ -260,7 +241,6 @@ export const createInfoDashboardStyles = (
       borderRadius: 4,
     },
 
-    // Efficiency metrics card
     metricsCard: {
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.small,
@@ -289,7 +269,6 @@ export const createInfoDashboardStyles = (
       textAlign: "center",
     },
 
-    // Task badges on staff cards
     taskBadgeRow: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -308,7 +287,6 @@ export const createInfoDashboardStyles = (
       fontWeight: "700",
     },
 
-    // Task management section
     taskActionBtn: {
       flexDirection: "row",
       alignItems: "center",
@@ -347,7 +325,6 @@ export const createInfoDashboardStyles = (
       ...theme.typography.bodyMedium,
     },
 
-    // Assignment matrix
     assignHeaderRow: {
       flexDirection: "row",
       alignItems: "flex-end",
@@ -374,7 +351,6 @@ export const createInfoDashboardStyles = (
       minWidth: 48,
     },
 
-    // Loading / empty states
     loadingContainer: {
       flex: 1,
       justifyContent: "center",
@@ -406,7 +382,6 @@ export const createInfoDashboardStyles = (
       lineHeight: 20,
     },
 
-    // Modal
     modalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -469,7 +444,6 @@ export const createInfoDashboardStyles = (
       minWidth: 80,
     },
 
-    // Tab bar
     tabBar: {
       flexDirection: "row",
       backgroundColor: theme.colorScheme.surface,

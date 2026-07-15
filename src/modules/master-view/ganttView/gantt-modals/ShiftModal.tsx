@@ -1,19 +1,4 @@
-/**
- * @file ShiftModal.tsx
- * @description シフトの作成・編集・削除を行うモーダル。日付・スタッフ・時間帯を
- *   入力してシフトを登録する。
- *
- * 【このファイルの位置づけ】
- *   master-view > ganttView > gantt-modals 配下のモーダル。
- *   GanttChartMonthView や ShiftEditCardView から開かれる。
- *
- * 主な内部ロジック:
- *   - mode: "create" / "edit" / "delete" で表示を切り替え
- *   - スタッフ選択 Picker
- *   - 開始・終了時間の選択
- *   - バリデーション（時間の前後関係チェック等）
- *   - ServiceProvider.shifts 経由で Supabase に保存
- */
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -39,10 +24,6 @@ import {
   ClassTimeSlot,
   DEFAULT_SHIFT_STATUS_CONFIG,
 } from "@/common/common-models/ModelIndex";
-import { ServiceProvider } from "@/services/ServiceProvider";
-import { useAuth } from "@/services/auth/useAuth";
-import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
-
 import { generateTimeOptions } from "@/modules/reusable-widgets/gantt-chart/gantt-chart-common/utils";
 
 export interface ShiftData {
@@ -77,8 +58,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
   onSave,
   onDelete,
 }) => {
-  const { user } = useAuth();
-  const { users: localUsers } = useUsers();
   const [selectedUserId, setSelectedUserId] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -86,45 +65,9 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
   const [status, setStatus] = useState<ShiftStatus>("approved");
   const [classes, setClasses] = useState<ClassTimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
-  const [connectedStoreUsers, setConnectedStoreUsers] = useState<
-    Array<{
-      uid: string;
-      nickname: string;
-      email: string;
-      role: string;
-      storeId: string;
-      storeName: string;
-      isFromOtherStore: boolean;
-    }>
-  >([]);
 
   const timeOptions = generateTimeOptions();
 
-  // 連携校舎のユーザーを取得
-  useEffect(() => {
-    const fetchConnectedStoreUsers = async () => {
-      if (!user?.uid) return;
-
-      try {
-        // 現在のユーザーのstoreIdを取得
-        const currentUser = localUsers.find((u) => u.uid === user.uid);
-        if (!currentUser?.storeId) return;
-
-        const users = await ServiceProvider.multiStore.getConnectedStoreUsers(
-          currentUser.storeId
-        );
-        setConnectedStoreUsers(users);
-      } catch (error) {
-        // 連携校舎ユーザーの取得失敗は無視
-      }
-    };
-
-    if (visible) {
-      fetchConnectedStoreUsers();
-    }
-  }, [visible, user?.uid, localUsers]);
-
-  // モーダルが開かれた時にデータを初期化
   useEffect(() => {
     if (visible) {
       if (mode === "create") {
@@ -136,7 +79,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         setClasses([]);
       } else if (mode === "edit" && shiftData) {
         setSelectedUserId(shiftData.userId);
-        setStartTime(shiftData.startTime.substring(0, 5)); // HH:MM形式
+        setStartTime(shiftData.startTime.substring(0, 5));
         setEndTime(shiftData.endTime.substring(0, 5));
         setSubject(shiftData.subject || "");
         setStatus(shiftData.status || "approved");
@@ -193,10 +136,8 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
       classes: classes,
     };
 
-    // モーダルを即座に閉じる
     onClose();
 
-    // バックグラウンドで保存（リアルタイムリスナーが自動反映）
     onSave?.(data);
   };
 
@@ -223,54 +164,38 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
     ]);
   };
 
-  const renderUserSelector = () => {
-    // 本店舗と連携校舎のユーザーを統合
-    const allUsers = [...users, ...connectedStoreUsers];
-
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>スタッフ</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.userScrollView}
-          contentContainerStyle={styles.userScrollContent}
-        >
-          {allUsers.map((user) => (
-            <TouchableOpacity
-              key={user.uid}
+  const renderUserSelector = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>スタッフ</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.userScrollView}
+        contentContainerStyle={styles.userScrollContent}
+      >
+        {users.map((user) => (
+          <TouchableOpacity
+            key={user.uid}
+            style={[
+              styles.userChip,
+              selectedUserId === user.uid && styles.userChipSelected,
+              { borderColor: user.color || colors.primary },
+            ]}
+            onPress={() => setSelectedUserId(user.uid)}
+          >
+            <Text
               style={[
-                styles.userChip,
-                selectedUserId === user.uid && styles.userChipSelected,
-                {
-                  borderColor:
-                    ("color" in user ? user.color : null) || colors.primary,
-                },
+                styles.userChipText,
+                selectedUserId === user.uid && styles.userChipTextSelected,
               ]}
-              onPress={() => setSelectedUserId(user.uid)}
             >
-              <Text
-                style={[
-                  styles.userChipText,
-                  selectedUserId === user.uid && styles.userChipTextSelected,
-                ]}
-              >
-                {user.nickname}
-                {"storeName" in user &&
-                  user.storeName &&
-                  user.isFromOtherStore && (
-                    <Text style={styles.storeNameText}>
-                      {" "}
-                      - {user.storeName}
-                    </Text>
-                  )}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  };
+              {user.nickname}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
 
   const renderTimeInputs = () => (
     <View style={styles.section}>
@@ -415,8 +340,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
   );
 
   const renderDeleteConfirmation = () => {
-    const allUsers = [...users, ...connectedStoreUsers];
-    const user = allUsers.find((u) => u.uid === shiftData?.userId);
+    const user = users.find((u) => u.uid === shiftData?.userId);
     return (
       <View style={styles.deleteContainer}>
         <MaterialIcons name="warning" size={48} color={colors.error} />
@@ -424,11 +348,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         <View style={styles.deleteInfo}>
           <Text style={styles.deleteInfoText}>
             スタッフ: {user?.nickname || "不明"}
-            {user &&
-              "storeName" in user &&
-              user.storeName &&
-              user.isFromOtherStore &&
-              ` - ${user.storeName}`}
           </Text>
           <Text style={styles.deleteInfoText}>
             時間: {shiftData?.startTime.substring(0, 5)} -{" "}
@@ -451,7 +370,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        {/* ヘッダー */}
+        {}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <MaterialIcons name="close" size={24} color={colors.text.primary} />
@@ -460,7 +379,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
           <View style={styles.headerSpacer} />
         </View>
 
-        {/* コンテンツ */}
+        {}
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {mode === "delete" ? (
             renderDeleteConfirmation()
@@ -475,7 +394,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
           )}
         </ScrollView>
 
-        {/* ボタン */}
+        {}
         <View style={styles.buttonContainer}>
           {mode === "delete" ? (
             <>
@@ -646,7 +565,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
-  // 授業時間関連スタイル
+
   addClassButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -661,7 +580,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
-  // 科目入力スタイル
+
   subjectInput: {
     backgroundColor: colors.surface,
     borderRadius: layout.borderRadius.medium,
@@ -674,7 +593,7 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     minHeight: 80,
   },
-  // 削除確認スタイル
+
   deleteContainer: {
     alignItems: "center",
     padding: layout.padding.xlarge,
@@ -704,7 +623,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
-  // ボタンスタイル
+
   buttonContainer: {
     flexDirection: "row",
     paddingHorizontal: layout.padding.large,

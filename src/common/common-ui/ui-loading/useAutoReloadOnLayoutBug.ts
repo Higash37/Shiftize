@@ -1,8 +1,7 @@
-/** @file useAutoReloadOnLayoutBug.ts @description レイアウト崩れ検知時にページを自動リロードするフック */
+
 import { useEffect } from "react";
 import { useWindowDimensions, Platform } from "react-native";
 
-/** レイアウト崩れ（幅や高さが異常値）を検知し、自動でページリロードする */
 export function useAutoReloadOnLayoutBug(
   threshold: number = 50,
   maxRetry: number = 2
@@ -11,7 +10,7 @@ export function useAutoReloadOnLayoutBug(
 
   useEffect(() => {
     if (Platform.OS === "web") {
-      // セッション単位でリロード回数を管理
+
       const key = "autoReloadCount";
       const count = Number(sessionStorage.getItem(key) || "0");
       if ((width < threshold || height < threshold) && count < maxRetry) {

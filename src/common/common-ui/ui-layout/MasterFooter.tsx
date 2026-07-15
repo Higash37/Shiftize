@@ -1,4 +1,4 @@
-/** @file MasterFooter.tsx @description 管理者用フッターナビゲーション。ホーム/業務/当日/追加/今月/来月/ユーザー/設定のタブを提供 */
+
 import React, { useState, useEffect, useMemo } from "react";
 import { View, TouchableOpacity, Text, Alert } from "react-native";
 import { useRouter, usePathname } from "expo-router";
@@ -19,12 +19,8 @@ import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { MD3ColorScheme } from "@/common/common-theme/md3/MD3Colors";
-import { useTodoBadge } from "@/common/common-context/TodoBadgeContext";
 import { usePendingShiftBadge } from "@/common/common-context/PendingShiftBadgeContext";
 
-// レスポンシブデザイン用の定数
-
-/** 管理者用フッタータブをテーマカラーに応じて生成 */
 const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
   {
     name: "home",
@@ -41,24 +37,11 @@ const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
   },
   {
     name: "info",
-    label: "業務",
+    label: "スタッフ",
     path: "/master/info",
     icon: (active: boolean) => (
       <Ionicons
         name="information-circle"
-        size={24}
-        color={active ? cs.primary : cs.onSurfaceVariant}
-      />
-    ),
-    isUnderDevelopment: false,
-  },
-  {
-    name: "today",
-    label: "当日",
-    path: "/master/today",
-    icon: (active: boolean) => (
-      <Ionicons
-        name="today"
         size={24}
         color={active ? cs.primary : cs.onSurfaceVariant}
       />
@@ -117,19 +100,6 @@ const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
     ),
     isUnderDevelopment: false,
   },
-  {
-    name: "settings",
-    label: "設定",
-    path: "/master/settings",
-    icon: (active: boolean) => (
-      <Ionicons
-        name="settings"
-        size={24}
-        color={active ? cs.primary : cs.onSurfaceVariant}
-      />
-    ),
-    isUnderDevelopment: true,
-  },
 ];
 function isStandalonePWA() {
   if (globalThis.window !== undefined) {
@@ -141,23 +111,19 @@ function isStandalonePWA() {
   return false;
 }
 
-/** 管理者用フッターナビゲーション。募集期間のツールチップ表示にも対応 */
 export function MasterFooter(_props: Readonly<MasterFooterProps>) {
-  // --- Hooks ---
+
   const router = useRouter();
   const styles = useThemedStyles(createFooterStyles);
   const { colorScheme } = useMD3Theme();
   const masterTabs = useMemo(() => createMasterTabs(colorScheme), [colorScheme]);
-  const { todayUnreadCount } = useTodoBadge();
   const { thisMonthCount: pendingThisMonth, nextMonthCount: pendingNextMonth } = usePendingShiftBadge();
   useExtendedFonts();
   const pathname = usePathname();
   const { user } = useAuth();
 
-  // --- State ---
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
 
-  // --- Effects ---
   useEffect(() => {
     if (user?.storeId) {
       loadActivePeriod();
@@ -171,11 +137,10 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
       );
       setPeriod(periods?.[0] ?? null);
     } catch (error) {
-      // 期間ロード失敗は無視
+
     }
   };
 
-  // --- Handlers ---
   const getDaysUntilDeadline = (): number => {
     if (!period) return 0;
     return ServiceProvider.shiftSubmissions.getDaysUntilDeadline(period);
@@ -192,7 +157,6 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
       return;
     }
 
-    // シフト追加タブの場合は期間チェックのみ実施
     if (tab.name === "create" && period) {
       const canSubmit = isWithinPeriod();
       const daysLeft = getDaysUntilDeadline();
@@ -209,7 +173,6 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
     router.replace(tab.path);
   };
 
-  // --- Render ---
   const isPWA = isStandalonePWA();
 
   return (
@@ -261,18 +224,6 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
           >
             <View style={{ position: "relative" }}>
               {tab.icon(active)}
-              {tab.name === "today" && todayUnreadCount > 0 && (
-                <View style={{
-                  position: "absolute", top: -4, right: -8,
-                  minWidth: 16, height: 16, borderRadius: 8,
-                  backgroundColor: "#D32F2F", justifyContent: "center", alignItems: "center",
-                  paddingHorizontal: 3,
-                }}>
-                  <Text style={{ fontSize: 9, fontWeight: "700", color: "#fff" }}>
-                    {todayUnreadCount > 99 ? "99+" : todayUnreadCount}
-                  </Text>
-                </View>
-              )}
               {tab.name === "thisMonth" && pendingThisMonth > 0 && (
                 <View style={{
                   position: "absolute", top: -4, right: -8,
@@ -308,14 +259,14 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
               {tab.label}
             </Text>
 
-            {/* シフト追加アイコンの上にツールチップを表示 */}
+            {}
             {tab.name === "create" && period && (
               <View
                 style={{
                   position: "absolute",
-                  bottom: "100%", // タブの真上
-                  left: "50%", // タブの中央
-                  transform: [{ translateX: -30 }], // ツールチップの中央を合わせる
+                  bottom: "100%",
+                  left: "50%",
+                  transform: [{ translateX: -30 }],
                   backgroundColor: "#FF9800",
                   borderRadius: 6,
                   paddingVertical: 6,
@@ -331,7 +282,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
                   marginBottom: 8,
                 }}
               >
-                {/* 吹き出しの三角形 */}
+                {}
                 <View
                   style={{
                     position: "absolute",

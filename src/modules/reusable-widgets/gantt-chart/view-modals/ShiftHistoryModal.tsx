@@ -1,13 +1,4 @@
-/** @file ShiftHistoryModal.tsx
- *  @description シフト変更履歴モーダル。
- *    当月のシフト変更（作成/時間変更/担当変更/ステータス変更/削除/一括承認等）を
- *    時系列で一覧表示する。種別・実行者・テキストでフィルタリング可能。
- */
 
-// 【このファイルの位置づけ】
-// - import元: useShiftHistory（履歴データ取得フック）, shiftHistoryLogger（型定義）
-// - importされる先: GanttChartMonthView（onOpenHistory 時に表示）
-// - 役割: シフトの変更監査ログを閲覧するUI。React.memo でメモ化。
 
 import React, { useState, useMemo, useEffect } from "react";
 import {
@@ -27,8 +18,6 @@ import {
   ShiftHistoryEntry,
 } from "@/services/shift-history/shiftHistoryLogger";
 
-// ACTION_LABELS: アクション種別コード → 日本語ラベルのマッピング。
-// Record<ShiftActionType, string> は「全 ShiftActionType をキーとし、値が string」の型。
 const ACTION_LABELS: Record<ShiftActionType, string> = {
   create: "新規作成",
   update_time: "時間を変更",
@@ -58,7 +47,6 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
     const [selectedEntry, setSelectedEntry] =
       useState<ShiftHistoryEntry | null>(null);
 
-    // 当月の開始日と終了日を計算
     const { startDate, endDate } = useMemo(() => {
       const year = selectedDate.getFullYear();
       const month = selectedDate.getMonth();
@@ -67,7 +55,6 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
       return { startDate: start, endDate: end };
     }, [selectedDate]);
 
-    // 履歴データを取得
     const {
       entries: historyEntries,
       isLoading,
@@ -80,7 +67,6 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
       userFilter: filterUser,
       searchQuery: searchQuery,
     });
-
 
     useEffect(() => {
       if (!visible) {
@@ -127,9 +113,8 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
       }
     };
 
-
     const formatTimestamp = (timestamp: any) => {
-      // Firestore TimestampをDateオブジェクトに変換
+
       const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
       const now = new Date();
       const diff = now.getTime() - date.getTime();
@@ -180,7 +165,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
               overflow: "hidden",
             }}
           >
-            {/* ヘッダー */}
+            {}
             <View
               style={{
                 flexDirection: "row",
@@ -205,7 +190,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
               </TouchableOpacity>
             </View>
 
-            {/* フィルタセクション */}
+            {}
             <View
               style={{
                 borderBottomWidth: 1,
@@ -222,7 +207,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
                   marginBottom: 10,
                 }}
               >
-                {/* 種別フィルタ */}
+                {}
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{ fontSize: 12, color: "#666", marginBottom: 5 }}
@@ -260,7 +245,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
                   </View>
                 </View>
 
-                {/* ユーザーフィルタ */}
+                {}
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{ fontSize: 12, color: "#666", marginBottom: 5 }}
@@ -283,7 +268,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
                 </View>
               </View>
 
-              {/* 検索ボックス */}
+              {}
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Ionicons
                   name="search"
@@ -308,7 +293,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
               </View>
             </View>
 
-            {/* 履歴リスト */}
+            {}
             <View
               style={{
                 flex: 1,
@@ -425,7 +410,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
               </ScrollView>
             </View>
 
-            {/* フッター */}
+            {}
             <View
               style={{
                 flexDirection: "row",

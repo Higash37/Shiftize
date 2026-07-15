@@ -1,22 +1,4 @@
-/**
- * @file ClockWidget.tsx
- * @description アナログ時計ウィジェット。SVG で時計盤を描画し、スタッフのシフト時間を
- *   円弧（アーク）で可視化する。AM/PM の切り替えにも対応。
- *
- * 【このファイルの位置づけ】
- *   home-view > home-components > home-widgets 配下のウィジェット。
- *   HomeGanttMobileScreen / HomeGanttTabletScreen / HomeGanttWideScreen で使われる。
- *
- * 主な内部ロジック:
- *   - SVG の円弧パス生成（describeArc）
- *   - 現在時刻の針の角度計算
- *   - AM/PM トグルで表示時間帯を切り替え
- *   - Platform 分岐: Web は <svg> タグ、ネイティブは react-native-svg
- *
- * 主要Props:
- *   - shifts: 表示するシフト配列
- *   - size: 時計盤のサイズ(px)
- */
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -29,16 +11,15 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import { typography } from "@/common/common-constants/TypographyConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 
-// Webの場合はreact-svgを、ネイティブの場合はreact-native-svgを使用
 let Svg: any, Circle: any, Line: any, Path: any;
 if (Platform.OS === "web") {
-  // Webの場合は通常のSVGを使用
+
   Svg = "svg";
   Circle = "circle";
   Line = "line";
   Path = "path";
 } else {
-  // ネイティブの場合
+
   try {
     const svgModule = require("react-native-svg");
     Svg = svgModule.default || svgModule.Svg;
@@ -46,12 +27,12 @@ if (Platform.OS === "web") {
     Line = svgModule.Line;
     Path = svgModule.Path;
   } catch (e) {
-    // react-native-svg not available
+
   }
 }
 
 interface ClockWidgetProps {
-  staffSchedules: Array<{ startTime: string; endTime: string }>; // "HH:MM" format
+  staffSchedules: Array<{ startTime: string; endTime: string }>; 
   size?: number;
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
@@ -64,10 +45,10 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
   onDateSelect,
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isPM, setIsPM] = useState(true); // 午前/午後の切り替え（デフォルト: 午後）
+  const [isPM, setIsPM] = useState(true); 
 
   useEffect(() => {
-    // requestAnimationFrameで毎フレーム正確な時刻を取得
+
     let animationFrameId: number;
 
     const updateTime = () => {
@@ -87,48 +68,42 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
   const center = size / 2;
   const radius = size / 2 - 20;
 
-  // サイズに応じてフォントサイズやスケールを調整
-  const scale = size / 300; // 300pxを基準とする
-  const numberFontSize = Math.max(12, 16 * scale); // 最小12px
-  const toggleFontSize = Math.max(11, 14 * scale); // 最小11px
-  const togglePadding = Math.max(4, 8 * scale); // 最小4px
+  const scale = size / 300; 
+  const numberFontSize = Math.max(12, 16 * scale); 
+  const toggleFontSize = Math.max(11, 14 * scale); 
+  const togglePadding = Math.max(4, 8 * scale); 
 
-  // 時刻を角度に変換（12時間表示）
   const timeToAngle = (hours: number, minutes: number): number => {
     const totalMinutes = (hours % 12) * 60 + minutes;
-    return (totalMinutes / (12 * 60)) * 360 - 90; // -90で12時を上に
+    return (totalMinutes / (12 * 60)) * 360 - 90; 
   };
 
-  // 時間文字列("HH:MM")を角度に変換
   const timeStringToAngle = (timeStr: string): number => {
     const [h, m] = timeStr.split(":").map((v) => Number.parseInt(v, 10));
     return timeToAngle(h || 0, m || 0);
   };
 
-  // 時間文字列を分に変換
   const timeStrToMinutes = (t: string) => {
     const [h, m] = t.split(":").map(Number);
     return (h || 0) * 60 + (m || 0);
   };
 
-  // 分を時間文字列に変換
   const minutesToTimeStr = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
   };
 
-  // 午前/午後に応じてスケジュールをフィルタリング＋時間帯をクリップ
-  const NOON = 720; // 12:00 = 720分
+  const NOON = 720;
   const filteredSchedules = staffSchedules
     .filter((schedule) => {
       const startMins = timeStrToMinutes(schedule.startTime);
       const endMins = timeStrToMinutes(schedule.endTime);
       if (isPM) {
-        // 午後モード: 終了時刻が12:00より後のもの
+
         return endMins > NOON;
       } else {
-        // 午前モード: 開始時刻が12:00より前のもの
+
         return startMins < NOON;
       }
     })
@@ -136,27 +111,24 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
       const startMins = timeStrToMinutes(schedule.startTime);
       const endMins = timeStrToMinutes(schedule.endTime);
       if (isPM) {
-        // PMモード: 開始時刻を12:00以降にクリップ
+
         const clampedStart = Math.max(startMins, NOON);
         return { startTime: minutesToTimeStr(clampedStart), endTime: schedule.endTime };
       } else {
-        // AMモード: 終了時刻を12:00以前にクリップ
+
         const clampedEnd = Math.min(endMins, NOON);
         return { startTime: schedule.startTime, endTime: minutesToTimeStr(clampedEnd) };
       }
     });
 
-  // スタッフがいる時間帯を青い円弧で描画
   const renderStaffArcs = () => {
     return filteredSchedules.map((schedule, index) => {
       let startAngle = timeStringToAngle(schedule.startTime);
       let endAngle = timeStringToAngle(schedule.endTime);
 
-      // 角度を0~360の範囲に正規化
       startAngle = (startAngle + 360) % 360;
       endAngle = (endAngle + 360) % 360;
 
-      // 円弧のパスを生成
       const startRad = (startAngle * Math.PI) / 180;
       const endRad = (endAngle * Math.PI) / 180;
 
@@ -166,7 +138,6 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
       const x2 = center + arcRadius * Math.cos(endRad);
       const y2 = center + arcRadius * Math.sin(endRad);
 
-      // 角度差を計算（時計回り）
       let angleDiff = endAngle - startAngle;
       if (angleDiff < 0) angleDiff += 360;
 
@@ -190,10 +161,9 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
     });
   };
 
-  // 時計の数字を描画（24時間表記）
   const renderNumbers = () => {
     return Array.from({ length: 12 }, (_, i) => {
-      // 午前: 0-11, 午後: 12-23
+
       const displayHour = isPM ? (i === 0 ? 12 : i + 12) : i;
       const angle = (i * 30 - 90) * (Math.PI / 180);
       const numberRadius = radius - 30;
@@ -219,7 +189,6 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
     });
   };
 
-  // 現在時刻の針
   const hours = currentTime.getHours();
   const minutes = currentTime.getMinutes();
   const seconds = currentTime.getSeconds();
@@ -243,7 +212,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
 
   return (
     <View style={styles.outerContainer}>
-      {/* 午前/午後切り替えボタン + 当日ボタン */}
+      {}
       <View style={[styles.toggleContainer, { padding: togglePadding / 2 }]}>
         <TouchableOpacity
           style={[
@@ -294,7 +263,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
 
       <View style={[styles.container, { width: size, height: size }]}>
         <Svg width={size} height={size}>
-          {/* 時計の枠 */}
+          {}
           <Circle
             cx={center}
             cy={center}
@@ -304,10 +273,10 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
             fill={colors.surface}
           />
 
-          {/* スタッフがいる時間帯の表示 */}
+          {}
           {renderStaffArcs()}
 
-          {/* 時刻の目盛り */}
+          {}
           {Array.from({ length: 12 }, (_, i) => {
             const angle = (i * 30 - 90) * (Math.PI / 180);
             const outerX = center + radius * Math.cos(angle);
@@ -328,7 +297,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
             );
           })}
 
-          {/* 時針 */}
+          {}
           <Line
             x1={center}
             y1={center}
@@ -339,7 +308,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
             strokeLinecap="round"
           />
 
-          {/* 分針 */}
+          {}
           <Line
             x1={center}
             y1={center}
@@ -350,7 +319,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
             strokeLinecap="round"
           />
 
-          {/* 秒針 */}
+          {}
           <Line
             x1={center}
             y1={center}
@@ -361,11 +330,11 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
             strokeLinecap="round"
           />
 
-          {/* 中心の円 */}
+          {}
           <Circle cx={center} cy={center} r="6" fill={colors.primary} />
         </Svg>
 
-        {/* 数字表示 */}
+        {}
         <View style={StyleSheet.absoluteFill}>{renderNumbers()}</View>
       </View>
     </View>

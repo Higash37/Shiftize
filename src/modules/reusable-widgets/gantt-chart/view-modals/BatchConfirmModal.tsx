@@ -1,13 +1,4 @@
-/** @file BatchConfirmModal.tsx
- *  @description 一括承認・一括削除の確認モーダル。
- *    ShiftSelectionContext から選択中のシフトIDを取得し、
- *    選択されたシフトのみ or 全未承認シフトを対象に一括操作を実行する。
- */
 
-// 【このファイルの位置づけ】
-// - import元: ShiftSelectionContext（選択状態）, ServiceProvider（DB操作）
-// - importされる先: GanttChartMonthView（batchModal.visible 時に表示）
-// - 役割: 「本当に○件を承認/削除しますか？」の確認UIと実行ロジック。
 
 import React, { useContext } from "react";
 import {
@@ -85,7 +76,6 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
 
     const actor = createActor(user);
 
-    // 各シフトを承認
     for (const shift of targets) {
       await ServiceProvider.shifts.updateShift(
         shift.id,
@@ -94,7 +84,6 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
       );
     }
 
-    // 一括承認の監査ログ
     const canLogApproval = actor && user?.storeId && targets.length > 0;
     if (canLogApproval) {
       const yearMonth = shifts[0]?.date
@@ -144,10 +133,10 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
       transparent
       animationType="fade"
       visible={visible}
-      onRequestClose={() => setBatchModal({ visible: false, type: null })} // モーダル外を押した際に閉じる
+      onRequestClose={() => setBatchModal({ visible: false, type: null })}
     >
       <TouchableWithoutFeedback
-        onPress={() => setBatchModal({ visible: false, type: null })} // モーダル外を押した際に閉じる
+        onPress={() => setBatchModal({ visible: false, type: null })}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>

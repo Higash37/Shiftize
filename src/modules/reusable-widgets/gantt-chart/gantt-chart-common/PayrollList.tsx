@@ -1,13 +1,4 @@
-/** @file PayrollList.tsx
- *  @description ユーザー別の月間給与サマリーを一覧表示するコンポーネント。
- *    承認済みシフトの時間・金額を集計し、未承認分も別途表示する。
- *    ユーザーをタップすると、そのユーザーのシフトだけをフィルタリングできる。
- */
 
-// 【このファイルの位置づけ】
-// - import元: calculateTotalWage（給与計算ユーティリティ）
-// - importされる先: CalendarView（左カラムの給与リスト）
-// - 役割: 「誰が何時間働いて、いくらになるか」を月単位で集計・表示する。
 
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
@@ -16,7 +7,6 @@ import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import { colors } from "@/common/common-theme/ThemeColors";
 
-// UserPayrollData: 1ユーザー分の集計結果の型
 interface UserPayrollData {
   uid: string;
   nickname: string;
@@ -25,7 +15,7 @@ interface UserPayrollData {
   totalHours: number;
   totalAmount: number;
   shiftCount: number;
-  // 未承認分を追加
+
   pendingHours: number;
   pendingAmount: number;
   pendingCount: number;
@@ -52,7 +42,6 @@ export const PayrollList: React.FC<PayrollListProps> = ({
   const calculateUserPayrollData = (): UserPayrollData[] => {
     const userDataMap = new Map<string, UserPayrollData>();
 
-    // 全ユーザーを初期化（シフトなしでも表示）
     users.forEach((user) => {
       userDataMap.set(user.uid, {
         uid: user.uid,
@@ -68,7 +57,6 @@ export const PayrollList: React.FC<PayrollListProps> = ({
       });
     });
 
-    // 承認済み・完了のシフト
     const approvedShifts = shifts.filter((shift) => {
       const shiftDate = new Date(shift.date);
       const shiftYear = shiftDate.getFullYear();
@@ -82,7 +70,6 @@ export const PayrollList: React.FC<PayrollListProps> = ({
       );
     });
 
-    // 未承認のシフト（pending）
     const pendingShifts = shifts.filter((shift) => {
       const shiftDate = new Date(shift.date);
       const shiftYear = shiftDate.getFullYear();
@@ -95,7 +82,6 @@ export const PayrollList: React.FC<PayrollListProps> = ({
       );
     });
 
-    // 承認済みシフトの計算
     approvedShifts.forEach((shift) => {
       const user = users.find((u) => u.uid === shift.userId);
       if (!user || !userDataMap.has(user.uid)) return;
@@ -120,7 +106,6 @@ export const PayrollList: React.FC<PayrollListProps> = ({
       existing.shiftCount += 1;
     });
 
-    // 未承認シフトの計算
     pendingShifts.forEach((shift) => {
       const user = users.find((u) => u.uid === shift.userId);
       if (!user || !userDataMap.has(user.uid)) return;
@@ -169,7 +154,7 @@ export const PayrollList: React.FC<PayrollListProps> = ({
         {selectedYear}年{selectedMonth}月 給与詳細
       </Text>
 
-      {/* 総計表示 */}
+      {}
       <View style={styles.summaryContainer}>
         <Text style={styles.summaryText}>
           総計: {grandTotal.totalAmount.toLocaleString()}円 | {Math.floor(grandTotal.totalHours)}h{Math.round((grandTotal.totalHours % 1) * 60) > 0 && `${Math.round((grandTotal.totalHours % 1) * 60)}m`}{' '}| {grandTotal.shiftCount}件
@@ -184,20 +169,20 @@ export const PayrollList: React.FC<PayrollListProps> = ({
         </Text>
       </View>
 
-      {/* 個人別リスト */}
+      {}
       <ScrollView style={styles.listContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.gridContainer}>
           {payrollData.map((user) => (
-            <TouchableOpacity 
-              key={user.uid} 
+            <TouchableOpacity
+              key={user.uid}
               style={[
                 styles.userRow,
                 selectedUserId === user.uid && styles.selectedUserRow,
-                user.shiftCount === 0 && styles.noShiftUserRow // シフトがない場合のスタイル
+                user.shiftCount === 0 && styles.noShiftUserRow
               ]}
               onPress={() => {
                 if (onUserSelect) {
-                  // 同じユーザーをタップしたら選択解除、異なるユーザーなら選択
+
                   onUserSelect(selectedUserId === user.uid ? null : user.uid);
                 }
               }}
@@ -212,7 +197,7 @@ export const PayrollList: React.FC<PayrollListProps> = ({
                 />
                 <AntDesign name="user" size={16} color={user.color || "#ccc"} />
               </View>
-              
+
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>{user.nickname}</Text>
                 <Text style={[
@@ -229,7 +214,7 @@ export const PayrollList: React.FC<PayrollListProps> = ({
                     </>
                   )}
                 </Text>
-                {/* 未承認分の表示 */}
+                {}
                 {user.pendingCount > 0 && (
                   <Text style={styles.pendingAmount}>
                     未承認: {user.pendingAmount.toLocaleString()}円 | {Math.floor(user.pendingHours)}h
@@ -352,13 +337,13 @@ const styles = StyleSheet.create({
   pendingAmount: {
     fontSize: 10,
     fontWeight: "bold",
-    color: "#ff8c00", // 濃い黄色（オレンジ系）
+    color: "#ff8c00",
     marginTop: 2,
   },
   summaryPending: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#ff8c00", // 濃い黄色（オレンジ系）
+    color: "#ff8c00",
     textAlign: "center",
     marginTop: 4,
   },

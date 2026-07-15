@@ -1,19 +1,4 @@
-/** @file ShiftListItem.tsx
- *  @description シフト一覧の1行を表示するコンポーネント。
- *    日付、ニックネーム（マスター用）、ステータスバッジ、時間、
- *    詳細展開ボタンを横並びで表示する。
- *    React.memo でラップしてメモ化されている。
- *
- *  【このファイルの位置づけ】
- *  - 依存: React / React Native / AntDesign / date-fns /
- *          useMD3Theme / useBreakpoint / types / styles
- *  - 利用先: ShiftListView（UserShiftList）内でシフト一覧の各行として表示
- *
- *  【コンポーネント概要】
- *  - 表示内容: [日付] [ニックネーム?] [ステータス] [時間] [詳細ボタン]
- *  - 主要Props: shift, isSelected, selectedDate, onPress, onDetailsPress,
- *               children（展開時の詳細ビュー）, showNickname
- */
+
 import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
@@ -35,13 +20,12 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
 }) => {
   const theme = useMD3Theme();
   const bp = useBreakpoint();
-  // useMemo でテーマ・ブレークポイントが変わった時だけスタイルを再生成
+
   const styles = useMemo(
     () => createShiftListItemStyles(theme, bp),
     [theme, bp]
   );
 
-  // --- Render ---
   return (
     <View style={{ width: "100%" }}>
       <View
@@ -54,7 +38,7 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
         <TouchableOpacity style={styles.shiftContent} onPress={onPress}>
           <View style={styles.textContainer}>
             <View style={styles.shiftInfoContainer}>
-              {/* 日付 */}
+              {}
               <View style={styles.dateContainer}>
                 <Text style={styles.dateText} numberOfLines={1}>
                   {format(new Date(shift.date), "d日(E)", {
@@ -62,7 +46,7 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
                   })}
                 </Text>
               </View>
-              {/* マスター用: ニックネーム */}
+              {}
               {showNickname && shift.nickname && (
                 <View style={styles.nicknameContainer}>
                   <Text style={styles.nicknameText} numberOfLines={1}>
@@ -70,7 +54,7 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
                   </Text>
                 </View>
               )}
-              {/* ステータス */}
+              {}
               <View style={styles.statusContainer}>
                 <Text
                   numberOfLines={1}
@@ -100,7 +84,7 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
                     : ""}
                 </Text>
               </View>
-              {/* 時間 */}
+              {}
               <Text
                 numberOfLines={1}
                 style={[
@@ -127,8 +111,4 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
   );
 };
 
-/**
- * React.memo でメモ化。
- * Props が変わらなければ再レンダリングをスキップし、パフォーマンスを向上させる。
- */
 export const ShiftListItem = React.memo(ShiftListItemComponent);

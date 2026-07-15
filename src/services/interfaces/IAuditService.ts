@@ -1,4 +1,4 @@
-/** @file IAuditService.ts @description シフト操作の監査ログサービスのインターフェース */
+
 
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import {
@@ -7,9 +7,8 @@ import {
   ShiftHistoryEntry,
 } from "@/services/shift-history/shiftHistoryLogger";
 
-/** シフト変更の監査ログを記録・取得するサービス */
 export interface IAuditService {
-  /** シフト変更をログに記録する */
+
   logShiftChange(
     action: ShiftActionType,
     actor: ShiftHistoryActor,
@@ -19,7 +18,6 @@ export interface IAuditService {
     metadata?: Record<string, unknown>
   ): Promise<void>;
 
-  /** 一括承認をログに記録する */
   logBatchApprove(
     actor: ShiftHistoryActor,
     storeId: string,
@@ -27,7 +25,6 @@ export interface IAuditService {
     count: number
   ): Promise<void>;
 
-  /** シフト履歴をリアルタイム監視する */
   onShiftHistory(
     options: {
       storeId: string;

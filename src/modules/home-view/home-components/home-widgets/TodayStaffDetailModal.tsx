@@ -1,16 +1,4 @@
-/**
- * @file TodayStaffDetailModal.tsx
- * @description 今日出勤しているスタッフの詳細一覧をボトムシートで表示するモーダル。
- *
- * 【このファイルの位置づけ】
- *   home-view > home-components > home-widgets 配下のモーダル。
- *   TodayStaffWidget をタップした時に開く。
- *
- * 主要Props:
- *   - visible: モーダル表示フラグ
- *   - staffList: 今日出勤中のスタッフ配列
- *   - onClose: 閉じるコールバック
- */
+
 import React from "react";
 import {
   View,
@@ -43,7 +31,6 @@ export function TodayStaffDetailModal({
     (shift) => shift.status === "approved" || shift.status === "completed"
   );
 
-  // 時間順にソート
   const sortedShifts = [...approvedShifts].sort((a, b) => {
     return a.startTime.localeCompare(b.startTime);
   });

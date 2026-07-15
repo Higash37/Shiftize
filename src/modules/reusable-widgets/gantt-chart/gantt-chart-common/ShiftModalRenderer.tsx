@@ -1,15 +1,4 @@
-/** @file ShiftModalRenderer.tsx
- *  @description シフトの追加・編集モーダルを管理するコンポーネント。
- *    forwardRef + useImperativeHandle パターンで、親コンポーネントから
- *    modalRef.current?.openEdit(shift) のようにモーダルを命令的に開ける。
- */
 
-// 【このファイルの位置づけ】
-// - import元: EditShiftModalView, AddShiftModalView（実際のモーダルUI）
-// - importされる先: GanttChartMonthView（modalRef経由でモーダル操作）
-// - 役割: モーダルの「どれを表示するか」「どんなデータで開くか」を一元管理する。
-//   forwardRef: 親コンポーネントからrefを受け取れるようにするReact API。
-//   useImperativeHandle: そのrefに公開するメソッド（openEdit, openAdd）を定義する。
 
 import React, { useState, useCallback, useImperativeHandle, forwardRef } from "react";
 import { Alert } from "react-native";
@@ -22,22 +11,19 @@ import { ShiftStatusConfig } from "../GanttChartTypes";
 import { EditShiftModalView } from "../view-modals/EditShiftModalView";
 import { AddShiftModalView } from "../view-modals/AddShiftModalView";
 
-// NewShiftData: シフト追加/編集フォームに必要なデータの型
 export interface NewShiftData {
-  date: string;              // 日付 ("2025-01-15")
-  startTime: string;         // 開始時間 ("09:00")
-  endTime: string;           // 終了時間 ("17:00")
-  userId: string;            // 担当ユーザーのID
-  nickname: string;          // 担当ユーザーの表示名
-  status: ShiftStatus;       // ステータス ("approved" | "pending" | ...)
-  classes: ClassTimeSlot[];  // 途中時間（授業時間など）の配列
+  date: string;              
+  startTime: string;         
+  endTime: string;           
+  userId: string;            
+  nickname: string;          
+  status: ShiftStatus;       
+  classes: ClassTimeSlot[];  
 }
 
-// ShiftModalRendererHandle: 親コンポーネントがrefを通じて呼べるメソッドの型
-// useImperativeHandle で公開するAPI仕様書のようなもの。
 export interface ShiftModalRendererHandle {
-  openEdit: (shift: ShiftItem) => void;  // 既存シフトの編集モーダルを開く
-  openAdd: (data: NewShiftData) => void; // 新規シフトの追加モーダルを開く
+  openEdit: (shift: ShiftItem) => void;  
+  openAdd: (data: NewShiftData) => void; 
 }
 
 interface ShiftModalRendererProps {
@@ -85,7 +71,6 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
   const [newShiftData, setNewShiftData] = useState<NewShiftData>(DEFAULT_SHIFT_DATA);
   const [isLoading] = useState(false);
 
-  // refs で最新のpropsを参照（コールバックを安定化するため）
   const usersRef = React.useRef(users);
   usersRef.current = users;
 
@@ -126,14 +111,12 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
       return;
     }
 
-    // モーダルを即座に閉じる
     const shiftToUpdate = showEditModal ? editingShift : null;
     setShowEditModal(false);
     setShowAddModal(false);
     setEditingShift(null);
     setNewShiftData(DEFAULT_SHIFT_DATA);
 
-    // バックグラウンドで保存（リアルタイムリスナーがガントチャートを自動更新）
     saveShift(shiftToUpdate, newShiftData).catch(() => {
       Alert.alert("エラー", "シフトの保存に失敗しました。");
     });

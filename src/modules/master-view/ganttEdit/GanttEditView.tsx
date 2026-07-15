@@ -1,12 +1,4 @@
-/**
- * @file GanttEditView.tsx
- * @description シフト編集画面のラッパーコンポーネント。GanttChartMonthView を
- *   編集モードで表示する。
- *
- * 【このファイルの位置づけ】
- *   master-view > ganttEdit 配下の画面コンポーネント。
- *   マスターユーザーの「シフト編集」タブで描画される。
- */
+
 import React from "react";
 import { View } from "react-native";
 import { Stack } from "expo-router";
@@ -43,7 +35,7 @@ export const GanttEditView: React.FC<GanttEditViewProps> = ({
         }}
       />
 
-      {/* ガントチャート表示（スマホでは自動的にMobileVerticalViewに切り替わる） */}
+      {}
       <GanttChartMonthView
         shifts={shifts}
         days={days}

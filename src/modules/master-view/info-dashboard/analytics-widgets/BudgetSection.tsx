@@ -1,11 +1,4 @@
-/**
- * @file BudgetSection.tsx
- * @description 予算セクションウィジェット。月間の人件費予算と実績を表示する。
- *
- * 【このファイルの位置づけ】
- *   master-view > info-dashboard > analytics-widgets 配下のウィジェット。
- *   InfoDashboard の「予算」タブで使われる。
- */
+
 import React, { useState } from "react";
 import {
   View,
@@ -52,7 +45,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
       variant="card"
       style={[styles.container, isTabletOrDesktop && styles.containerDesktop]}
     >
-      {/* 1行目: タイトルと入力・表示 */}
+      {}
       <View
         style={[styles.mainRow, isTabletOrDesktop && styles.mainRowDesktop]}
       >
@@ -93,7 +86,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
         </View>
       </View>
 
-      {/* 2行目: 説明文 */}
+      {}
       <Text style={styles.infoTextCompact}>
         ※ この予算を基に各種指標が計算されます
       </Text>
@@ -105,11 +98,11 @@ const styles = StyleSheet.create({
   container: {
     margin: layout.padding.medium,
     marginBottom: layout.padding.small,
-    paddingVertical: layout.padding.small, // 縦の余白を削減
+    paddingVertical: layout.padding.small,
   },
   containerDesktop: {
     marginHorizontal: layout.padding.large,
-    maxWidth: 1000, // 幅を拡張
+    maxWidth: 1000,
     alignSelf: "center",
   },
   mainRow: {
@@ -145,7 +138,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: layout.padding.small,
-    paddingVertical: 6, // 高さを縮小
+    paddingVertical: 6,
     marginRight: layout.padding.medium,
     minWidth: 120,
   },

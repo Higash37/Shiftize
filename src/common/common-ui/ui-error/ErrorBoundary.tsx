@@ -1,20 +1,10 @@
-/**
- * @file ErrorBoundary.tsx
- * @description コンポーネントのクラッシュをキャッチしてフォールバックUIを表示する。
- *   クラスコンポーネントで実装（React のエラーバウンダリはクラスコンポーネントのみ対応）。
- *
- * 【なぜクラスコンポーネントなのか】
- *   React の `componentDidCatch` と `getDerivedStateFromError` は
- *   クラスコンポーネントでのみ利用可能。関数コンポーネントでは使えない。
- *   React チームが将来的にフックベースの API を提供する予定だが、
- *   2026年3月時点ではまだ利用できない。
- */
+
 import React, { Component, ErrorInfo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
-  /** フォールバック表示名（どの領域でエラーが起きたか識別用） */
+
   name?: string;
 }
 
@@ -34,7 +24,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // 本番では外部エラー追跡サービス（Sentry等）に送信する
+
     if (__DEV__) {
       console.error(`[ErrorBoundary${this.props.name ? `: ${this.props.name}` : ""}]`, error, errorInfo);
     }

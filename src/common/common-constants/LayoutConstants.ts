@@ -1,9 +1,5 @@
-/**
- * @file LayoutConstants.ts
- * @description パディング・角丸などレイアウト関連の定数定義
- */
 
-/** レイアウト定数の型 */
+
 export type LayoutType = {
   padding: {
     small: number;
@@ -18,32 +14,32 @@ export type LayoutType = {
     large: number;
     xlarge: number;
     xxlarge: number;
-    full: number; // 完全な円形
+    full: number;
   };
-  // ヘッダー/フッター専用の角丸設定
+
   headerFooter: {
     borderRadius: {
-      header: number; // ヘッダー下部の角丸
-      footer: number; // フッター上部の角丸
+      header: number;
+      footer: number;
     };
   };
-  // カード/コンポーネント用の角丸設定
+
   components: {
     card: number;
     button: number;
     input: number;
     modal: number;
-    chip: number; // チップ・バッジ用
-    avatar: number; // アバター・プロフィール画像用
-    listItem: number; // リストアイテム用
-    tab: number; // タブ用
-    notification: number; // 通知・アラート用
+    chip: number;
+    avatar: number;
+    listItem: number;
+    tab: number;
+    notification: number;
   };
-  // スペシャルケース用の角丸設定
+
   special: {
-    welcome: number; // ウェルカムページのような特別なカード
-    hero: number; // ヒーローセクション用
-    feature: number; // フィーチャー要素用
+    welcome: number;
+    hero: number;
+    feature: number;
   };
 };
 
@@ -61,31 +57,31 @@ export const layout: LayoutType = {
     large: 18,
     xlarge: 24,
     xxlarge: 32,
-    full: 9999, // 完全な円形
+    full: 9999,
   },
-  // ヘッダー/フッター専用の角丸設定
+
   headerFooter: {
     borderRadius: {
-      header: 18, // ヘッダー下部の美しい角丸
-      footer: 18, // フッター上部の美しい角丸
+      header: 18,
+      footer: 18,
     },
   },
-  // カード/コンポーネント用の角丸設定
+
   components: {
     card: 16,
     button: 12,
     input: 10,
     modal: 20,
-    chip: 16, // チップ・バッジ用
-    avatar: 8, // アバター・プロフィール画像用
-    listItem: 12, // リストアイテム用
-    tab: 8, // タブ用
-    notification: 12, // 通知・アラート用
+    chip: 16,
+    avatar: 8,
+    listItem: 12,
+    tab: 8,
+    notification: 12,
   },
-  // スペシャルケース用の角丸設定
+
   special: {
-    welcome: 20, // ウェルカムページのような特別なカード
-    hero: 24, // ヒーローセクション用
-    feature: 18, // フィーチャー要素用
+    welcome: 20,
+    hero: 24,
+    feature: 18,
   },
 };

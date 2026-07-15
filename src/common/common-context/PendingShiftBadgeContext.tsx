@@ -1,11 +1,4 @@
-/**
- * @file PendingShiftBadgeContext.tsx
- * @description ユーザー（講師）による変更通知バッジ用Context。
- *   shift_change_logsテーブルからteacherが行った変更を検出し、
- *   マスターが未確認の変更数をバッジ表示する。
- *   シフト編集、削除申請、タイプ追加、ステータス変更など全種類の変更が対象。
- *   既読状態はlocalStorageに永続化される。
- */
+
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { getSupabase } from "@/services/supabase/supabase-client";
 import { ServiceProvider } from "@/services/ServiceProvider";
@@ -28,7 +21,7 @@ function saveReadIds(storeId: string, readIds: Map<string, number>) {
     const entries = Array.from(readIds.entries());
     localStorage.setItem(`${STORAGE_KEY_PREFIX}${storeId}`, JSON.stringify(entries));
   } catch {
-    // storage full or unavailable
+
   }
 }
 
@@ -69,11 +62,9 @@ export function PendingShiftBadgeProvider({ storeId, children }: { storeId: stri
       const thisYear = now.getFullYear();
       const thisMonth = now.getMonth();
 
-      // 今月の日付範囲
       const thisStart = `${thisYear}-${String(thisMonth + 1).padStart(2, "0")}-01`;
       const thisEnd = `${thisYear}-${String(thisMonth + 1).padStart(2, "0")}-31`;
 
-      // 来月の日付範囲
       const nextDate = new Date(thisYear, thisMonth + 1, 1);
       const nextYear = nextDate.getFullYear();
       const nextMonth = nextDate.getMonth();
@@ -82,8 +73,6 @@ export function PendingShiftBadgeProvider({ storeId, children }: { storeId: stri
 
       const supabase = getSupabase();
 
-      // 1) teacherが行った変更のshift_idを取得（今月・来月）
-      // 2) pendingステータスのシフトも取得（ログがない古いデータ対応）
       const [thisLogRes, nextLogRes, thisShifts, nextShifts] = await Promise.all([
         supabase
           .from("shift_change_logs")
@@ -103,7 +92,6 @@ export function PendingShiftBadgeProvider({ storeId, children }: { storeId: stri
         ServiceProvider.shifts.getShiftsByMonth(storeId, nextYear, nextMonth),
       ]);
 
-      // change_logsからのID
       const thisChangedIds = new Set<string>();
       if (thisLogRes.data) {
         for (const row of thisLogRes.data) {
@@ -117,7 +105,6 @@ export function PendingShiftBadgeProvider({ storeId, children }: { storeId: stri
         }
       }
 
-      // pending / deletion_requestedのシフトも追加（ログ未記録でも通知対象）
       for (const s of thisShifts) {
         if (s.status === "pending" || s.status === "deletion_requested") {
           thisChangedIds.add(s.id);
@@ -129,7 +116,6 @@ export function PendingShiftBadgeProvider({ storeId, children }: { storeId: stri
         }
       }
 
-      // pendingでなくなったIDは既読リストから消す（ゴミ掃除）
       const allChangedIds = new Set([...thisChangedIds, ...nextChangedIds]);
       const readIds = readIdsRef.current;
       let changed = false;
@@ -143,7 +129,6 @@ export function PendingShiftBadgeProvider({ storeId, children }: { storeId: stri
         saveReadIds(storeId, readIds);
       }
 
-      // 既読を除外
       const thisUnread = new Set<string>();
       for (const id of thisChangedIds) {
         if (!readIds.has(id)) thisUnread.add(id);
@@ -156,7 +141,7 @@ export function PendingShiftBadgeProvider({ storeId, children }: { storeId: stri
       setThisMonthIds(thisUnread);
       setNextMonthIds(nextUnread);
     } catch {
-      // silent
+
     }
   }, [storeId]);
 

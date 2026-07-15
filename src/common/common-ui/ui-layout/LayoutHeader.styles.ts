@@ -1,4 +1,4 @@
-/** @file LayoutHeader.styles.ts @description Header/MasterHeaderのテーマ連動スタイル定義 */
+
 import { StyleSheet, Platform } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 

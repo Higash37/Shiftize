@@ -1,20 +1,8 @@
-/** @file styles.ts (shiftCreate)
- *  @description シフト作成・編集フォームのスタイル定義。
- *    フォームセクション、日付選択、時間選択、授業設定、
- *    送信/削除ボタン、成功オーバーレイ、店舗選択など
- *    シフト作成画面全体のレイアウトを管理する。
- *
- *  【このファイルの位置づけ】
- *  - 依存: react-native の StyleSheet・Dimensions / 共通定数（ThemeConstants,
- *          BoundaryConstants）
- *  - 利用先: ShiftCreateForm / ShiftCreateFormContent コンポーネント
- *  - 画面幅に応じた IS_SMALL_DEVICE / IS_TABLET フラグでレスポンシブ対応
- */
+
 import { StyleSheet, Dimensions } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { BREAKPOINTS } from "@/common/common-constants/BoundaryConstants";
 
-// レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < BREAKPOINTS.SMALL_DEVICE_MAX_WIDTH_EXCLUSIVE;
 
@@ -210,7 +198,7 @@ export const shiftCreateFormStyles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.8)",
   },
-  // 店舗選択関連のスタイル
+
   storeSelectContainer: {
     flexDirection: "row",
     flexWrap: "wrap",

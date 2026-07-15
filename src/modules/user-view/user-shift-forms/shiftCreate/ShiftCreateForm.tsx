@@ -1,20 +1,4 @@
-/** @file ShiftCreateForm.tsx
- *  @description シフト作成・編集フォームのメインコンポーネント。
- *    日付選択、時間設定、授業（途中時間）追加、店舗選択、
- *    バリデーション、保存/削除の一連の操作を管理する。
- *
- *  【このファイルの位置づけ】
- *  - 依存: React / React Native / expo-router / ServiceProvider /
- *          useShift / useAuth / ShiftCreateFormContent（表示担当）
- *  - 利用先: ユーザー画面のシフト作成/編集ルートから直接使われる
- *
- *  【コンポーネント概要】
- *  - 表示内容: ヘッダー + ShiftCreateFormContent（フォーム本体）
- *  - 主要Props: initialMode, initialShiftId, initialDate, initialStartTime,
- *               initialEndTime, initialClasses
- *  - ロジック: ユーザーデータ取得 → 連携店舗取得 → 既存シフト取得（編集時）
- *              → バリデーション → 保存/削除
- */
+
 import { MAX_CLASSES_PER_SHIFT_INCLUSIVE } from "@/common/common-constants/BoundaryConstants";
 import React, { useState, useEffect } from "react";
 import {
@@ -35,19 +19,6 @@ import type { Shift, ClassTimeSlot } from "@/common/common-models/ModelIndex";
 import { calculateDurationHours, timeStringToMinutes } from "@/common/common-utils/util-shift/wageCalculator";
 import type { FlexAlignType } from "react-native";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
-import type { StoreInfo } from "@/services/interfaces/IMultiStoreService";
-import type { StoreProfile } from "@/services/interfaces/IStoreService";
-
-/** コンポーネント内で使うユーザーデータの型 */
-interface UserData {
-  uid: string;
-  nickname: string;
-  email: string;
-  role: string;
-  storeId?: string;
-  storeName?: string;
-  connectedStores?: string[]; // 連携店舗IDの配列を追加
-}
 
 export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   initialMode,
@@ -59,18 +30,12 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 }) => {
   const router = useRouter();
   const { createShift } = useShift();
-  /** 編集モードかどうか（initialMode === "edit" で判定） */
+
   const isEditMode = initialMode === "edit";
   const { user } = useAuth();
 
-  // --- State ---
-  /** 現在のユーザー情報（API から補完される） */
-  const [userData, setUserData] = useState<UserData | null>(null);
-  /** 現在の店舗プロフィール */
-  const [currentStore, setCurrentStore] = useState<StoreProfile | null>(null);
-  /** 編集モード時の既存シフトデータ */
   const [existingShift, setExistingShift] = useState<Shift | null>(null);
-  /** フォームのシフトデータ（日付、時間、授業など） */
+
   const [shiftData, setShiftData] = useState<ShiftData>({
     startTime: initialStartTime || "",
     endTime: initialEndTime || "",
@@ -78,23 +43,19 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     hasClass: initialClasses ? JSON.parse(initialClasses).length > 0 : false,
     classes: initialClasses ? JSON.parse(initialClasses) : [],
   });
-  /** カレンダーモーダルの表示フラグ */
+
   const [showCalendar, setShowCalendar] = useState(false);
-  /** 保存処理中フラグ */
+
   const [isLoading, setIsLoading] = useState(false);
-  /** 削除処理中フラグ */
+
   const [isDeleting, setIsDeleting] = useState(false);
-  /** 成功アニメーション表示フラグ */
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showSuccess, setShowSuccess] = useState(false);
-  /** 成功アニメーション用のフェード値 */
+
   const fadeAnim = new Animated.Value(0);
-  /** バリデーションエラーメッセージ */
+
   const [errorMessage, setErrorMessage] = useState("");
-  /** 連携店舗一覧 */
-  const [connectedStores, setConnectedStores] = useState<StoreInfo[]>([]);
-  /** 選択中の店舗ID */
-  const [selectedStoreId, setSelectedStoreId] = useState<string>(user?.storeId || "");
 
   const [selectedDate, setSelectedDate] = useState(initialDate || "");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -116,130 +77,31 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   });
 
   const { width } = useWindowDimensions();
-  const isWideScreen = width >= 1024; // PC判定
+  const isWideScreen = width >= 1024;
 
   const containerStyle = isWideScreen
     ? {
         ...styles.container,
         width: width * 0.6,
         alignSelf: "center" as FlexAlignType,
-      } // PC用スタイル
-    : styles.container; // その他のデバイス用スタイル
+      }
+    : styles.container;
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  // --- Effects ---
-  /**
-   * AuthContext のユーザー情報で即座に userData を設定し、
-   * バックグラウンドで店舗データ・プロフィール・既存シフトを並列取得する。
-   */
   useEffect(() => {
-    if (!user) return;
+    if (!user || !isEditMode || !initialShiftId) return;
 
-    // AuthContextのデータで即座にuserData設定（API不要）
-    const initialUserData: UserData = {
-      uid: user.uid,
-      nickname: user.nickname || "",
-      email: user.email || "",
-      role: user.role || "",
-    };
-    if (user.storeId) initialUserData.storeId = user.storeId;
-    setUserData(initialUserData);
+    ServiceProvider.shifts
+      .getShift(initialShiftId)
+      .then((shiftData) => {
+        if (shiftData) setExistingShift(shiftData);
+      })
+      .catch(() => {
 
-    // 店舗データ取得とプロフィール補完をバックグラウンドで並列実行
-    const fetchAdditionalData = async () => {
-      try {
-        const [profileData, storeData, shiftData] = await Promise.all([
-          ServiceProvider.users.getUserFullProfile(user.uid).catch(() => null),
-          user.storeId ? ServiceProvider.stores.getStore(user.storeId).catch(() => null) : null,
-          isEditMode && initialShiftId ? ServiceProvider.shifts.getShift(initialShiftId).catch(() => null) : null,
-        ]);
-
-        // プロフィールからconnectedStoresを補完
-        if (profileData) {
-          const connectedStores = profileData['connectedStores'] as string[] | undefined;
-          if (connectedStores) {
-            setUserData(prev => prev ? { ...prev, connectedStores } : prev);
-          }
-        }
-
-        if (storeData) {
-          setCurrentStore(storeData);
-        }
-
-        if (shiftData) {
-          setExistingShift(shiftData);
-        }
-      } catch {
-        // バックグラウンドエラーは無視
-      }
-    };
-
-    fetchAdditionalData();
+      });
   }, [user, isEditMode, initialShiftId]);
 
-  // 連携店舗を取得
-  useEffect(() => {
-    const fetchConnectedStores = async () => {
-      if (!user?.uid || !userData) {
-        return;
-      }
-
-      try {
-        // 新しいアプローチ: ユーザーのconnectedStoresから直接取得
-        const userConnectedStores = userData.connectedStores || [];
-
-        const allStores: StoreInfo[] = [];
-
-        // 現在の店舗を追加
-        if (userData.storeId && currentStore) {
-          allStores.push({
-            storeId: userData.storeId,
-            storeName:
-              currentStore.storeName || "現在の店舗",
-            adminUid: userData.uid,
-            adminNickname: userData.nickname || "",
-            isActive: true,
-            createdAt: new Date(),
-          });
-        }
-
-        // 連携店舗を追加
-        for (const connectedStoreId of userConnectedStores) {
-          try {
-            const storeData = await ServiceProvider.stores.getStore(connectedStoreId);
-            if (storeData) {
-              allStores.push({
-                storeId: connectedStoreId,
-                storeName: storeData.storeName || "連携店舗",
-                adminUid: storeData.adminUid || "",
-                adminNickname: storeData.adminNickname || "",
-                isActive: true,
-                createdAt: new Date(),
-              });
-            }
-          } catch (error) {
-            // store processing error - skip this store
-          }
-        }
-
-        setConnectedStores(allStores);
-
-        // 初期選択店舗を設定
-        if (allStores.length > 0) {
-          setSelectedStoreId(userData.storeId ?? allStores[0]?.storeId ?? "");
-        }
-      } catch (error) {
-        // 連携店舗の取得失敗は無視
-      }
-    };
-
-    if (user?.uid && userData) {
-      fetchConnectedStores();
-    }
-  }, [user?.uid, userData, currentStore]);
-
-  // 既存のシフトデータがある場合、それを使用してフォームを初期化
   useEffect(() => {
     if (existingShift) {
       setShiftData({
@@ -255,20 +117,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       setSelectedStartTime(existingShift.startTime);
       setSelectedEndTime(existingShift.endTime);
       setSelectedClasses(existingShift.classes || []);
-
-      // 編集モード時に既存シフトの店舗IDを設定
-      if (existingShift.storeId) {
-        setSelectedStoreId(existingShift.storeId);
-      }
     }
   }, [existingShift]);
 
-  // --- Handlers ---
-  /**
-   * 時間変更ハンドラ。
-   * type で「シフト開始/終了」か「授業開始/終了」かを区別する。
-   * 授業の場合は index で何番目の授業かを指定する。
-   */
   const handleTimeChange = (
     type: "start" | "end" | "classStart" | "classEnd",
     value: string,
@@ -313,25 +164,23 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     }
   };
 
-  /** カレンダーで日付が選択された時のハンドラ */
   const handleDateSelect = (dates: string[]) => {
     setShiftData((prev) => ({
       ...prev,
       dates,
     }));
-    setSelectedDate(dates[0] ?? ""); // 最初の日付を選択状態に設定
+    setSelectedDate(dates[0] ?? "");
     setShowCalendar(false);
   };
 
-  /** 授業（途中時間）を追加する。上限を超えるとエラーメッセージを表示 */
   const addClass = () => {
     if (shiftData.classes.length > MAX_CLASSES_PER_SHIFT_INCLUSIVE) {
       setErrorMessage("13:00~17:00のようにまとめてください");
       return;
     }
-    // 授業時間は適切なデフォルト値で初期化（シフト時間とは異なる）
-    const defaultStartTime = "14:00"; // シフト時間とは異なるデフォルト値
-    const defaultEndTime = "15:00"; // 1時間の授業として設定
+
+    const defaultStartTime = "14:00";
+    const defaultEndTime = "15:00";
     const newClass = {
       startTime: defaultStartTime,
       endTime: defaultEndTime,
@@ -344,7 +193,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     setSelectedClasses((prev) => [...prev, newClass]);
   };
 
-  /** 指定インデックスの授業を削除する */
   const removeClass = (index: number) => {
     const updatedClasses = [...shiftData.classes];
     updatedClasses.splice(index, 1);
@@ -356,11 +204,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     setSelectedClasses(updatedClasses);
   };
 
-  /**
-   * シフトデータのバリデーション。
-   * 日付未選択、時間未設定、開始>=終了、授業時間のシフト範囲外を検証する。
-   * @returns バリデーション成功なら true
-   */
   const validateShift = () => {
     if (!selectedDate) {
       setErrorMessage("日付を選択してください");
@@ -375,13 +218,11 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       return false;
     }
 
-    // 開始時間と終了時間の比較
     if (timeStringToMinutes(shiftData.startTime) >= timeStringToMinutes(shiftData.endTime)) {
       setErrorMessage("終了時間は開始時間より後である必要があります");
       return false;
     }
 
-    // 授業時間の検証
     const shiftStartMin = timeStringToMinutes(shiftData.startTime);
     const shiftEndMin = timeStringToMinutes(shiftData.endTime);
 
@@ -408,11 +249,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     return true;
   };
 
-  /**
-   * シフトの新規作成または更新を実行する。
-   * バリデーション → 各日付に対してシフトオブジェクト生成 → API 呼び出し。
-   * 成功後はシフト一覧画面に遷移する。
-   */
   const handleCreateOrUpdateShift = async () => {
     if (!validateShift() || !user) return;
 
@@ -424,7 +260,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 
         const shiftObject = {
           userId: user.uid,
-          storeId: selectedStoreId || "",
+          storeId: (isEditMode && existingShift?.storeId) || user.storeId || "",
           nickname: user.nickname || "Unknown",
           date,
           startTime: shiftData.startTime,
@@ -451,7 +287,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         }
       }
 
-      // 保存成功 → 即座に遷移
       router.push("/(main)/user/shifts");
     } catch (error) {
       setIsLoading(false);
@@ -459,11 +294,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     }
   };
 
-  /**
-   * シフトを削除する。
-   * pending（承認待ち）の場合は即時削除（status="deleted"）、
-   * それ以外は削除申請（status="deletion_requested"）にする。
-   */
   const handleDeleteShift = async () => {
     if (!isEditMode || !initialShiftId) return;
 
@@ -473,13 +303,13 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       const existingShiftData = await ServiceProvider.shifts.getShift(initialShiftId);
       if (existingShiftData) {
         if (existingShiftData.status === "pending") {
-          // 承認待ちの場合は即時削除
+
           await ServiceProvider.shifts.updateShift(initialShiftId, {
             status: "deleted",
             updatedAt: new Date(),
           } as any);
         } else {
-          // それ以外は削除申請
+
           await ServiceProvider.shifts.updateShift(initialShiftId, {
             status: "deletion_requested",
             updatedAt: new Date(),
@@ -495,8 +325,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       setErrorMessage("シフトの削除中にエラーが発生しました: " + errorMessage);
     }
   };
-  // --- Render ---
-  // ローディング中はヘッダーのみ表示
+
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -551,9 +380,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         showCalendar={showCalendar}
         showSuccess={showSuccess}
         fadeAnim={fadeAnim}
-        connectedStores={connectedStores}
-        selectedStoreId={selectedStoreId}
-        onStoreChange={setSelectedStoreId}
         isLoading={isLoading}
         isDeleting={isDeleting}
       />

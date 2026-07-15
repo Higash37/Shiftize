@@ -1,13 +1,4 @@
-/** @file PeriodSettingModal.tsx
- *  @description シフト募集期間の設定モーダル。2つのタブを持つ:
- *    1. 期間設定タブ: 募集開始日・終了日・対象月を設定し、期間を作成/削除する。
- *    2. 提出確認タブ: 各講師のシフト提出状況（確定済み/未確定）と統計を確認する。
- */
 
-// 【このファイルの位置づけ】
-// - import元: ServiceProvider（期間CRUD、確定状況取得）, UnifiedButtonStyles, DatePickerModal
-// - importされる先: MonthSelectorBar（「期間設定」ボタンから表示）
-// - 役割: マスターがシフト募集期間を管理し、講師の提出状況を確認するUI。
 
 import React, { useState, useEffect } from "react";
 import {
@@ -33,7 +24,7 @@ interface PeriodSettingModalProps {
   onClose: () => void;
   storeId: string;
   users?: Array<{ uid: string; nickname: string; color?: string; hourlyWage?: number }>;
-  shifts?: any[]; // PayrollListと同じshift配列
+  shifts?: any[]; 
   onPeriodCreated?: (period: ShiftSubmissionPeriod) => void;
 }
 
@@ -54,13 +45,11 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [showTargetMonthPicker, setShowTargetMonthPicker] = useState(false);
-  
-  // タブ機能の状態
+
   const [activeTab, setActiveTab] = useState<"period-setting" | "submission-check">("period-setting");
   const [teacherStatuses, setTeacherStatuses] = useState<TeacherStatus[]>([]);
   const [loadingStatuses, setLoadingStatuses] = useState(false);
-  
-  // 削除確認モーダルの状態
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingPeriodId, setDeletingPeriodId] = useState<string | null>(null);
 
@@ -78,7 +67,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
       const allPeriods = await ServiceProvider.shiftSubmissions.getActivePeriods(storeId);
       setPeriods(allPeriods);
     } catch (error) {
-      // 期間データの読み込みに失敗
+
     }
   };
 
@@ -93,7 +82,6 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
       return;
     }
 
-    // 既存の期間がある場合は削除確認
     if (periods.length > 0) {
       Alert.alert(
         "既存の期間を削除",
@@ -110,20 +98,17 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
       return;
     }
 
-    // 既存の期間がない場合は直接作成
     await createNewPeriod();
   };
 
   const createPeriodAfterDeletion = async () => {
     try {
       setLoading(true);
-      
-      // 既存の全期間を削除
+
       for (const period of periods) {
         await ServiceProvider.shiftSubmissions.deletePeriod(period.id);
       }
-      
-      // 新しい期間を作成
+
       await createNewPeriod();
     } catch (error) {
       Alert.alert("エラー", "既存期間の削除に失敗しました");
@@ -134,19 +119,9 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
   const createNewPeriod = async () => {
     try {
       setLoading(true);
-      // TODO: createShiftSubmissionPeriodメソッドが実装されたら有効にする
-      // const periodData = {
-      //   storeId,
-      //   startDate: new Date(startDate),
-      //   endDate: new Date(endDate),
-      //   targetMonth,
-      //   isActive: true,
-      //   createdBy: user?.uid || "",
-      // };
-      // const newPeriod = await ServiceProvider.shiftSubmissions.createShiftSubmissionPeriod(periodData);
-      
+
       Alert.alert("成功", "期間が作成されました");
-      // onPeriodCreated?.(newPeriod);
+
       resetForm();
       loadPeriods();
     } catch (error) {
@@ -163,15 +138,14 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
 
   const confirmDelete = async () => {
     if (!deletingPeriodId) return;
-    
+
     try {
       await ServiceProvider.shiftSubmissions.deletePeriod(deletingPeriodId);
-      
+
       setShowDeleteConfirm(false);
       setDeletingPeriodId(null);
       loadPeriods();
-      
-      // 成功通知用の一時的なAlert（後でトーストに変更可能）
+
       Alert.alert("成功", "期間を削除しました");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "不明なエラー";
@@ -206,7 +180,6 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
     setShowTargetMonthPicker(false);
   };
 
-  // PayrollListと同じロジックでシフト統計を計算
   const calculateShiftStats = (teacherId: string, targetMonth: string) => {
     if (!shifts || !targetMonth) {
       return { pending: 0, approved: 0, rejected: 0, total: 0 };
@@ -253,13 +226,12 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
     return stats;
   };
 
-  // 講師状況を読み込む
   const loadTeacherStatuses = async () => {
     if (!periods[0] || !storeId) return;
-    
+
     setLoadingStatuses(true);
     try {
-      // propsで渡されたusersがあればそれを使用、なければTeacherStatusServiceで取得
+
       let teacherList = users;
       if (!users || users.length === 0) {
         const teachers = await ServiceProvider.teacherStatus.getTeachersByStore(storeId);
@@ -269,11 +241,10 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
         }));
       }
 
-      // 各講師の状況を取得
       const statuses: TeacherStatus[] = [];
       for (const user of teacherList) {
         try {
-          // 確定状況を取得（エラーを無視）
+
           let isConfirmed = false;
           try {
             isConfirmed = await ServiceProvider.shiftConfirmations.getUserConfirmationStatus(
@@ -281,11 +252,10 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
               periods[0].id
             );
           } catch (confirmError) {
-            // 権限エラーの場合は未確定とする
+
             isConfirmed = false;
           }
 
-          // フロントエンドでシフト統計を計算
           const shiftStats = calculateShiftStats(user.uid, periods[0].targetMonth);
 
           statuses.push({
@@ -299,8 +269,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
             shiftStats
           });
         } catch (error) {
-          // 講師の処理でエラーが発生
-          // エラーが発生しても未確定として表示
+
           statuses.push({
             teacher: {
               uid: user.uid,
@@ -314,7 +283,6 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
         }
       }
 
-      // 確定状況でソート（未確定を先に表示）
       const sortedStatuses = statuses.sort((a, b) => {
         if (a.isConfirmed === b.isConfirmed) {
           return a.teacher.nickname.localeCompare(b.teacher.nickname);
@@ -324,13 +292,12 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
 
       setTeacherStatuses(sortedStatuses);
     } catch (error) {
-      // 講師状況読み込みエラー
+
     } finally {
       setLoadingStatuses(false);
     }
   };
 
-  // 提出確認タブがアクティブになったときに講師状況を読み込む
   useEffect(() => {
     if (activeTab === "submission-check" && periods.length > 0) {
       loadTeacherStatuses();
@@ -356,7 +323,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
           style={styles.modalContent}
           onPress={(e) => e.stopPropagation()}
         >
-          {/* ヘッダー */}
+          {}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>シフト募集期間設定</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -364,7 +331,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* タブ切り替え */}
+          {}
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={[
@@ -380,7 +347,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                 期間設定
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[
                 styles.tabButton,
@@ -398,11 +365,11 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
           </View>
 
           <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-            {/* タブコンテンツ */}
+            {}
             {activeTab === "period-setting" ? (
-              // 期間設定タブのコンテンツ
+
               <>
-                {/* 新規作成フォーム */}
+                {}
                 <View style={styles.formContainer}>
                   <Text style={styles.sectionTitle}>新規期間作成</Text>
 
@@ -455,7 +422,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                   </TouchableOpacity>
                 </View>
 
-                {/* 現在の期間表示 */}
+                {}
                 <View style={styles.listContainer}>
                   <Text style={styles.sectionTitle}>現在の募集期間</Text>
                   {periods.length === 0 ? (
@@ -464,10 +431,10 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                     </View>
                   ) : (
                     <View style={[styles.periodRow, styles.activePeriodRow]}>
-                      {/* ステータス インジケーター */}
+                      {}
                       <View style={[styles.statusIndicator, { backgroundColor: "#4CAF50" }]} />
-                      
-                      {/* 期間情報 */}
+
+                      {}
                       <View style={styles.periodInfo}>
                         <Text style={styles.periodTitle}>シフト募集期間</Text>
                         <Text style={styles.periodDate}>
@@ -478,7 +445,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                         </Text>
                       </View>
 
-                      {/* アクションボタン */}
+                      {}
                       <TouchableOpacity
                         style={styles.deleteButton}
                         onPress={() => periods[0]?.id && handleDelete(periods[0].id)}
@@ -492,13 +459,13 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                 </View>
               </>
             ) : (
-              // 提出確認タブのコンテンツ
+
               <View style={styles.listContainer}>
                 <Text style={styles.sectionTitle}>
                   講師別シフト提出確認
                   {periods.length > 0 && ` (${periods[0]?.targetMonth})`}
                 </Text>
-                
+
                 {loadingStatuses ? (
                   <View style={styles.emptyContainer}>
                     <Text style={styles.emptyText}>読み込み中...</Text>
@@ -522,7 +489,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                         styles.teacherCard,
                         teacherStatus.isConfirmed && styles.confirmedTeacherCard
                       ]}>
-                        {/* 確定状況バッジ */}
+                        {}
                         <View style={[
                           styles.statusBadge,
                           teacherStatus.isConfirmed 
@@ -539,7 +506,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                           </Text>
                         </View>
 
-                        {/* 講師情報 */}
+                        {}
                         <View style={styles.teacherInfo}>
                           <View style={styles.teacherNameRow}>
                             <Ionicons 
@@ -553,7 +520,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                           </View>
                         </View>
 
-                        {/* シフト統計 */}
+                        {}
                         <View style={styles.shiftStats}>
                           <View style={styles.statRow}>
                             <Text style={styles.statLabel}>投稿数</Text>
@@ -561,7 +528,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                               {teacherStatus.shiftStats.total}件
                             </Text>
                           </View>
-                          
+
                           <View style={styles.statsBreakdown}>
                             <View style={styles.statItem}>
                               <View style={[styles.statIndicator, styles.pendingIndicator]} />
@@ -569,14 +536,14 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                                 未承認 {teacherStatus.shiftStats.pending}
                               </Text>
                             </View>
-                            
+
                             <View style={styles.statItem}>
                               <View style={[styles.statIndicator, styles.approvedIndicator]} />
                               <Text style={styles.statBreakdownText}>
                                 承認済み {teacherStatus.shiftStats.approved}
                               </Text>
                             </View>
-                            
+
                             {teacherStatus.shiftStats.rejected > 0 && (
                               <View style={styles.statItem}>
                                 <View style={[styles.statIndicator, styles.rejectedIndicator]} />
@@ -597,7 +564,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
         </TouchableOpacity>
       </TouchableOpacity>
 
-      {/* 日付ピッカー */}
+      {}
       {showStartDatePicker && (
         <DatePickerModal
           isVisible={showStartDatePicker}
@@ -625,7 +592,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
         />
       )}
 
-      {/* 削除確認モーダル */}
+      {}
       {showDeleteConfirm && (
         <Modal
           visible={showDeleteConfirm}
@@ -639,11 +606,11 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                 <Ionicons name="warning" size={32} color="#f44336" />
                 <Text style={styles.confirmTitle}>期間を削除</Text>
               </View>
-              
+
               <Text style={styles.confirmMessage}>
                 この期間を削除しますか？{'\n'}この操作は取り消せません。
               </Text>
-              
+
               <View style={styles.confirmButtons}>
                 <TouchableOpacity
                   style={[getButtonStyle("secondary"), styles.confirmButton]}
@@ -651,7 +618,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                 >
                   <Text style={getButtonTextStyle("secondary")}>キャンセル</Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   style={[getButtonStyle("danger"), styles.confirmButton]}
                   onPress={confirmDelete}
@@ -840,8 +807,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: "#999",
   },
-  
-  // タブスタイル
+
   tabContainer: {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -870,7 +836,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // 講師カードスタイル（PayrollList 2列グリッド準拠）
   teacherGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -977,7 +942,6 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 
-  // 削除確認モーダルスタイル
   confirmOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.7)",

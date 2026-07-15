@@ -1,7 +1,4 @@
-/**
- * @file MasterShiftCreate.styles.ts
- * @description MasterShiftCreate のスタイル定義。
- */
+
 import { StyleSheet } from "react-native";
 import type { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 

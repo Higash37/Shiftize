@@ -1,13 +1,4 @@
-/** @file GoogleCalendarView.tsx
- *  @description Googleカレンダー風の週表示ビュー。
- *    左サイドバーにミニカレンダーとフィルター、メインエリアに日/週/月表示の
- *    タイムスロットグリッドを配置する。FAB（Floating Action Button）でシフト追加。
- */
 
-// 【このファイルの位置づけ】
-// - import元: ShiftCalendar（サイドバーのミニカレンダー）
-// - importされる先: GanttChartMonthView（useGoogleLayout === true 時）
-// - 役割: Google カレンダーのUIを模したビュー。日/週/月表示を切り替え可能。
 
 import React, { useState, useMemo, useCallback } from "react";
 import { View, ScrollView, Text, TouchableOpacity, Dimensions, StyleSheet } from "react-native";
@@ -50,7 +41,6 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
   const screenWidth = Dimensions.get("window").width;
   const sidebarWidth = sidebarCollapsed ? 0 : Math.min(300, screenWidth * 0.25);
 
-  // ShiftItemからShiftへの変換
   const convertedShifts = useMemo(() => {
     return shifts.map(shift => ({
       ...shift,
@@ -58,19 +48,16 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
     }));
   }, [shifts]);
 
-  // マークされた日付を生成
   const markedDates = useMemo(() => {
     const marks: MarkedDates = {};
-    
-    // 選択中の日付のスタイル
+
     const selectedDateStr = format(selectedDay, "yyyy-MM-dd");
     marks[selectedDateStr] = {
       selected: true,
       selectedColor: "#1a73e8",
       selectedTextColor: "#ffffff",
     };
-    
-    // 日付ごとにシフトをグループ化
+
     const shiftsByDate: Record<string, ShiftItem[]> = {};
     shifts.forEach((shift) => {
       if (shift.status !== "deleted" && shift.status !== "purged") {
@@ -82,11 +69,9 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
       }
     });
 
-    // 各日付にマークを設定
     Object.entries(shiftsByDate).forEach(([date, dayShifts]) => {
       const existingMark = marks[date] || {};
-      
-      // シフトドットを表示
+
       const shiftDots = dayShifts.slice(0, 3).map((shift, index) => ({
         key: `${shift.id}-${index}`,
         color: getStatusColor(shift.status),
@@ -105,7 +90,6 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
     return marks;
   }, [shifts, selectedDay]);
 
-  // 時間のラベル（全日 + 9:00〜22:00）
   const timeLabels = useMemo(() => {
     const labels = ["終日"];
     for (let hour = SHIFT_HOURS.START_HOUR_INCLUSIVE; hour <= SHIFT_HOURS.END_HOUR_INCLUSIVE; hour++) {
@@ -114,31 +98,28 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
     return labels;
   }, []);
 
-  // 表示する日付を計算
   const displayDates = useMemo(() => {
     if (viewMode === "day") {
       return [selectedDay];
     } else if (viewMode === "week") {
-      const startDate = startOfWeek(selectedDay, { weekStartsOn: 0 }); // 日曜開始
+      const startDate = startOfWeek(selectedDay, { weekStartsOn: 0 });
       return Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
     } else {
-      // 月表示の場合は週表示と同じ
+
       const startDate = startOfWeek(selectedDay, { weekStartsOn: 0 });
       return Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
     }
   }, [selectedDay, viewMode]);
 
-  // 指定日付のシフトを取得
   const getShiftsForDate = useCallback((date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
-    return shifts.filter(shift => 
+    return shifts.filter(shift =>
       shift.date === dateStr &&
-      shift.status !== "deleted" && 
+      shift.status !== "deleted" &&
       shift.status !== "purged"
     );
   }, [shifts]);
 
-  // シフトの色を取得
   const getShiftColor = useCallback((shift: ShiftItem) => {
     if (colorMode === "user") {
       const user = users.find(u => u.uid === shift.userId);
@@ -147,7 +128,6 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
     return getStatusColor(shift.status);
   }, [colorMode, users]);
 
-  // ナビゲーションハンドラー
   const handlePrevious = () => {
     if (viewMode === "day") {
       setSelectedDay(subDays(selectedDay, 1));
@@ -186,7 +166,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
 
   return (
     <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
-      {/* Google風ヘッダー */}
+      {}
       <View style={{
         flexDirection: "row",
         alignItems: "center",
@@ -196,28 +176,28 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
         borderBottomWidth: 1,
         borderBottomColor: "#e8eaed",
       }}>
-        {/* 左側：メニューとタイトル */}
+        {}
         <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setSidebarCollapsed(!sidebarCollapsed)}
             style={{ marginRight: 16 }}
           >
             <MaterialIcons name="menu" size={24} color="#5f6368" />
           </TouchableOpacity>
-          
+
           <Text style={{ fontSize: 22, color: "#3c4043", fontWeight: "400" }}>
             カレンダー
           </Text>
         </View>
 
-        {/* 中央：ナビゲーション */}
+        {}
         <View style={{ flexDirection: "row", alignItems: "center", marginHorizontal: 16 }}>
           <TouchableOpacity onPress={handlePrevious} style={{ padding: 8 }}>
             <MaterialIcons name="chevron-left" size={24} color="#5f6368" />
           </TouchableOpacity>
-          
-          <TouchableOpacity onPress={handleToday} style={{ 
-            paddingHorizontal: 12, 
+
+          <TouchableOpacity onPress={handleToday} style={{
+            paddingHorizontal: 12,
             paddingVertical: 6,
             marginHorizontal: 8,
             borderRadius: 4,
@@ -226,18 +206,18 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
           }}>
             <Text style={{ color: "#3c4043", fontSize: 14 }}>今日</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity onPress={handleNext} style={{ padding: 8 }}>
             <MaterialIcons name="chevron-right" size={24} color="#5f6368" />
           </TouchableOpacity>
         </View>
 
-        {/* 右側：年月とビュー切替 */}
+        {}
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={{ fontSize: 22, color: "#3c4043", marginRight: 16 }}>
             {format(selectedDay, "yyyy年M月", { locale: ja })}
           </Text>
-          
+
           <View style={{ flexDirection: "row", backgroundColor: "#f1f3f4", borderRadius: 4 }}>
             {["day", "week", "month"].map((mode) => (
               <TouchableOpacity
@@ -250,7 +230,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                   borderRadius: 4,
                 }}
               >
-                <Text style={{ 
+                <Text style={{
                   color: viewMode === mode ? "#1a73e8" : "#5f6368",
                   fontSize: 13,
                   fontWeight: viewMode === mode ? "500" : "400",
@@ -264,15 +244,15 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
       </View>
 
       <View style={{ flex: 1, flexDirection: "row" }}>
-        {/* 左サイドバー */}
+        {}
         {!sidebarCollapsed && (
-          <View style={{ 
-            width: sidebarWidth, 
+          <View style={{
+            width: sidebarWidth,
             backgroundColor: "#ffffff",
             borderRightWidth: 1,
             borderRightColor: "#e8eaed",
           }}>
-            {/* 小さい月カレンダー */}
+            {}
             <View style={{ padding: 16 }}>
               <ShiftCalendar
                 shifts={convertedShifts as any}
@@ -285,39 +265,39 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
               />
             </View>
 
-            {/* フィルターエリア */}
+            {}
             <View style={{ padding: 16, borderTopWidth: 1, borderTopColor: "#e8eaed" }}>
               <Text style={{ fontSize: 16, fontWeight: "500", color: "#3c4043", marginBottom: 12 }}>
                 表示設定
               </Text>
-              
-              {/* カラーモード切替 */}
-              <TouchableOpacity 
-                style={{ 
-                  flexDirection: "row", 
-                  alignItems: "center", 
+
+              {}
+              <TouchableOpacity
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
                   paddingVertical: 8,
                 }}
               >
-                <MaterialIcons 
-                  name={colorMode === "status" ? "radio-button-checked" : "radio-button-unchecked"} 
-                  size={20} 
-                  color="#1a73e8" 
+                <MaterialIcons
+                  name={colorMode === "status" ? "radio-button-checked" : "radio-button-unchecked"}
+                  size={20}
+                  color="#1a73e8"
                 />
                 <Text style={{ marginLeft: 8, color: "#3c4043" }}>ステータス別</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={{ 
-                  flexDirection: "row", 
-                  alignItems: "center", 
+
+              <TouchableOpacity
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
                   paddingVertical: 8,
                 }}
               >
-                <MaterialIcons 
-                  name={colorMode === "user" ? "radio-button-checked" : "radio-button-unchecked"} 
-                  size={20} 
-                  color="#1a73e8" 
+                <MaterialIcons
+                  name={colorMode === "user" ? "radio-button-checked" : "radio-button-unchecked"}
+                  size={20}
+                  color="#1a73e8"
                 />
                 <Text style={{ marginLeft: 8, color: "#3c4043" }}>ユーザー別</Text>
               </TouchableOpacity>
@@ -325,20 +305,20 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
           </View>
         )}
 
-        {/* 右メインビュー */}
+        {}
         <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
-          {/* 日付ヘッダー */}
-          <View style={{ 
-            flexDirection: "row", 
+          {}
+          <View style={{
+            flexDirection: "row",
             backgroundColor: "#f8f9fa",
             borderBottomWidth: 1,
             borderBottomColor: "#e8eaed",
           }}>
             <View style={{ width: 60 }} />
             {displayDates.map((date, index) => (
-              <View key={index} style={{ 
-                flex: 1, 
-                alignItems: "center", 
+              <View key={index} style={{
+                flex: 1,
+                alignItems: "center",
                 paddingVertical: 12,
                 borderRightWidth: index < displayDates.length - 1 ? 1 : 0,
                 borderRightColor: "#e8eaed",
@@ -346,8 +326,8 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                 <Text style={{ fontSize: 11, color: "#5f6368", marginBottom: 2 }}>
                   {format(date, "E", { locale: ja })}
                 </Text>
-                <Text style={{ 
-                  fontSize: 16, 
+                <Text style={{
+                  fontSize: 16,
                   color: format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") ? "#1a73e8" : "#3c4043",
                   fontWeight: format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") ? "500" : "400",
                 }}>
@@ -357,7 +337,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
             ))}
           </View>
 
-          {/* タイムスロット */}
+          {}
           <ScrollView style={{ flex: 1 }}>
             {timeLabels.map((time, _timeIndex) => (
               <View key={time} style={{
@@ -366,9 +346,9 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                 borderBottomWidth: 1,
                 borderBottomColor: "#f1f3f4",
               }}>
-                {/* 時間ラベル */}
-                <View style={{ 
-                  width: 60, 
+                {}
+                <View style={{
+                  width: 60,
                   justifyContent: "flex-start",
                   alignItems: "center",
                   paddingTop: 8,
@@ -380,11 +360,11 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                   </Text>
                 </View>
 
-                {/* 各日のシフト */}
+                {}
                 {displayDates.map((date, dateIndex) => {
                   const dateShifts = getShiftsForDate(date);
-                  const timeShifts = time === "終日" 
-                    ? [] // Remove isAllDay filter since property doesn't exist
+                  const timeShifts = time === "終日"
+                    ? []
                     : dateShifts.filter(shift => {
                         const [shiftStartHour] = shift.startTime.split(':').map(Number);
                         const [timeHour] = time.split(':').map(Number);
@@ -394,8 +374,8 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                   return (
                     <TouchableOpacity
                       key={dateIndex}
-                      style={{ 
-                        flex: 1, 
+                      style={{
+                        flex: 1,
                         minHeight: time === "終日" ? 50 : 60,
                         borderRightWidth: dateIndex < displayDates.length - 1 ? 1 : 0,
                         borderRightColor: "#f1f3f4",
@@ -403,16 +383,16 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                         padding: 2,
                       }}
                       onPress={() => time !== "終日" && onEmptyCellClick?.(
-                        format(date, "yyyy-MM-dd"), 
-                        time, 
+                        format(date, "yyyy-MM-dd"),
+                        time,
                         users[0]?.uid || ""
                       )}
                     >
-                      {/* シフトブロック */}
+                      {}
                       {timeShifts.map((shift, _shiftIndex) => {
                         const user = users.find(u => u.uid === shift.userId);
                         const shiftColor = getShiftColor(shift);
-                        
+
                         return (
                           <TouchableOpacity
                             key={shift.id}
@@ -425,16 +405,16 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                             }}
                             onPress={() => onShiftPress?.(shift)}
                           >
-                            <Text style={{ 
-                              fontSize: 12, 
+                            <Text style={{
+                              fontSize: 12,
                               fontWeight: "500",
                               color: "#ffffff",
                             }} numberOfLines={1}>
                               {user?.nickname || "Unknown"}
                             </Text>
                             {time !== "終日" && (
-                              <Text style={{ 
-                                fontSize: 10, 
+                              <Text style={{
+                                fontSize: 10,
                                 color: "#ffffff",
                                 opacity: 0.9,
                               }} numberOfLines={1}>
@@ -453,7 +433,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
         </View>
       </View>
 
-      {/* 追加ボタン（Google風FAB） */}
+      {}
       {onAddShift && (
         <TouchableOpacity
           style={{

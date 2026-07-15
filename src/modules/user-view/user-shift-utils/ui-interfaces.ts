@@ -1,25 +1,11 @@
-/**
- * @file ui-interfaces.ts
- * @description ユーザー向けUI共通の基底インターフェース定義。
- *
- * 【このファイルの位置づけ】
- *   user-view > user-shift-utils 配下の型定義。
- *   BaseUIProps / BaseInputProps / BaseTimeProps / BaseCalendarProps など、
- *   フォーム系・カレンダー系コンポーネントの共通Propsを定義する。
- */
+
 import { ViewStyle, TextStyle } from "react-native";
 
-/**
- * 基本的なUIコンポーネントのプロパティ
- */
 export interface BaseUIProps {
   testID?: string;
   style?: ViewStyle;
 }
 
-/**
- * 入力系コンポーネントの基本プロパティ
- */
 export interface BaseInputProps<T = string> extends BaseUIProps {
   label?: string;
   error?: string;
@@ -28,17 +14,11 @@ export interface BaseInputProps<T = string> extends BaseUIProps {
   value?: T;
 }
 
-/**
- * 時間関連コンポーネントの基本プロパティ
- */
 export interface BaseTimeProps<T = string> extends BaseInputProps<T> {
   timeFormat?: "24h" | "12h";
   minuteInterval?: 5 | 10 | 15 | 30;
 }
 
-/**
- * カレンダー関連コンポーネントの基本プロパティ
- */
 export interface BaseCalendarProps extends BaseUIProps {
   selectedDates?: string[];
   onDateSelect?: (date: string) => void;
@@ -46,9 +26,6 @@ export interface BaseCalendarProps extends BaseUIProps {
   maxDate?: string;
 }
 
-/**
- * 共通スタイル定義
- */
 export interface BaseStyles {
   container: ViewStyle;
   content?: ViewStyle;

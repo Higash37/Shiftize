@@ -1,13 +1,4 @@
-/** @file CalendarView.tsx
- *  @description カレンダー表示モード。3カラムレイアウトで、
- *    左に給与リスト（PayrollList）、中央にカレンダー、右に月のシフトリストを表示する。
- *    ガントチャートの代替ビューとして切り替えて使う。
- */
 
-// 【このファイルの位置づけ】
-// - import元: ShiftCalendar, PayrollList
-// - importされる先: GanttChartMonthView（viewMode === "calendar" 時）
-// - 役割: ガントチャートではなくカレンダーベースでシフトを俯瞰するビュー。
 
 import React, { useState, useMemo, useRef } from "react";
 import { View, ScrollView, Text, TouchableOpacity, StyleSheet } from "react-native";
@@ -39,7 +30,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   styles: _styles,
 }) => {
 
-  // ShiftItemからShiftへの変換
   const convertedShifts = useMemo(() => {
     return shifts.map(shift => ({
       ...shift,
@@ -54,23 +44,19 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const shiftRefs = useRef<{ [key: string]: View | null }>({}).current;
 
-  // 現在の月の文字列を生成（月変更で更新されるように状態管理）
   const [currentMonth, setCurrentMonth] = useState(format(selectedDate, "yyyy-MM-dd"));
 
-  // 親コンポーネントのselectedDateが変更されたときにcurrentMonthを同期
   React.useEffect(() => {
     const newCurrentMonth = format(selectedDate, "yyyy-MM-dd");
     setCurrentMonth(newCurrentMonth);
     setSelectedCalendarDate(newCurrentMonth);
   }, [selectedDate]);
 
-  // マークされた日付を生成（ShiftCalendarと同じロジック使用）
   const markedDates = useMemo(() => {
     const marks: MarkedDates = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 選択中の日付のスタイル
     if (selectedCalendarDate) {
       marks[selectedCalendarDate] = {
         selected: true,
@@ -79,16 +65,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       };
     }
 
-    
-    // 日付ごとにシフトをグループ化（選択されたユーザーでフィルタリング）
     const shiftsByDate: Record<string, ShiftItem[]> = {};
     shifts.forEach((shift) => {
       if (shift.status !== "deleted" && shift.status !== "purged") {
-        // 選択されたユーザーがいる場合はそのユーザーのシフトのみ表示
+
         if (selectedUserId && shift.userId !== selectedUserId) {
           return;
         }
-        
+
         const date = shift.date;
         if (!shiftsByDate[date]) {
           shiftsByDate[date] = [];
@@ -97,18 +81,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       }
     });
 
-
-    // 各日付にマークを設定（複数シフトの場合は複数ドットで表示）
     Object.entries(shiftsByDate).forEach(([date, dayShifts]) => {
       const existingMark = marks[date] || {};
-      
-      // 各シフトの色を配列で保持（react-native-calendars仕様に合わせて調整）
+
       const shiftDots = dayShifts.map((shift, index) => ({
         key: `${shift.id}-${index}`,
         color: getStatusColor(shift.status),
         selectedDotColor: getStatusColor(shift.status),
       }));
-      
 
       marks[date] = {
         ...existingMark,
@@ -122,18 +102,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     return marks;
   }, [shifts, selectedCalendarDate, selectedUserId]);
 
-
-  // 選択された月の全シフトを取得（日付順にソート）
   const monthShifts = useMemo(() => {
     const selectedYear = selectedDate.getFullYear();
     const selectedMonth = selectedDate.getMonth() + 1;
-    
+
     return shifts
       .filter((shift) => {
         const shiftDate = new Date(shift.date);
         const shiftYear = shiftDate.getFullYear();
         const shiftMonth = shiftDate.getMonth() + 1;
-        
+
         return (
           shiftYear === selectedYear &&
           shiftMonth === selectedMonth &&
@@ -147,22 +125,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handleDayPress = (day: { dateString: string }) => {
     const targetDate = day.dateString;
-    
-    // 同じ日付をもう一度押したときに選択を解除
+
     if (selectedCalendarDate === targetDate) {
       setSelectedCalendarDate("");
       return;
     }
-    
+
     setSelectedCalendarDate(targetDate);
-    
-    // 選択された日付のシフトまでスクロール
+
     const selectedShift = monthShifts.find(
       (shift) => shift.date === targetDate
     );
-    
+
     if (selectedShift && shiftRefs[selectedShift.id]) {
-      // 少し遅延を入れてスクロールを実行（レイアウト計算のため）
+
       setTimeout(() => {
         const shiftRef = shiftRefs[selectedShift.id];
         const canMeasure = shiftRef && 'measureLayout' in shiftRef && typeof shiftRef.measureLayout === 'function';
@@ -182,9 +158,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handleMonthChange = (month: { dateString: string }) => {
     const date = new Date(month.dateString);
-    setCurrentMonth(month.dateString); // カレンダーの表示月を更新
+    setCurrentMonth(month.dateString);
     if (onMonthChange) {
-      // 月の最初の日に設定して親コンポーネントのselectedDateを更新
+
       onMonthChange({ year: date.getFullYear(), month: date.getMonth() });
     }
   };
@@ -192,7 +168,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   return (
     <View style={{ flex: 1, backgroundColor: "#fff", paddingHorizontal: 10 }}>
       <View style={{ flexDirection: "row", flex: 1, marginTop: 10 }}>
-        {/* 左側：給与リスト部分 */}
+        {}
         <View style={{ flex: 1, backgroundColor: "#fff", paddingRight: 5, borderRadius: 8 }}>
           <PayrollList
             shifts={shifts}
@@ -203,21 +179,21 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           />
         </View>
 
-        {/* 中央：カレンダー部分 */}
+        {}
         <View style={{ flex: 1, backgroundColor: "#fff", paddingHorizontal: 5 }}>
           <ShiftCalendar
-            key={`calendar-${currentMonth}-${selectedUserId || 'all'}`} // 月変更時に強制再レンダリング
+            key={`calendar-${currentMonth}-${selectedUserId || 'all'}`}
             shifts={convertedShifts as any}
             selectedDate={selectedCalendarDate}
             currentMonth={currentMonth}
-            currentUserStoreId={""} // マスター用なので空文字
+            currentUserStoreId={""}
             onDayPress={handleDayPress}
             onMonthChange={handleMonthChange}
             markedDates={markedDates}
           />
         </View>
 
-        {/* 右側：月のシフトリスト部分 */}
+        {}
         <View style={{ flex: 1, backgroundColor: "#fff", paddingLeft: 5, borderRadius: 8 }}>
           <View style={{ padding: 10, flex: 1 }}>
             <Text style={{ fontSize: 16, fontWeight: "bold", marginBottom: 10, color: "#333" }}>
@@ -228,7 +204,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 </Text>
               )}
             </Text>
-            <ScrollView 
+            <ScrollView
               ref={scrollViewRef}
               style={{ flex: 1, padding: 8, backgroundColor: "#fff" }}
               showsVerticalScrollIndicator={false}

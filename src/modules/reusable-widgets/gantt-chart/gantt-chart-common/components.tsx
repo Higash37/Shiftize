@@ -1,40 +1,24 @@
-/** @file components.tsx
- *  @description ガントチャートの基本部品を集めたファイル。
- *    ShiftSelectionProvider（選択状態管理）、DateCell（日付セル）、
- *    GanttChartGrid（シフトバー描画）、ShiftBarWithCheckbox（個別バー）、
- *    GanttChartInfo（ミニカレンダー）、EmptyCell（空白セル）を含む。
- */
 
-// 【このファイルの位置づけ】
-// - importされる先: GanttChartRow, GanttChartBody, MonthSelectorBar, BatchConfirmModal 等
-// - 役割: ガントチャートの「部品」をまとめて export する。
-//   GanttChartRow が DateCell, GanttChartGrid, GanttChartInfo, EmptyCell を使って1行を組み立てる。
-// - コンポーネント階層:
-//   GanttChartMonthView → GanttChartBody → GanttChartRow → [DateCell, GanttChartGrid, GanttChartInfo, EmptyCell]
-//                                                             └→ ShiftBarWithCheckbox（各シフトバー）
 
 import React, { useState, useContext, useMemo, createContext } from "react";
 import { useTimeSegmentTypesContext } from "@/common/common-context/TimeSegmentTypesContext";
-import { useShiftTaskAssignmentsContext } from "@/common/common-context/ShiftTaskAssignmentsContext";
-import { useStaffRolesContext } from "@/common/common-context/StaffRolesContext";
 import { usePendingShiftBadge } from "@/common/common-context/PendingShiftBadgeContext";
 import type { TimeSegmentType } from "@/common/common-models/model-shift/shiftTypes";
-import type { ShiftTaskAssignment } from "@/modules/master-view/info-dashboard/useShiftTaskAssignments";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  GestureResponderEvent, // タッチイベントの型。onPress 等のハンドラーに渡される。
+  GestureResponderEvent,
 } from "react-native";
 import {
-  format,          // date-fns: Date → "2025-01-15" 等の文字列変換
-  startOfMonth,    // date-fns: 月の最初の日を返す
-  endOfMonth,      // date-fns: 月の最後の日を返す
-  eachDayOfInterval, // date-fns: 指定範囲の全日付を配列で返す
-  getDay,          // date-fns: 曜日を数値(0=日曜)で返す
-  addMonths,       // date-fns: 月を加算
-  subMonths,       // date-fns: 月を減算
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  getDay,
+  addMonths,
+  subMonths,
 } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
@@ -47,21 +31,11 @@ import { shadows } from "@/common/common-constants/ShadowConstants";
 import { getDateTextColor } from "@/common/common-utils/util-date/dateUtils";
 import type { MarkedDates } from "react-native-calendars/src/types";
 
-// ============================================================
-// --- ShiftSelectionContext（シフト選択状態の共有） ---
-// ============================================================
-// React の Context API を使って「どのシフトが選択されているか」をツリー全体で共有する。
-// Context を使う理由: 選択状態を props で上→下に渡すと、中間コンポーネントが全部再レンダリングされる。
-// Context なら、選択状態を使うコンポーネントだけが再レンダリングされる。
-
-// createContext<型>(デフォルト値): Context オブジェクトを作成する。
-// <ShiftSelectionContextType> でこの Context が持つ値の型を指定。
-// Set<string>: JavaScript の組み込みデータ構造。重複しない値の集合。has() で O(1) で存在チェックできる。
 interface ShiftSelectionContextType {
-  selectedShiftIds: Set<string>;  // 選択中のシフトIDの集合
-  onToggleSelect: (shiftId: string) => void;  // 選択/解除をトグルする関数
-  clearSelection: () => void;     // 全選択を解除する関数
-  selectedCount: number;          // 選択中の件数
+  selectedShiftIds: Set<string>;
+  onToggleSelect: (shiftId: string) => void;
+  clearSelection: () => void;
+  selectedCount: number;
 }
 
 export const ShiftSelectionContext = createContext<ShiftSelectionContextType>({
@@ -71,41 +45,33 @@ export const ShiftSelectionContext = createContext<ShiftSelectionContextType>({
   selectedCount: 0,
 });
 
-// ShiftSelectionProvider: このコンポーネントの children（子要素）全体に選択状態を配信する。
-// React.FC<{ children: React.ReactNode }> は「children を受け取る関数コンポーネント」の型。
 export const ShiftSelectionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // useState<Set<string>>: Set 型の状態を管理。選択されたシフトIDの集合。
+
   const [selectedShiftIds, setSelectedShiftIds] = useState<Set<string>>(new Set());
 
-  // トグル処理: すでに選択されていたら削除、されていなかったら追加
-  // prev => ... の形は「前の状態を元に新しい状態を作る」パターン（関数型更新）。
   const onToggleSelect = React.useCallback((shiftId: string) => {
     setSelectedShiftIds(prev => {
-      const next = new Set(prev); // 前の Set をコピー（イミュータブルに更新するため）
+      const next = new Set(prev);
       if (next.has(shiftId)) {
-        next.delete(shiftId);     // 既に選択済み → 解除
+        next.delete(shiftId);
       } else {
-        next.add(shiftId);        // 未選択 → 追加
+        next.add(shiftId);
       }
       return next;
     });
   }, []);
 
-  // 全選択解除: 空の Set に置き換える
   const clearSelection = React.useCallback(() => {
     setSelectedShiftIds(new Set());
   }, []);
 
-  // useMemo で value オブジェクトをメモ化。依存配列が変わらない限り同じオブジェクト参照を返す。
-  // これにより、不要な再レンダリングを防止する。
   const value = useMemo(() => ({
     selectedShiftIds,
     onToggleSelect,
     clearSelection,
-    selectedCount: selectedShiftIds.size, // Set の size プロパティで要素数を取得
+    selectedCount: selectedShiftIds.size,
   }), [selectedShiftIds, onToggleSelect, clearSelection]);
 
-  // Provider で children をラップすると、子孫コンポーネントが useContext() で value にアクセスできる。
   return (
     <ShiftSelectionContext.Provider value={value}>
       {children}
@@ -113,11 +79,6 @@ export const ShiftSelectionProvider: React.FC<{ children: React.ReactNode }> = (
   );
 };
 
-// ============================================================
-// --- DateCell（日付列セル） ---
-// ============================================================
-// ガントチャートの左端に表示する「15 月」のような日付セル。
-// 祝日・日曜日は赤、土曜日は青でテキスト色を変える。
 export type DateCellProps = {
   date: string;
   dateColumnWidth: number;
@@ -132,7 +93,6 @@ export const DateCell: React.FC<DateCellProps> = ({
   const dayOfWeek = format(formattedDate, "E", { locale: ja });
   const dayOfMonth = format(formattedDate, "d");
 
-  // 祝日・日曜日対応の色分け
   const holidayTextColor = getDateTextColor(date);
   const textColor =
     holidayTextColor || (dayOfWeek === "土" ? "#2196F3" : "#333333");
@@ -160,40 +120,32 @@ export const DateCell: React.FC<DateCellProps> = ({
   );
 };
 
-// ============================================================
-// --- GanttChartGrid（シフトバー描画エリア） ---
-// ============================================================
-// ガントチャートの中央部分。背景に30分刻みのグリッド線を描き、
-// その上にシフトバー（ShiftBarWithCheckbox）を position: absolute で重ねる。
-// 時間→ピクセル変換ロジック（timeToPosition）がこのコンポーネントの核心。
 export type GanttChartGridProps = {
-  shifts: ShiftItem[];          // この行に表示するシフトの配列
-  cellWidth: number;            // 30分あたりのセル幅（px）
-  ganttColumnWidth: number;     // ガント列全体の幅（px）
-  halfHourLines: string[];      // 30分刻みの時間ラベル ["9:00","9:30","10:00",...]
-  isClassTime: (time: string) => boolean;  // 授業時間帯の判定関数
-  getStatusConfig: (status: string) => ShiftStatusConfig; // ステータス→設定変換
-  onShiftPress?: (shift: ShiftItem) => void;   // シフトバータップ時
-  onBackgroundPress?: (x: number) => void;     // 背景タップ時（x座標を渡す）
+  shifts: ShiftItem[];
+  cellWidth: number;
+  ganttColumnWidth: number;
+  halfHourLines: string[];
+  isClassTime: (time: string) => boolean;
+  getStatusConfig: (status: string) => ShiftStatusConfig;
+  onShiftPress?: (shift: ShiftItem) => void;
+  onBackgroundPress?: (x: number) => void;
   onTimeChange?: (
     shiftId: string,
     newStartTime: string,
     newEndTime: string
   ) => void;
   styles: ReturnType<typeof StyleSheet.create>;
-  userColorsMap: Record<string, string>;  // ユーザーID → 色 のマッピング
+  userColorsMap: Record<string, string>;
   users?: Array<{ uid: string; role: string; nickname: string }>;
-  getTimeWidth?: (time: string) => number; // 動的幅計算用（時間帯によって幅を変える場合）
-  colorMode?: "status" | "user"; // 色表示モード: ステータス色 or ユーザー色
+  getTimeWidth?: (time: string) => number;
+  colorMode?: "status" | "user";
 };
 
-// typeIdがない既存データ用に名前で「授業」タイプを検索
 const findDefaultType = (typesMap?: Record<string, TimeSegmentType>) => {
   if (!typesMap) return undefined;
   return Object.values(typesMap).find((t) => t.name === "授業");
 };
 
-// 途中時間データをタスク表示形式に変換するヘルパー関数
 const convertClassesToTasks = (shift: ShiftItem, typesMap?: Record<string, TimeSegmentType>) => {
   if (!shift.classes || shift.classes.length === 0) return [];
 
@@ -216,36 +168,6 @@ const convertClassesToTasks = (shift: ShiftItem, typesMap?: Record<string, TimeS
   });
 };
 
-// 自動配置タスクをタスク表示形式に変換するヘルパー関数
-const convertAutoAssignedToTasks = (
-  shiftId: string,
-  assignmentsByShift: Record<string, ShiftTaskAssignment[]>,
-  rolesMap: Record<string, { name: string; icon: string; color: string }>,
-  tasksMap: Record<string, { name: string; icon: string; color: string }>
-) => {
-  const assignments = assignmentsByShift[shiftId];
-  if (!assignments || assignments.length === 0) return [];
-
-  return assignments.map((a, index) => {
-    const taskInfo = a.taskId ? tasksMap[a.taskId] : undefined;
-    const roleInfo = a.roleId ? rolesMap[a.roleId] : undefined;
-    const info = taskInfo || roleInfo;
-    const name = info?.name || "";
-    const icon = info?.icon || "";
-    const color = info?.color || "#4CAF50";
-    return {
-      id: `${shiftId}-auto-${index}`,
-      title: `${icon ? icon + " " : ""}${name} ${a.scheduledStartTime}-${a.scheduledEndTime}`,
-      shortName: `${icon ? icon + " " : ""}${name}`,
-      startTime: a.scheduledStartTime,
-      endTime: a.scheduledEndTime,
-      color,
-      icon: "construct-outline",
-      type: "auto",
-    };
-  });
-};
-
 export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   shifts,
   cellWidth,
@@ -258,33 +180,24 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   onTimeChange: _onTimeChange,
   styles,
   userColorsMap,
-  users = [], // デフォルト値を設定
+  users = [],
   getTimeWidth,
-  colorMode = "status", // デフォルトはステータス色
+  colorMode = "status",
 }) => {
   const { typesMap: segTypesMap } = useTimeSegmentTypesContext();
-  const { assignmentsByShift } = useShiftTaskAssignmentsContext();
-  const { rolesMap, tasksMap } = useStaffRolesContext();
 
-  /** 時刻文字列("HH:MM")を分に変換する。不正な形式の場合は 0 を返す。
-   *  例: "10:30" → 10*60+30 = 630 */
   function parseMinutes(timeStr: string): number {
-    const parts = timeStr.split(":");  // "10:30" → ["10", "30"]
-    const h = Number(parts[0]);        // "10" → 10
-    const m = Number(parts[1]);        // "30" → 30
-    // Number.isNaN(): NaN(Not a Number)かどうか判定。不正入力への安全策。
+    const parts = timeStr.split(":");
+    const h = Number(parts[0]);
+    const m = Number(parts[1]);
+
     return (Number.isNaN(h) ? 0 : h) * 60 + (Number.isNaN(m) ? 0 : m);
   }
 
-  // 指定インデックスの時間セルの幅を取得。getTimeWidth が渡されていれば動的計算。
   function getCellWidthAt(index: number): number {
     return getTimeWidth ? getTimeWidth(halfHourLines[index] ?? "00:00") : cellWidth;
   }
 
-  // --- 時間→ピクセル位置変換（timeToPosition） ---
-  // 例: "10:30" → ガント列の左端からのピクセル位置を返す。
-  // halfHourLines を順に走査し、各セルの幅を累積して位置を求める。
-  // 途中の時間（30分刻みの間）は線形補間（ratio）で計算する。
   function timeToPosition(time: string): number {
     let position = 0;
     const targetMinutes = parseMinutes(time);
@@ -309,12 +222,11 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
     return position;
   }
 
-
   return (
     <View
       style={[styles['ganttCell'], { width: ganttColumnWidth, height: "100%" }]}
     >
-      {/* グリッド全体をタップ可能にする（View/編集共通） */}
+      {}
       <TouchableOpacity
         style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
         onPress={(e) => {
@@ -344,20 +256,17 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           );
         })}
       </View>
-      {/* --- シフトバーの描画 --- */}
-      {/* 各シフトについて、開始/終了時間をピクセル位置に変換してバーを配置する。
-          重複するシフトがある場合は、セルの高さを分割して縦に並べる。 */}
+      {}
+      {}
       {shifts.map((shift, index) => {
         const statusConfig = getStatusConfig(shift.status);
-        // 時間→ピクセル変換: "09:00" → 0px, "10:00" → cellWidth*2 のように
+
         const startPos = timeToPosition(shift.startTime);
         const endPos = timeToPosition(shift.endTime);
-        const barWidth = endPos - startPos;  // バーの幅 = 終了位置 - 開始位置
+        const barWidth = endPos - startPos;
         const totalShifts = shifts.length;
         const cellHeight = 48;
 
-        // 重複チェック - 他のシフトと時間が重複するかどうか
-        // some(): 配列の中に条件を満たす要素が1つでもあれば true を返す。
         const hasOverlap = shifts.some((otherShift, otherIndex) => {
           if (otherIndex === index) return false;
           const otherStartPos = timeToPosition(otherShift.startTime);
@@ -369,15 +278,15 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         let barVerticalOffset;
 
         if (!hasOverlap) {
-          // 重複しない場合は全体の高さを使用
+
           singleBarHeight = cellHeight;
           barVerticalOffset = 0;
         } else {
-          // 重複する場合のみ分割表示
+
           singleBarHeight = Math.floor(cellHeight / Math.min(totalShifts, 3));
           barVerticalOffset = index * singleBarHeight;
         }
-        // 色モードに応じて色を取得（削除申請中は常にステータス色）
+
         const borderColor =
           shift.status === "deletion_requested"
             ? statusConfig.color
@@ -385,7 +294,6 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
               ? statusConfig.color
               : userColorsMap?.[shift.userId] || statusConfig.color;
 
-        // 2時間以下かどうかを判定（120分 = 2時間）
         const startTimeMinutes = (() => {
           const [h, m] = shift.startTime.split(":").map(Number);
           return (h ?? 0) * 60 + (m ?? 0);
@@ -395,17 +303,14 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           return (h ?? 0) * 60 + (m ?? 0);
         })();
         const durationMinutes = endTimeMinutes - startTimeMinutes;
-        const isShortShift = durationMinutes <= 120; // 2時間以下
+        const isShortShift = durationMinutes <= 120;
 
-        // ユーザー情報を取得してアイコンを決定
         const user = users.find((u) => u.uid === shift.userId);
         const isMaster = user?.role === "master";
         const userIcon = isMaster ? "person" : "school";
 
-        // 短いシフトの場合でも十分な表示幅を確保
-        const minWidthForShift = isShortShift ? 72 : 57; // 短いシフトは最小65px
+        const minWidthForShift = isShortShift ? 72 : 57;
 
-        // 2行分割表示用のシフトバー
         return (
           <ShiftBarWithCheckbox
             key={shift.id}
@@ -429,7 +334,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
               }}
             >
               {isShortShift ? (
-                // 2時間以下: 上部エリア内でアイコン＋名前と時間を2行で表示
+
                 <View
                   style={{
                     flex: 1,
@@ -437,7 +342,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     flexDirection: "column",
                   }}
                 >
-                  {/* 1行目: アイコン + 名前 */}
+                  {}
                   <View
                     style={{
                       flexDirection: "row",
@@ -468,7 +373,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     </Text>
                   </View>
 
-                  {/* 2行目: 時間 or 削除申請中 */}
+                  {}
                   <Text
                     style={[
                       styles['shiftTimeText'],
@@ -487,7 +392,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   </Text>
                 </View>
               ) : (
-                // 2時間超: アイコン＋名前（左詰め）、時間（中央配置、大きいテキスト）を1行で表示
+
                 <View
                   style={{
                     flexDirection: "row",
@@ -497,7 +402,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     minHeight: 18,
                   }}
                 >
-                  {/* 左側: アイコン + 名前 */}
+                  {}
                   <View
                     style={{
                       flexDirection: "row",
@@ -528,7 +433,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     </Text>
                   </View>
 
-                  {/* 右側（中央寄せ）: 時間 or 削除申請中 */}
+                  {}
                   <View
                     style={{
                       flex: 1,
@@ -555,7 +460,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                 </View>
               )}
 
-              {/* 下段: タスクエリア */}
+              {}
               <View
                 style={{
                   flex: 1.0,
@@ -567,11 +472,9 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   borderTopColor: "rgba(0, 0, 0, 0.1)",
                 }}
               >
-                {/* タスク表示エリア - 授業 + 自動配置タスクを表示 */}
+                {}
                 {(() => {
-                  const classTasks = convertClassesToTasks(shift, segTypesMap);
-                  const autoTasks = convertAutoAssignedToTasks(shift.id, assignmentsByShift, rolesMap, tasksMap);
-                  const allTasks = [...classTasks, ...autoTasks];
+                  const allTasks = convertClassesToTasks(shift, segTypesMap);
 
                   return allTasks.length > 0 ? (
                     <View
@@ -583,25 +486,24 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                       }}
                     >
                       {allTasks.map((task, taskIndex) => {
-                        // タスクの時間範囲を計算
+
                         const taskStartPos = timeToPosition(task.startTime);
                         const taskEndPos = timeToPosition(task.endTime);
                         const taskWidth = taskEndPos - taskStartPos;
                         const shiftStartPos = timeToPosition(shift.startTime);
 
-                        // シフト開始位置からの相対位置を計算
                         const relativeStartPos = Math.max(
                           0,
                           taskStartPos - shiftStartPos
                         );
-                        const relativeWidth = Math.max(taskWidth, 8); // 最小幅8px
+                        const relativeWidth = Math.max(taskWidth, 8);
 
                         return (
                           <View
                             key={`${shift.id}-task-${taskIndex}`}
                             style={{
                               position: "absolute",
-                              left: relativeStartPos + 2, // 少し余白を追加
+                              left: relativeStartPos + 2,
                               width: relativeWidth,
                               height: "100%",
                               backgroundColor: task.type === "auto" ? (task.color || "#4CAF50") + "CC" : (task.color || "#4CAF50"),
@@ -617,7 +519,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                               borderStyle: task.type === "auto" ? "dashed" : "solid",
                             }}
                           >
-                            {/* タスク名または略称（中央部分） */}
+                            {}
                             {relativeWidth >= 20 && (
                               <Text
                                 style={{
@@ -645,7 +547,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                       })}
                     </View>
                   ) : (
-                    // タスクがない場合の表示
+
                     <View
                       style={{
                         flex: 1,
@@ -674,13 +576,6 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   );
 };
 
-// ============================================================
-// --- ShiftBarWithCheckbox（個別シフトバー + チェックボックス） ---
-// ============================================================
-// 各シフトバーを描画するコンポーネント。
-// Context から選択状態を取得し、マウスホバー時にチェックボックスを表示する。
-// React.memo でラップして、関係ないバーの再レンダリングを防止している。
-// position: absolute で親（GanttChartGrid）内の正確な位置に配置される。
 interface ShiftBarWithCheckboxProps {
   shift: ShiftItem;
   startPos: number;
@@ -726,7 +621,7 @@ const ShiftBarWithCheckboxInner: React.FC<ShiftBarWithCheckboxProps> = ({
         zIndex: showUnreadChip ? 100 : 2,
       }}
     >
-      {/* チェックボックス */}
+      {}
       {showCheckbox && (
         <TouchableOpacity
           style={{
@@ -807,12 +702,6 @@ const ShiftBarWithCheckboxInner: React.FC<ShiftBarWithCheckboxProps> = ({
 
 const ShiftBarWithCheckbox = React.memo(ShiftBarWithCheckboxInner);
 
-// ============================================================
-// --- GanttChartInfo（右サイドのミニカレンダー） ---
-// ============================================================
-// ガントチャートの右側に表示するミニカレンダー。
-// 各日付にシフトがある場合はドットマーカーを表示し、
-// 日付をタップするとその日にスクロールする。
 export type GanttChartInfoProps = {
   shifts: ShiftItem[];
   getStatusConfig: (status: string) => ShiftStatusConfig;
@@ -847,7 +736,6 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     string | null
   >(selectedDate ? format(selectedDate, "yyyy-MM-dd") : null);
 
-  // 外部からのselectedDateが変更されたら内部状態も更新
   React.useEffect(() => {
     setInternalSelectedDate(
       selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
@@ -857,7 +745,6 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     }
   }, [selectedDate]);
 
-  // カレンダーグリッド用の日付データを生成
   const calendarData = React.useMemo(() => {
     const start = startOfMonth(currentMonth);
     const end = endOfMonth(currentMonth);
@@ -889,7 +776,6 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
   }, [currentMonth]);
 
-  // マークされた日付を生成
   const markedDates = React.useMemo(() => {
     const marks: MarkedDates = {};
     const shiftsByDate: Record<string, ShiftItem[]> = {};
@@ -958,7 +844,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
       <View
         style={{ flex: 1, paddingLeft: 0, paddingRight: 2, paddingVertical: 4 }}
       >
-        {/* カレンダーヘッダー */}
+        {}
         <View
           style={{
             flexDirection: "row",
@@ -990,7 +876,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* 曜日ヘッダー */}
+        {}
         <View
           style={{
             flexDirection: "row",
@@ -1023,7 +909,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
           ))}
         </View>
 
-        {/* カレンダーグリッド */}
+        {}
         <View style={{ flex: 1 }}>
           {[0, 1, 2, 3, 4, 5].map((weekIndex) => (
             <View
@@ -1096,7 +982,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
                           </Text>
                         </TouchableOpacity>
 
-                        {/* シフトドット */}
+                        {}
                         {marking?.dots && marking.dots.length > 0 && (
                           <View
                             style={{
@@ -1128,7 +1014,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
           ))}
         </View>
 
-        {/* 日付選択モーダル */}
+        {}
         <DatePickerModal
           isVisible={showDatePicker}
           initialDate={currentMonth}
@@ -1140,20 +1026,15 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
   );
 };
 
-// ============================================================
-// --- EmptyCell（シフトがない日の空白行） ---
-// ============================================================
-// シフトが登録されていない日に表示する空白のガントセル。
-// 背景にグリッド線を描画し、タップすると新規シフト追加モーダルが開く。
 export type EmptyCellProps = {
-  date: string;         // この行の日付
-  width: number;        // セル全体の幅（px）
-  cellWidth: number;    // 30分あたりのセル幅（px）
-  halfHourLines: string[];  // 30分刻みの時間ラベル配列
-  isClassTime: (time: string) => boolean;  // 授業時間帯の判定
-  styles: Record<string, any>;  // Record<string, any> はキーが文字列、値が何でもよいオブジェクト型
-  handleEmptyCellClick: (date: string, position: number) => void;  // 空白タップ時のコールバック
-  getTimeWidth?: (time: string) => number;  // 動的幅計算用
+  date: string;
+  width: number;
+  cellWidth: number;
+  halfHourLines: string[];
+  isClassTime: (time: string) => boolean;
+  styles: Record<string, any>;
+  handleEmptyCellClick: (date: string, position: number) => void;
+  getTimeWidth?: (time: string) => number;
 };
 export const EmptyCell: React.FC<EmptyCellProps> = ({
   date,
@@ -1165,10 +1046,10 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
   handleEmptyCellClick,
   getTimeWidth,
 }) => {
-  // タップ位置から動的セル位置を算出
+
   const handlePress = (event: GestureResponderEvent) => {
     const x = event.nativeEvent.locationX;
-    // 動的幅を考慮した位置計算
+
     let position = 0;
     let currentX = 0;
 
@@ -1177,7 +1058,7 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
         ? getTimeWidth(halfHourLines[i] || "")
         : cellWidth;
       if (x >= currentX && x < currentX + currentWidth) {
-        // このセル内でクリックされた
+
         const ratio = (x - currentX) / currentWidth;
         position = i + ratio;
         break;

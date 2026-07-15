@@ -1,35 +1,4 @@
-/**
- * @file SupabaseAuthAdapter.ts
- * @description 認証系サービスのSupabase実装（サインイン・ユーザー作成・OAuth連携）
- *
- * ============================================================
- * 【なぜ "Adapter" パターンなのか — デザインパターンの歴史】
- * ============================================================
- *
- * ■ Adapter パターンとは
- *   「変換プラグ」のようなもの。
- *   海外旅行で日本のコンセント（2ピン）を海外の壁コンセント（3ピン）に
- *   つなぐための変換アダプターと同じ発想。
- *   この場合: Supabase の API（supabase.auth.signInWithPassword など）を
- *   IAuthService のインターフェース（signIn, signOut など）に変換する役割。
- *
- * ■ Gang of Four（GoF）デザインパターン
- *   1994年に出版された書籍『Design Patterns』で定義された23個のパターンの1つ。
- *   著者4人が「Gang of Four（4人組）」と呼ばれたことからGoFパターンと呼ぶ。
- *   Adapter はその中の「構造パターン」に分類される。
- *   30年以上経った今でもソフトウェア設計の基礎として広く使われている。
- *
- * ■ このファイルの役割
- *   Supabase の具体的な API 呼び出し → IAuthService の抽象的なメソッドに変換。
- *   例: supabase.auth.signInWithPassword() → IAuthService.signIn()
- *   アプリの他の部分は Supabase の存在を知らず、IAuthService だけを見る。
- *
- * ■ ケースバイケース
- *   - 外部 API との接続層 → Adapter パターンが適切（このファイルのように）
- *   - 内部ロジック（計算、バリデーション等） → 直接実装でOK、Adapter は不要
- *   - 複数の外部 API を統合する場合 → Facade パターンの方が適切なこともある
- * ============================================================
- */
+
 
 import type { IAuthService } from "../interfaces/IAuthService";
 import type { User, UserRole } from "@/common/common-models/model-user/UserModel";
@@ -37,20 +6,12 @@ import { getSupabase } from "./supabase-client";
 import { toAsciiEmail } from "./utils/asciiEmail";
 import { AuthError, NotFoundError, PermissionError } from "@/common/common-errors/AppErrors";
 
-/** 認証サービスのSupabase実装（IAuthService の Supabase 版アダプター） */
 export class SupabaseAuthAdapter implements IAuthService {
-  /**
-   * メールとパスワードでサインインする
-   *
-   * 注意: AuthContext.signInからは使用しない。
-   * signInWithPassword直後のDBクエリがSupabase JS v2のnavigator.locksで
-   * デッドロックするため、AuthContextでは認証とDB取得を分離している。
-   */
+
   async signIn(email: string, password: string): Promise<User> {
     const supabase = getSupabase();
     const asciiEmail = toAsciiEmail(email);
 
-    // 1. Supabase Auth でサインイン（セッション自動確立→RLS即有効）
     const { data: authData, error: authError } =
       await supabase.auth.signInWithPassword({ email: asciiEmail, password });
 
@@ -60,7 +21,6 @@ export class SupabaseAuthAdapter implements IAuthService {
 
     const supabaseUser = authData.user;
 
-    // 2. usersテーブルからユーザー情報取得（auth.uid()でRLS通過）
     const { data, error } = await supabase
       .from("users")
       .select("*")
@@ -81,13 +41,11 @@ export class SupabaseAuthAdapter implements IAuthService {
     };
   }
 
-  /** サインアウトする */
   async signOut(): Promise<void> {
     const supabase = getSupabase();
     await supabase.auth.signOut();
   }
 
-  /** ユーザーのロールを取得する */
   async getUserRole(user: { uid: string }): Promise<UserRole> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -108,7 +66,6 @@ export class SupabaseAuthAdapter implements IAuthService {
     return role;
   }
 
-  /** 新規ユーザーをAuth+DBに作成する（管理者セッション保存→signUp→復元） */
   async createUser(
     email: string,
     password: string,
@@ -121,7 +78,6 @@ export class SupabaseAuthAdapter implements IAuthService {
   ): Promise<User> {
     const supabase = getSupabase();
 
-    // 管理者セッションを保存
     const { data: { session: adminSession } } = await supabase.auth.getSession();
     if (!adminSession) {
       throw new PermissionError("管理者としてログインしている必要があります");
@@ -131,7 +87,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     let createdAuthUserId: string | null = null;
 
     try {
-      // 新規ユーザーをSupabase Authに登録
+
       const { data: signUpData, error: signUpError } =
         await supabase.auth.signUp({
           email: asciiEmail,
@@ -149,9 +105,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       const displayName = nickname || email.split("@")[0] || email;
       const userRole = role || "user";
 
-      // 管理者セッションを復元（signUpで新ユーザーにログインされるため）
-      // セキュリティ修正: setSession() のエラーチェックを追加
-      // セッション復元に失敗すると、以降のDB操作が新ユーザーの権限で実行される恐れがある
       const { error: sessionError } = await supabase.auth.setSession({
         access_token: adminSession.access_token,
         refresh_token: adminSession.refresh_token,
@@ -162,13 +115,11 @@ export class SupabaseAuthAdapter implements IAuthService {
         );
       }
 
-      // パスワードハッシュ化
       const { AESEncryption } = await import(
         "@/common/common-utils/security/encryptionUtils"
       );
       const hashedPassword = AESEncryption.hashPassword(password);
 
-      // Supabase DBにユーザー情報を保存（管理者セッションのRLSで許可）
       const { error } = await supabase.from("users").insert({
         uid: newUserId,
         nickname: displayName,
@@ -178,15 +129,14 @@ export class SupabaseAuthAdapter implements IAuthService {
         email: asciiEmail,
         color: color || "#4A90E2",
         store_id: storeId || "",
-        connected_stores: [],
         hourly_wage: hourlyWage || 1000,
         is_active: true,
       });
 
       if (error) {
-        // DB insert失敗時：孤児ユーザーを防ぐためAuth側ユーザーを削除
+
         try {
-          // Auth user created but DB insert failed - orphan user may exist
+
         } catch (_) {}
         throw new Error(`ユーザー情報の保存に失敗しました: ${error.message}`);
       }
@@ -199,16 +149,16 @@ export class SupabaseAuthAdapter implements IAuthService {
         storeId: storeId || "",
       };
     } catch (error: any) {
-      // エラー時は管理者セッションを復元
+
       try {
         await supabase.auth.setSession({
           access_token: adminSession.access_token,
           refresh_token: adminSession.refresh_token,
         });
       } catch (_) {}
-      // signUp済みのAuthユーザーを削除試行（孤児防止）
+
       if (createdAuthUserId) {
-        // Orphan auth user may exist - consider cleanup via admin API or DB trigger
+
       }
       throw new Error(
         `ユーザー作成に失敗しました: ${error.message}`
@@ -216,7 +166,6 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
   }
 
-  /** 既存ユーザーの情報を更新する */
   async updateUser(
     user: User,
     updates: {
@@ -240,7 +189,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
     if (updates.email) {
       updateData['real_email'] = updates.email;
-      // 実メールアカウントをSupabase Authに作成
+
       if (updates.password) {
         await this.createSecondaryEmailAccount(user, updates.email, updates.password);
       }
@@ -256,9 +205,8 @@ export class SupabaseAuthAdapter implements IAuthService {
 
     if (error) throw error;
 
-    // パスワード変更（Supabase Auth）
     if (updates.password) {
-      // 現在ログイン中のユーザーのパスワードのみ変更可能
+
       const { data: { user: currentAuthUser } } = await supabase.auth.getUser();
       if (currentAuthUser && currentAuthUser.id === user.uid) {
         await supabase.auth.updateUser({ password: updates.password });
@@ -278,7 +226,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       }
     }
 
-    // 更新後のユーザーデータを取得
     const { data: updatedData } = await supabase
       .from("users")
       .select("*")
@@ -298,7 +245,6 @@ export class SupabaseAuthAdapter implements IAuthService {
     return undefined;
   }
 
-  /** 現在のパスワードを検証して新しいパスワードに変更する */
   async changePassword(
     currentPassword: string,
     newPassword: string
@@ -310,7 +256,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       throw new AuthError("ユーザーが認証されていません");
     }
 
-    // 現在のパスワードを検証（再ログインで確認）
     const { error: verifyError } = await supabase.auth.signInWithPassword({
       email: user.email!,
       password: currentPassword,
@@ -320,7 +265,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       throw new AuthError("現在のパスワードが正しくありません");
     }
 
-    // パスワードを更新
     const { error: updateError } = await supabase.auth.updateUser({
       password: newPassword,
     });
@@ -329,7 +273,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       throw new Error(`パスワード変更に失敗しました: ${updateError.message}`);
     }
 
-    // DB側のハッシュも更新
     const { AESEncryption } = await import(
       "@/common/common-utils/security/encryptionUtils"
     );
@@ -343,7 +286,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       .eq("uid", user.id);
   }
 
-  /** 実メールアドレス用のSupabase Authアカウントを作成する */
   async createSecondaryEmailAccount(
     originalUser: {
       uid: string;
@@ -358,7 +300,6 @@ export class SupabaseAuthAdapter implements IAuthService {
   ): Promise<void> {
     const supabase = getSupabase();
 
-    // 管理者セッションを保存
     const { data: { session: adminSession } } = await supabase.auth.getSession();
 
     try {
@@ -377,7 +318,6 @@ export class SupabaseAuthAdapter implements IAuthService {
 
       if (!signUpData.user) return;
 
-      // 管理者セッションを復元
       if (adminSession) {
         await supabase.auth.setSession({
           access_token: adminSession.access_token,
@@ -390,7 +330,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       );
       const hashedPassword = AESEncryption.hashPassword(password);
 
-      // 実メールアドレス用のユーザーレコードを作成
       const userData: Record<string, unknown> = {
         uid: signUpData.user.id,
         nickname: originalUser.nickname,
@@ -410,7 +349,6 @@ export class SupabaseAuthAdapter implements IAuthService {
 
       await supabase.from("users").insert(userData);
 
-      // 元ユーザーに実メール情報を追加
       await supabase
         .from("users")
         .update({
@@ -419,7 +357,7 @@ export class SupabaseAuthAdapter implements IAuthService {
         })
         .eq("uid", originalUser.uid);
     } catch (authError: any) {
-      // 管理者セッションを復元
+
       if (adminSession) {
         try {
           await supabase.auth.setSession({
@@ -432,12 +370,10 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
   }
 
-  /** @deprecated 未使用。グループ作成フローでマスターユーザーが作成される */
   async createInitialMasterUser(): Promise<void> {
-    // no-op: セキュリティリスクのためハードコードされたデフォルト認証情報を削除
+
   }
 
-  /** OAuthプロバイダーをアカウントにリンクする */
   async linkOAuthIdentity(provider: "google" | "apple"): Promise<void> {
     const supabase = getSupabase();
     const options: { redirectTo?: string } =
@@ -448,7 +384,6 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
   }
 
-  /** 連携済みOAuthプロバイダー一覧を取得する */
   async getLinkedIdentities(): Promise<Array<{ provider: string; email?: string }>> {
     const supabase = getSupabase();
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -462,7 +397,6 @@ export class SupabaseAuthAdapter implements IAuthService {
     });
   }
 
-  /** OAuthプロバイダーのリンクを解除してreal_emailをクリアする */
   async unlinkOAuthIdentity(provider: "google" | "apple"): Promise<void> {
     const supabase = getSupabase();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -480,7 +414,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       throw new Error(`連携解除に失敗しました: ${error.message}`);
     }
 
-    // usersテーブルの real_email, oauth_provider, oauth_linked_at をクリア
     await supabase
       .from("users")
       .update({
@@ -491,48 +424,15 @@ export class SupabaseAuthAdapter implements IAuthService {
       .eq("uid", user.id);
   }
 
-  /**
-   * Calendarスコープ付きでGoogle OAuth再認証する
-   * signInWithOAuthを使用（linkIdentityはセッション破壊の問題あり）。
-   * access_type=offlineでrefresh_tokenを確実に取得。
-   */
-  async linkGoogleWithCalendarScope(): Promise<void> {
-    const supabase = getSupabase();
-    const options: {
-      scopes: string;
-      redirectTo?: string;
-      queryParams: Record<string, string>;
-    } = {
-      scopes: "https://www.googleapis.com/auth/calendar",
-      queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      };
-    if (typeof window !== "undefined") {
-      options.redirectTo = window.location.href;
-    }
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options,
-    });
-    if (error) {
-      throw new Error(`Google Calendar連携に失敗しました: ${error.message}`);
-    }
-  }
-
-  /** @deprecated useAuth()を使用すること */
   getCurrentUser(): {
     uid: string;
     email: string | null;
     displayName: string | null;
   } | null {
-    // 注意: このメソッドは同期的だが、内部でSupabase clientのセッションキャッシュに依存
-    // 新しいコードではuseAuth()フックを使用すること
+
     return null;
   }
 
-  /** 認証状態の変更を監視する */
   onAuthStateChanged(
     callback: (
       user: {

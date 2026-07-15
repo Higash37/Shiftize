@@ -1,7 +1,4 @@
-/**
- * @file SelectedDateList.types.ts
- * @description SelectedDateList のProps型定義。
- */
+
 import { ViewStyle, TextStyle } from "react-native";
 
 export interface SelectedDateListProps {

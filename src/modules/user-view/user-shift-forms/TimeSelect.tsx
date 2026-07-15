@@ -1,23 +1,4 @@
-/**
- * @file TimeSelect.tsx
- * @description 時間選択コンポーネント。単一時間選択と開始・終了時間の両モードに対応。
- *   モーダルで時間オプションをスクロール表示する。
- *
- * 【このファイルの位置づけ】
- *   user-view > user-shift-forms 配下のフォームパーツ。
- *   シフト作成・編集フォームの時間入力で使われる。
- *
- * 主な内部ロジック:
- *   - startTime/endTime が渡されたら「開始・終了」2つの選択ボタンを表示
- *   - value/onChange が渡されたら単一の選択ボタンを表示
- *   - Modal で時間リストをスクロール表示し、タップで選択
- *
- * 主要Props:
- *   - label?: ラベル（単一モード時）
- *   - value / onChange: 単一時間選択モード
- *   - startTime / endTime / onStartTimeChange / onEndTimeChange: 開始・終了モード
- *   - zIndex: z-indexの指定（重なり制御）
- */
+
 import React, { useState, useMemo } from "react";
 import {
   View,
@@ -33,12 +14,6 @@ import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { useBreakpoint } from "@/common/common-constants/Breakpoints";
 
-/**
- * TimeSelect - 時間選択コンポーネント
- *
- * 単一の時間選択と開始・終了時間の両方に対応した時間選択UIを提供します。
- * モーダルでの時間オプション表示機能を持ち、カスタマイズ可能なzIndexをサポートします。
- */
 const TimeSelect: React.FC<TimeSelectProps> = ({
   label,
   value,
@@ -57,7 +32,6 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
   const [showEndOptions, setShowEndOptions] = useState(false);
   const timeOptions = generateTimeOptions();
 
-  // 開始時間選択ハンドラ
   const handleStartSelect = (time: string) => {
     if (onStartTimeChange) {
       onStartTimeChange(time);
@@ -65,7 +39,6 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
     setShowStartOptions(false);
   };
 
-  // 終了時間選択ハンドラ
   const handleEndSelect = (time: string) => {
     if (onEndTimeChange) {
       onEndTimeChange(time);
@@ -73,7 +46,6 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
     setShowEndOptions(false);
   };
 
-  // 単一時間選択ハンドラ
   const handleSelect = (time: string) => {
     if (onChange) {
       onChange(time);
@@ -82,7 +54,6 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
     setShowEndOptions(false);
   };
 
-  // 開始・終了時間モードの場合
   if (startTime !== undefined && endTime !== undefined) {
     return (
       <View style={[styles.container, { zIndex }]}>
@@ -199,7 +170,6 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
     );
   }
 
-  // 単一時間選択モードの場合
   return (
     <View style={[styles.container, { zIndex }]}>
       <Text style={styles.label}>{label}</Text>
